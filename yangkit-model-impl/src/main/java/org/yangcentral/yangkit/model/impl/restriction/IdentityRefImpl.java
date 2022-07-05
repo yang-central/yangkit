@@ -1,0 +1,123 @@
+package org.yangcentral.yangkit.model.impl.restriction;
+
+import org.yangcentral.yangkit.base.YangContext;
+import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
+import org.yangcentral.yangkit.model.api.stmt.Base;
+import org.yangcentral.yangkit.model.api.stmt.Identity;
+import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.model.api.stmt.Typedef;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityRef {
+   private List<Base> bases = new ArrayList();
+
+   public IdentityRefImpl(YangContext context, Typedef derived) {
+      super(context, derived);
+   }
+
+   public IdentityRefImpl(YangContext context) {
+      super(context);
+   }
+
+   public List<Base> getBases() {
+      return Collections.unmodifiableList(this.bases);
+   }
+
+   public boolean addBase(Base identity) {
+      Iterator var2 = this.bases.iterator();
+
+      Base base;
+      do {
+         if (!var2.hasNext()) {
+            return this.bases.add(identity);
+         }
+
+         base = (Base)var2.next();
+      } while(!base.getArgStr().equals(identity.getArgStr()));
+
+      return false;
+   }
+
+   public boolean evaluated(QName qName) {
+      URI namespace = qName.getNamespace();
+      List<Module> modules = this.getContext().getSchemaContext().getModule(namespace);
+      if (modules.isEmpty()) {
+         return false;
+      } else {
+         Module module = (Module)modules.get(0);
+         Identity identity = module.getIdentity(qName.getLocalName());
+         if (identity == null) {
+            return false;
+         } else if (this.bases.size() == 0) {
+            return this.getDerived().getType().getRestriction().evaluated(qName);
+         } else {
+            Iterator var6 = this.bases.iterator();
+
+            Identity baseIdentity;
+            do {
+               if (!var6.hasNext()) {
+                  return true;
+               }
+
+               Base base = (Base)var6.next();
+               baseIdentity = base.getIdentity();
+            } while(null == baseIdentity || identity.isDerivedOrSelf(baseIdentity));
+
+            return false;
+         }
+      }
+   }
+
+   public List<Base> getEffectiveBases() {
+      if (this.bases.size() > 0) {
+         return this.bases;
+      } else if (this.getDerived() != null) {
+         IdentityRef anotherResriction = (IdentityRef)this.getDerived().getType().getRestriction();
+         return anotherResriction.getEffectiveBases();
+      } else {
+         return new ArrayList();
+      }
+   }
+
+   public boolean equals(Object obj) {
+      if (!(obj instanceof IdentityRef)) {
+         return false;
+      } else {
+         IdentityRefImpl another = (IdentityRefImpl)obj;
+         List<Base> thisBases = this.getEffectiveBases();
+         List<Base> anotherBases = another.getEffectiveBases();
+         if (thisBases.size() != anotherBases.size()) {
+            return false;
+         } else {
+            Iterator var5 = thisBases.iterator();
+
+            Base theSame;
+            do {
+               if (!var5.hasNext()) {
+                  return true;
+               }
+
+               Base thisBase = (Base)var5.next();
+               theSame = null;
+               Iterator var8 = anotherBases.iterator();
+
+               while(var8.hasNext()) {
+                  Base anotherBase = (Base)var8.next();
+                  if (thisBase.getIdentity().equals(anotherBase.getIdentity())) {
+                     theSame = anotherBase;
+                     break;
+                  }
+               }
+            } while(theSame != null);
+
+            return false;
+         }
+      }
+   }
+}
