@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>yangkit-parent</artifactId>
-        <groupId>org.yangcentral.yangkit</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <groupId>io.github.yang-central.yangkit</groupId>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -44,14 +44,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.yangcentral.yangkit</groupId>
+            <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-model-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
-            <groupId>org.yangcentral.yangkit</groupId>
+            <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-xpath-impl</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
