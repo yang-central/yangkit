@@ -57,3 +57,5 @@ mvn clean install
             <artifactId>yangkit-data-api</artifactId>
             <version>1.0.0</version>
         </dependency>
+## Documentation
+[javadoc](docs/apidocs)
