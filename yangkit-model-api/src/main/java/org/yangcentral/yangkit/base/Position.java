@@ -1,5 +1,10 @@
 package org.yangcentral.yangkit.base;
-
+/**
+ * Position class, it can be used to edit/get position information
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class Position {
    private String fileName;
    private Location<?> location;

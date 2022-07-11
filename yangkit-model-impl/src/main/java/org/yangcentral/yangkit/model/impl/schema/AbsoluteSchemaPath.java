@@ -17,9 +17,9 @@ public class AbsoluteSchemaPath extends SchemaPathImpl implements SchemaPath.Abs
       return true;
    }
 
-   public boolean contains(SchemaPath.Absolute another) {
+   public boolean contains(SchemaPath.Absolute path) {
       List<QName> steps = this.getPath();
-      List<QName> anotherSteps = another.getPath();
+      List<QName> anotherSteps = path.getPath();
       if (steps.size() < anotherSteps.size()) {
          return false;
       } else {
@@ -35,18 +35,18 @@ public class AbsoluteSchemaPath extends SchemaPathImpl implements SchemaPath.Abs
       }
    }
 
-   public List<QName> getRelativeSchemaPath(SchemaPath.Absolute descendent) {
-      if (null == descendent) {
+   public List<QName> getRelativeSchemaPath(SchemaPath.Absolute path) {
+      if (null == path) {
          return null;
-      } else if (!descendent.contains(this)) {
+      } else if (!path.contains(this)) {
          return null;
       } else {
          List<QName> steps = new ArrayList();
          int thisSize = this.getPath().size();
-         int descendentSie = descendent.getPath().size();
+         int descendentSie = path.getPath().size();
 
          for(int i = thisSize; i < descendentSie; ++i) {
-            steps.add((QName)descendent.getPath().get(i));
+            steps.add((QName) path.getPath().get(i));
          }
 
          return steps;

@@ -21,7 +21,7 @@ public class UnionImpl extends RestrictionImpl<Object> implements Union {
       super(context);
    }
 
-   public boolean evaluated(Object o) {
+   public boolean evaluated(Object value) {
       return false;
    }
 

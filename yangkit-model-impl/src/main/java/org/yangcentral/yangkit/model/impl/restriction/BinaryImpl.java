@@ -73,14 +73,14 @@ public class BinaryImpl extends RestrictionImpl<byte[]> implements Binary {
       return this.length != null ? (BigInteger)this.getLength().getMin() : this.getLowBound();
    }
 
-   public boolean evaluated(byte[] o) {
+   public boolean evaluated(byte[] value) {
       if (this.getLength() != null) {
-         return this.length.evaluate(BigInteger.valueOf((long)o.length));
+         return this.length.evaluate(BigInteger.valueOf((long) value.length));
       } else if (this.getDerived() != null) {
-         return this.getDerived().getType().getRestriction().evaluated(o);
+         return this.getDerived().getType().getRestriction().evaluated(value);
       } else {
          Section section = new Section(this.getHighBound(), this.getLowBound());
-         return section.evaluate(BigInteger.valueOf((long)o.length));
+         return section.evaluate(BigInteger.valueOf((long) value.length));
       }
    }
 

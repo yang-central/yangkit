@@ -1,7 +1,12 @@
 package org.yangcentral.yangkit.base;
 
 import org.yangcentral.yangkit.common.api.QName;
-
+/**
+ * define all YANG builtin keyword
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public enum YangBuiltinKeyword {
    ACTION("action", "name", false),
    ANYXML("anyxml", "name", false),
@@ -94,11 +99,10 @@ public enum YangBuiltinKeyword {
 
    public static boolean isKeyword(String keyword) {
       YangBuiltinKeyword[] keys = values();
-      YangBuiltinKeyword[] var2 = keys;
-      int var3 = keys.length;
+      int length = keys.length;
 
-      for(int var4 = 0; var4 < var3; ++var4) {
-         YangBuiltinKeyword key = var2[var4];
+      for(int i = 0; i < length; ++i) {
+         YangBuiltinKeyword key = keys[i];
          if (key.getKeyword().equals(keyword)) {
             return true;
          }
@@ -113,11 +117,10 @@ public enum YangBuiltinKeyword {
 
    public static YangBuiltinKeyword getYangKeyword(String keyword) {
       YangBuiltinKeyword[] keys = values();
-      YangBuiltinKeyword[] var2 = keys;
-      int var3 = keys.length;
+      int length = keys.length;
 
-      for(int var4 = 0; var4 < var3; ++var4) {
-         YangBuiltinKeyword key = var2[var4];
+      for(int i = 0; i < length; ++i) {
+         YangBuiltinKeyword key = keys[i];
          if (key.getKeyword().equals(keyword)) {
             return key;
          }

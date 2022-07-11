@@ -2,7 +2,13 @@ package org.yangcentral.yangkit.model.api.restriction;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
+/**
+ * The definition of section, a section contains a min value and max value. For example, the 1..10 is one section, and
+   1..max is another section
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class Section {
    private Comparable min;
    private Comparable max;
@@ -23,11 +29,28 @@ public class Section {
    public Comparable getMax() {
       return this.max;
    }
-
+   /**
+    * evaluate whether the value matches the section.
+    * @param val value
+    * @version 1.0.0
+    * @throws
+    * @return boolean true: the value matches the section(greater than or equals the min and less than or equals the max)
+    *                 false: the value doesn't match the section.
+    * @author frank feng
+    * @since 7/8/2022
+    */
    public boolean evaluate(Comparable val) {
       return val.compareTo(this.min) >= 0 && val.compareTo(this.max) <= 0;
    }
-
+   /**
+    * judge whether this section is the sub section of super section
+    * @param superSection  super section
+    * @version 1.0.0
+    * @throws
+    * @return boolean
+    * @author frank feng
+    * @since 7/8/2022
+    */
    public boolean isSubSection(Section superSection) {
       Comparable thisMin = null;
       Comparable superMin = null;

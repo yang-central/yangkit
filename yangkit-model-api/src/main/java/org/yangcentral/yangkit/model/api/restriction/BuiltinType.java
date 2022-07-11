@@ -37,7 +37,25 @@ public enum BuiltinType {
       if (null == name) {
          return false;
       } else {
-         return name.equals(BINARY.getFieldName()) || name.equals(BITS.getFieldName()) || name.equals(BOOLEAN.getFieldName()) || name.equals(DECIMAL64.getFieldName()) || name.equals(EMPTY.getFieldName()) || name.equals(ENUMERATION.getFieldName()) || name.equals(IDENTITYREF.getFieldName()) || name.equals(INSTANCEIDENTIFIER.getFieldName()) || name.equals(INT8.getFieldName()) || name.equals(INT16.getFieldName()) || name.equals(INT32.getFieldName()) || name.equals(INT64.getFieldName()) || name.equals(LEAFREF.getFieldName()) || name.equals(STRING.getFieldName()) || name.equals(UINT8.getFieldName()) || name.equals(UINT16.getFieldName()) || name.equals(UINT32.getFieldName()) || name.equals(UINT64.getFieldName()) || name.equals(UNION.getFieldName());
+         return name.equals(BINARY.getFieldName())
+                 || name.equals(BITS.getFieldName())
+                 || name.equals(BOOLEAN.getFieldName())
+                 || name.equals(DECIMAL64.getFieldName())
+                 || name.equals(EMPTY.getFieldName())
+                 || name.equals(ENUMERATION.getFieldName())
+                 || name.equals(IDENTITYREF.getFieldName())
+                 || name.equals(INSTANCEIDENTIFIER.getFieldName())
+                 || name.equals(INT8.getFieldName())
+                 || name.equals(INT16.getFieldName())
+                 || name.equals(INT32.getFieldName())
+                 || name.equals(INT64.getFieldName())
+                 || name.equals(LEAFREF.getFieldName())
+                 || name.equals(STRING.getFieldName())
+                 || name.equals(UINT8.getFieldName())
+                 || name.equals(UINT16.getFieldName())
+                 || name.equals(UINT32.getFieldName())
+                 || name.equals(UINT64.getFieldName())
+                 || name.equals(UNION.getFieldName());
       }
    }
 

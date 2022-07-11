@@ -34,29 +34,29 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
       super(context);
    }
 
-   public boolean evaluated(String s) {
+   public boolean evaluated(String value) {
       if (this.patterns.size() > 0) {
          Iterator var4 = this.patterns.iterator();
 
          while(var4.hasNext()) {
             Pattern pattern = (Pattern)var4.next();
             if (pattern.getModifier() != null) {
-               if (!pattern.getPattern().matcher(s).matches()) {
+               if (!pattern.getPattern().matcher(value).matches()) {
                   return true;
                }
-            } else if (pattern.getPattern().matcher(s).matches()) {
+            } else if (pattern.getPattern().matcher(value).matches()) {
                return true;
             }
          }
 
          return false;
       } else if (this.getLength() != null) {
-         return this.length.evaluate(BigInteger.valueOf((long)s.length()));
+         return this.length.evaluate(BigInteger.valueOf((long) value.length()));
       } else if (this.getDerived() != null) {
-         return this.getDerived().getType().getRestriction().evaluated(s);
+         return this.getDerived().getType().getRestriction().evaluated(value);
       } else {
          Section section = new Section(this.getHighBound(), this.getLowBound());
-         return section.evaluate(BigInteger.valueOf((long)s.length()));
+         return section.evaluate(BigInteger.valueOf((long) value.length()));
       }
    }
 

@@ -204,7 +204,7 @@ public class YangWriter {
 
          if (element instanceof YangComment) {
             YangComment comment = (YangComment)element;
-            if (comment.isMulitiComment()) {
+            if (comment.isMultiComment()) {
                sb.append("/*");
                sb.append(comment.getComment());
                sb.append("*/");

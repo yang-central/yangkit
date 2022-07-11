@@ -34,7 +34,7 @@ public class YinParser {
       YangComment yangComment = new YangComment();
       yangComment.setComment(comment.getText());
       if (comment.getText().contains("\n")) {
-         yangComment.setMulitiComment(true);
+         yangComment.setMultiComment(true);
       }
 
       yangComment.setElementPosition(new Position(fileName, new XPathLocation(comment.getUniquePath())));

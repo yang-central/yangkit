@@ -44,18 +44,18 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
       return false;
    }
 
-   public boolean evaluated(QName qName) {
-      URI namespace = qName.getNamespace();
+   public boolean evaluated(QName value) {
+      URI namespace = value.getNamespace();
       List<Module> modules = this.getContext().getSchemaContext().getModule(namespace);
       if (modules.isEmpty()) {
          return false;
       } else {
          Module module = (Module)modules.get(0);
-         Identity identity = module.getIdentity(qName.getLocalName());
+         Identity identity = module.getIdentity(value.getLocalName());
          if (identity == null) {
             return false;
          } else if (this.bases.size() == 0) {
-            return this.getDerived().getType().getRestriction().evaluated(qName);
+            return this.getDerived().getType().getRestriction().evaluated(value);
          } else {
             Iterator var6 = this.bases.iterator();
 

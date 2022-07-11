@@ -3,7 +3,12 @@ package org.yangcentral.yangkit.model.api.schema;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
+/**
+ *  the defintion of yang module description ,it is used in yang library
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class YangModuleDescription {
    private ModuleId moduleId;
    private List<ModuleId> subModules = new ArrayList();
@@ -46,26 +51,26 @@ public class YangModuleDescription {
       if (this.getModuleId().equals(moduleId)) {
          return true;
       } else {
-         Iterator var2 = this.subModules.iterator();
+         Iterator iterator = this.subModules.iterator();
 
          ModuleId subModule;
          do {
-            if (!var2.hasNext()) {
-               var2 = this.getDeviations().iterator();
+            if (!iterator.hasNext()) {
+               iterator = this.getDeviations().iterator();
 
                String deviation;
                do {
-                  if (!var2.hasNext()) {
+                  if (!iterator.hasNext()) {
                      return false;
                   }
 
-                  deviation = (String)var2.next();
+                  deviation = (String)iterator.next();
                } while(!deviation.equals(moduleId.getModuleName()));
 
                return true;
             }
 
-            subModule = (ModuleId)var2.next();
+            subModule = (ModuleId)iterator.next();
          } while(!subModule.equals(moduleId));
 
          return true;

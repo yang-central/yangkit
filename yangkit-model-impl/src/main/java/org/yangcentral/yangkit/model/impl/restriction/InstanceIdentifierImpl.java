@@ -56,7 +56,7 @@ public class InstanceIdentifierImpl extends RestrictionImpl<YangAbsoluteLocation
       }
    }
 
-   public boolean evaluated(YangAbsoluteLocationPath yangAbsoluteLocationPath) {
+   public boolean evaluated(YangAbsoluteLocationPath value) {
       return true;
    }
 

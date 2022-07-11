@@ -647,7 +647,7 @@ public class YangParser {
                   if ('/'== YangStr.charAt(i+1)){
                      env.setCurPos(commentBeginPos);
                      YangComment comment = new YangComment();
-                     comment.setMulitiComment(true);
+                     comment.setMultiComment(true);
                      comment.setComment(YangStr.substring(commentBeginPos, i));
                      comment.setElementPosition(new Position(env.getFilename(),
                              new LineColumnLocation(env.getCurLine(),env.getCurColumn())));
@@ -677,7 +677,7 @@ public class YangParser {
                if (true == isInSingleComments) {
                   env.setCurPos(commentBeginPos);
                   YangComment comment = new YangComment();
-                  comment.setMulitiComment(false);
+                  comment.setMultiComment(false);
                   comment.setElementPosition(new Position(env.getFilename(),
                           new LineColumnLocation(env.getCurLine(),env.getCurColumn())));
                   comment.setComment(YangStr.substring(commentBeginPos, i));

@@ -116,19 +116,19 @@ public class EnumerationImpl extends RestrictionImpl<String> implements Enumerat
       return false;
    }
 
-   public boolean evaluated(String s) {
+   public boolean evaluated(String value) {
       if (this.enums.size() > 0) {
          Iterator var2 = this.enums.iterator();
 
          while(var2.hasNext()) {
             YangEnum yangEnum = (YangEnum)var2.next();
-            if (s.equals(yangEnum.getArgStr())) {
+            if (value.equals(yangEnum.getArgStr())) {
                return true;
             }
          }
       }
 
-      return this.getDerived() != null ? this.getDerived().getType().getRestriction().evaluated(s) : false;
+      return this.getDerived() != null ? this.getDerived().getType().getRestriction().evaluated(value) : false;
    }
 
    public List<YangEnum> getEffectiveEnums() {

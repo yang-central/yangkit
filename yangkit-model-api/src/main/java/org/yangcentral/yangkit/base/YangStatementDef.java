@@ -4,7 +4,12 @@ import org.yangcentral.yangkit.common.api.QName;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * yang statement definition, include keyword,argument,is-yinelement,and cardinalities of sub statements
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class YangStatementDef {
    private QName keyword;
    private String argument;
@@ -22,7 +27,6 @@ public class YangStatementDef {
    }
 
    public YangStatementDef(QName keyword, String argument) {
-      this.yinElement = false;
       this.subStatementInfos = new ConcurrentHashMap();
       this.keyword = keyword;
       this.argument = argument;
@@ -30,13 +34,21 @@ public class YangStatementDef {
    }
 
    public YangStatementDef(QName keyword, String argument, boolean yinElement) {
-      this.yinElement = false;
       this.subStatementInfos = new ConcurrentHashMap();
       this.keyword = keyword;
       this.argument = argument;
       this.yinElement = yinElement;
    }
-
+/**
+ * add sub statement info including keyword and cardinality
+ * @param subStatement the qname of sub statment's keyword
+ * @param cardinality  the cardinality of sub statement
+ * @version 1.0.0
+ * @throws
+ * @return boolean
+ * @author frank feng
+ * @since 7/8/2022
+ */
    public boolean addSubStatementInfo(QName subStatement, Cardinality cardinality) {
       if (null != subStatement && cardinality != null) {
          if (null != this.getSubStatementCardinality(subStatement)) {
@@ -69,7 +81,15 @@ public class YangStatementDef {
    public Map<QName, Cardinality> getSubStatementInfos() {
       return this.subStatementInfos;
    }
-
+/**
+ * get substatement cardinality according keyword
+ * @param subStatement qname of sub statement's keyword
+ * @version 1.0.0
+ * @throws
+ * @return org.yangcentral.yangkit.base.Cardinality
+ * @author frank feng
+ * @since 7/8/2022
+ */
    public Cardinality getSubStatementCardinality(QName subStatement) {
       Iterator<Map.Entry<QName, Cardinality>> it = this.subStatementInfos.entrySet().iterator();
 

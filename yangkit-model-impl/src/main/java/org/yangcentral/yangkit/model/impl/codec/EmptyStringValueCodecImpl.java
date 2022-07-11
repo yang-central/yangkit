@@ -7,15 +7,15 @@ import org.yangcentral.yangkit.model.api.restriction.Restriction;
 import org.apache.commons.lang3.ObjectUtils;
 
 public class EmptyStringValueCodecImpl extends StringValueCodecImpl<ObjectUtils.Null> implements EmptyStringValueCodec {
-   public ObjectUtils.Null deserialize(Restriction<ObjectUtils.Null> restriction, String s) throws YangCodecException {
-      if (s != null && s.length() <= 0) {
+   public ObjectUtils.Null deserialize(Restriction<ObjectUtils.Null> restriction, String input) throws YangCodecException {
+      if (input != null && input.length() <= 0) {
          return ObjectUtils.NULL;
       } else {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       }
    }
 
-   public String serialize(Restriction<ObjectUtils.Null> restriction, ObjectUtils.Null s) throws YangCodecException {
+   public String serialize(Restriction<ObjectUtils.Null> restriction, ObjectUtils.Null output) throws YangCodecException {
       return "";
    }
 }

@@ -1,16 +1,21 @@
 package org.yangcentral.yangkit.base;
-
+/**
+ * the class for comment of YANG file, support sing line comment and multiline comment
+ * @version 1.0.
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class YangComment implements YangElement {
-   private boolean isMulitiComment;
+   private boolean isMultiComment;
    private String comment;
    private Position pos;
 
-   public boolean isMulitiComment() {
-      return this.isMulitiComment;
+   public boolean isMultiComment() {
+      return this.isMultiComment;
    }
 
-   public void setMulitiComment(boolean isMulitiComment) {
-      this.isMulitiComment = isMulitiComment;
+   public void setMultiComment(boolean isMultiComment) {
+      this.isMultiComment = isMultiComment;
    }
 
    public String getComment() {

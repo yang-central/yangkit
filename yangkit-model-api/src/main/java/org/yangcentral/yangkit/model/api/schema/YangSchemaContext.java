@@ -10,7 +10,16 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+/**
+ * the interface of yang schema context. a schema context contains all yang modules including import-only yang modules.
+ * when a series of yang files are parsed to yang modules,these yang modules will be added to a yang schema context. user can
+ * validate the yang schema context by calling validate method.
+ * @version 1.0.0
+ * @throws
+ * @return
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public interface YangSchemaContext extends SchemaNodeContainer {
    List<Module> getModules();
 

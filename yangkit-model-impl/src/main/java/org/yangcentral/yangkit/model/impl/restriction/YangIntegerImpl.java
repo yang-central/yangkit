@@ -36,14 +36,14 @@ public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionI
       super(context);
    }
 
-   public boolean evaluated(T t) {
+   public boolean evaluated(T value) {
       if (this.getRange() != null) {
-         return this.getRange().evaluate(t);
+         return this.getRange().evaluate(value);
       } else if (this.getDerived() == null) {
          Section section = new Section(this.getHighBound(), this.getLowBound());
-         return section.evaluate(t);
+         return section.evaluate(value);
       } else {
-         return this.getDerived().getType().getRestriction().evaluated(t);
+         return this.getDerived().getType().getRestriction().evaluated(value);
       }
    }
 

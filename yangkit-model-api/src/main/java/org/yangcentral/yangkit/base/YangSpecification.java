@@ -4,7 +4,12 @@ import org.yangcentral.yangkit.common.api.QName;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
+/**
+ * define the yang specification for YANG1.0(RFC6020) and YANG1.1(RFC7950)
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class YangSpecification {
    private String version;
    private Map<QName, YangStatementDef> statementDefs = new HashMap();
@@ -28,7 +33,15 @@ public class YangSpecification {
       }
 
    }
-
+/**
+ * get yang statement definition according to keyword
+ * @param keyword the qname of yang statement's keyword
+ * @version 1.0.0
+ * @throws
+ * @return org.yangcentral.yangkit.base.YangStatementDef
+ * @author frank feng
+ * @since 7/8/2022
+ */
    public YangStatementDef getStatementDef(QName keyword) {
       Iterator<Map.Entry<QName, YangStatementDef>> it = this.statementDefs.entrySet().iterator();
 

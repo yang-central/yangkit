@@ -2,7 +2,12 @@ package org.yangcentral.yangkit.model.api.schema;
 
 import java.net.URI;
 import java.util.Objects;
-
+/**
+ * the definition of module id information including name, revision,location,etc.
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class ModuleId {
    private String moduleName;
    private String revision;

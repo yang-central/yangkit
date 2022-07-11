@@ -2,15 +2,6 @@ package org.yangcentral.yangkit.base;
 
 import org.yangcentral.yangkit.common.api.Namespace;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.Extension;
-import org.yangcentral.yangkit.model.api.stmt.Feature;
-import org.yangcentral.yangkit.model.api.stmt.Grouping;
-import org.yangcentral.yangkit.model.api.stmt.Identity;
-import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.Typedef;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangVersion;
 import org.yangcentral.yangkit.model.api.stmt.*;
 
 import java.util.ArrayList;
@@ -18,7 +9,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * class for yang context, it provides context information for every yang statement
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class YangContext {
    private YangSchemaContext schemaContext;
    private Module curModule;
@@ -37,6 +33,15 @@ public class YangContext {
       this.schemaContext = schemaContext;
       this.curModule = curModule;
    }
+   /**
+    * construct context from parent
+    * @param parent parent context
+    * @version 1.0.0
+    * @throws
+    * @return
+    * @author frank feng
+    * @since 7/8/2022
+    */
 
    public YangContext(YangContext parent) {
       this.schemaContext = parent.getSchemaContext();
@@ -86,40 +91,56 @@ public class YangContext {
    public void merge(YangContext other) {
       this.mergedContexts.add(other);
    }
-
+/**
+ * get typedef from yang context, if not found in local context, it will search from merged contexts.
+ * @param name typedef name
+ * @version 1.0.0
+ * @throws
+ * @return org.yangcentral.yangkit.model.api.stmt.Typedef
+ * @author frank feng
+ * @since 7/8/2022
+ */
    public Typedef getTypedef(String name) {
       if (this.typedefIdentifierCache.containsKey(name)) {
-         return (Typedef)this.typedefIdentifierCache.get(name);
+         return this.typedefIdentifierCache.get(name);
       } else {
-         Iterator var2 = this.mergedContexts.iterator();
+         Iterator contextIterator = this.mergedContexts.iterator();
 
          Typedef typedef;
          do {
-            if (!var2.hasNext()) {
+            if (!contextIterator.hasNext()) {
                return null;
             }
 
-            YangContext mergedContext = (YangContext)var2.next();
+            YangContext mergedContext = (YangContext)contextIterator.next();
             typedef = mergedContext.getTypedef(name);
          } while(typedef == null);
 
          return typedef;
       }
    }
-
+   /**
+    * get grouping from yang context, if not found in local context, it will search from merged contexts.
+    * @param name typedef name
+    * @version 1.0.0
+    * @throws
+    * @return org.yangcentral.yangkit.model.api.stmt.Grouping
+    * @author frank feng
+    * @since 7/8/2022
+    */
    public Grouping getGrouping(String name) {
       if (this.groupingIdentifierCache.containsKey(name)) {
-         return (Grouping)this.groupingIdentifierCache.get(name);
+         return this.groupingIdentifierCache.get(name);
       } else {
-         Iterator var2 = this.mergedContexts.iterator();
+         Iterator contextIterator = this.mergedContexts.iterator();
 
          Grouping grouping;
          do {
-            if (!var2.hasNext()) {
+            if (!contextIterator.hasNext()) {
                return null;
             }
 
-            YangContext mergedContext = (YangContext)var2.next();
+            YangContext mergedContext = (YangContext)contextIterator.next();
             grouping = mergedContext.getGrouping(name);
          } while(grouping == null);
 

@@ -1,7 +1,12 @@
 package org.yangcentral.yangkit.base;
 
 import org.yangcentral.yangkit.common.api.exception.Severity;
-
+/**
+ *
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/7/2022
+ */
 public enum ErrorCode {
    ACTION_IN_DATATREE("action node MUST be tied in data tree,"),
    ACTION_IN_LIST_NO_KEY("action node's ancestor node contains list without key,"),

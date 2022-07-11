@@ -87,7 +87,7 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
       }
    }
 
-   public boolean evaluated(BigDecimal bigDecimal) {
+   public boolean evaluated(BigDecimal value) {
       if (this.getRange() != null) {
          Iterator var2 = this.getRange().getSections().iterator();
 
@@ -98,11 +98,11 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
             }
 
             section = (Section)var2.next();
-         } while(bigDecimal.compareTo((BigDecimal)section.getMin()) < 0 || bigDecimal.compareTo((BigDecimal)section.getMax()) > 0);
+         } while(value.compareTo((BigDecimal)section.getMin()) < 0 || value.compareTo((BigDecimal)section.getMax()) > 0);
 
          return true;
       } else {
-         return bigDecimal.compareTo(this.getRangeMin()) >= 0 && bigDecimal.compareTo(this.getRangeMax()) <= 0;
+         return value.compareTo(this.getRangeMin()) >= 0 && value.compareTo(this.getRangeMax()) <= 0;
       }
    }
 

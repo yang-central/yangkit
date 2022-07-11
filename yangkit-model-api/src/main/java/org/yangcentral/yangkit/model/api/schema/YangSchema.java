@@ -3,7 +3,12 @@ package org.yangcentral.yangkit.model.api.schema;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
+/**
+ * the definition of yang schema, a yang schema maybe contains one or more module sets,it's used in yang library.
+ * @version 1.0.0
+ * @author frank feng
+ * @since 7/8/2022
+ */
 public class YangSchema {
    private String name;
    private List<ModuleSet> moduleSets = new ArrayList();
@@ -25,15 +30,15 @@ public class YangSchema {
    }
 
    public boolean match(ModuleId moduleId) {
-      Iterator var2 = this.moduleSets.iterator();
+      Iterator moduleSetIterator = this.moduleSets.iterator();
 
       ModuleSet moduleSet;
       do {
-         if (!var2.hasNext()) {
+         if (!moduleSetIterator.hasNext()) {
             return false;
          }
 
-         moduleSet = (ModuleSet)var2.next();
+         moduleSet = (ModuleSet)moduleSetIterator.next();
       } while(!moduleSet.match(moduleId));
 
       return true;
