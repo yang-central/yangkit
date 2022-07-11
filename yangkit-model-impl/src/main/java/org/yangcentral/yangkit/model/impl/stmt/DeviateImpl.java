@@ -1041,8 +1041,8 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       return this.target;
    }
 
-   public void setTarget(SchemaNode schemaNode) {
-      this.target = schemaNode;
+   public void setTarget(SchemaNode target) {
+      this.target = target;
    }
 
    public Config getConfig() {

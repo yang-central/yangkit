@@ -260,7 +260,7 @@ public abstract class YangStatementImpl implements YangStatement {
       }
    }
 
-   public synchronized ValidatorResult build(BuildPhase phase) {
+   public synchronized ValidatorResult build(BuildPhase buildPhase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (this.isBuilt()) {
          return validatorResultBuilder.build();
@@ -287,19 +287,19 @@ public abstract class YangStatementImpl implements YangStatement {
             return validatorResultBuilder.build();
          } else {
             ValidatorResult selfResult;
-            if (parserPolicy.getPhases().contains(phase)) {
-               if (this.phaseResultMap.containsKey(phase)) {
-                  validatorResultBuilder.merge((ValidatorResult)this.phaseResultMap.get(phase));
+            if (parserPolicy.getPhases().contains(buildPhase)) {
+               if (this.phaseResultMap.containsKey(buildPhase)) {
+                  validatorResultBuilder.merge((ValidatorResult)this.phaseResultMap.get(buildPhase));
                } else {
-                  this.buildPhase = phase;
-                  selfResult = this.buildSelf(phase);
-                  this.phaseResultMap.put(phase, selfResult);
+                  this.buildPhase = buildPhase;
+                  selfResult = this.buildSelf(buildPhase);
+                  this.phaseResultMap.put(buildPhase, selfResult);
                   this.setValidateResult(selfResult);
                   validatorResultBuilder.merge(selfResult);
                }
             }
 
-            validatorResultBuilder.merge(this.buildChildren(phase));
+            validatorResultBuilder.merge(this.buildChildren(buildPhase));
             this.isBuilding = false;
             selfResult = validatorResultBuilder.build();
             return selfResult;
@@ -363,13 +363,13 @@ public abstract class YangStatementImpl implements YangStatement {
       return this.validatorResult;
    }
 
-   public void setValidateResult(ValidatorResult validateResult) {
+   public void setValidateResult(ValidatorResult validatorResult) {
       if (this.validatorResult == null) {
-         this.validatorResult = validateResult;
+         this.validatorResult = validatorResult;
       } else {
          ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
          validatorResultBuilder.merge(this.validatorResult);
-         validatorResultBuilder.merge(validateResult);
+         validatorResultBuilder.merge(validatorResult);
          this.validatorResult = validatorResultBuilder.build();
       }
    }
@@ -526,8 +526,8 @@ public abstract class YangStatementImpl implements YangStatement {
       return this.parentStmt;
    }
 
-   public void setParentStatement(YangStatement statement) {
-      this.parentStmt = statement;
+   public void setParentStatement(YangStatement parentStatement) {
+      this.parentStmt = parentStatement;
    }
 
    protected void clear() {
@@ -780,8 +780,8 @@ public abstract class YangStatementImpl implements YangStatement {
       return this.isError;
    }
 
-   public void setErrorStatement(boolean b) {
-      this.isError = b;
+   public void setErrorStatement(boolean errorStatement) {
+      this.isError = errorStatement;
    }
 
    public List<YangStatement> getEffectiveSubStatements() {

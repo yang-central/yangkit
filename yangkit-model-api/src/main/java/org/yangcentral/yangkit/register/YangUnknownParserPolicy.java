@@ -20,15 +20,15 @@ public class YangUnknownParserPolicy extends YangStatementParserPolicy {
    }
 
    public boolean addParentStatementInfo(YangParentStatementInfo parentStatementInfo) {
-      Iterator var2 = this.parentStatements.iterator();
+      Iterator parentStatementInfoIterator = this.parentStatements.iterator();
 
       YangParentStatementInfo parent;
       do {
-         if (!var2.hasNext()) {
+         if (!parentStatementInfoIterator.hasNext()) {
             return this.parentStatements.add(parentStatementInfo);
          }
 
-         parent = (YangParentStatementInfo)var2.next();
+         parent = (YangParentStatementInfo)parentStatementInfoIterator.next();
       } while(parent.getParentYangKeyword() != parentStatementInfo.getParentYangKeyword());
 
       return false;
@@ -39,15 +39,15 @@ public class YangUnknownParserPolicy extends YangStatementParserPolicy {
    }
 
    public YangParentStatementInfo getParentStatement(QName yangKeyword) {
-      Iterator var2 = this.parentStatements.iterator();
+      Iterator parentStatementInfoIterator = this.parentStatements.iterator();
 
       YangParentStatementInfo parentStatementInfo;
       do {
-         if (!var2.hasNext()) {
+         if (!parentStatementInfoIterator.hasNext()) {
             return null;
          }
 
-         parentStatementInfo = (YangParentStatementInfo)var2.next();
+         parentStatementInfo = (YangParentStatementInfo)parentStatementInfoIterator.next();
       } while(!parentStatementInfo.getParentYangKeyword().equals(yangKeyword));
 
       return parentStatementInfo;

@@ -57,8 +57,8 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       this.schemaNodeContainer.setYangContext(context);
    }
 
-   public Action getAction(String name) {
-      return this.actionContainer.getAction(name);
+   public Action getAction(String actionName) {
+      return this.actionContainer.getAction(actionName);
    }
 
    public List<Action> getActions() {
@@ -85,8 +85,8 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       return this.target;
    }
 
-   public void setTarget(SchemaNode schemaNode) {
-      this.target = schemaNode;
+   public void setTarget(SchemaNode target) {
+      this.target = target;
    }
 
    public SchemaPath getTargetPath() {

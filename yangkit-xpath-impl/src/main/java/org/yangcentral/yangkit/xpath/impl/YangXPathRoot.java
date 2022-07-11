@@ -76,7 +76,7 @@ class YangXPathRoot implements SchemaNodeContainer {
       return (new ValidatorResultBuilder()).build();
    }
 
-   public ValidatorResult addSchemaNodeChildren(List<SchemaNode> list) {
+   public ValidatorResult addSchemaNodeChildren(List<SchemaNode> schemaNodes) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Iterator var3 = this.schemaNodes.iterator();
 

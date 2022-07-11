@@ -56,8 +56,8 @@ public class ImportImpl extends YangStatementImpl implements Import {
       return this.isReferenced;
    }
 
-   public void setReferenced(boolean b) {
-      this.isReferenced = b;
+   public void setReferenced(boolean referenced) {
+      this.isReferenced = referenced;
    }
 
    public Description getDescription() {

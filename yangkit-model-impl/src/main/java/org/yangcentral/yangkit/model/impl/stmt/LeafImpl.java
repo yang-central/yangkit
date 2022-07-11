@@ -54,8 +54,8 @@ public class LeafImpl extends TypedDataNodeImpl implements Leaf {
       return this.key;
    }
 
-   public void setKey(boolean bool) {
-      this.key = bool;
+   public void setKey(boolean key) {
+      this.key = key;
    }
 
    public Mandatory getMandatory() {

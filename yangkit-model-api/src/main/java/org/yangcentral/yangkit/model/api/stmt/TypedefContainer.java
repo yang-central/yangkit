@@ -5,7 +5,7 @@ import java.util.List;
 public interface TypedefContainer {
    List<Typedef> getTypedefs();
 
-   Typedef getTypedef(int var1);
+   Typedef getTypedef(int index);
 
-   Typedef getTypedef(String var1);
+   Typedef getTypedef(String name);
 }

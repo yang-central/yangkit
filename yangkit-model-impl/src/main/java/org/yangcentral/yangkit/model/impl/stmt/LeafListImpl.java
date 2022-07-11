@@ -56,7 +56,7 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
       this.defaults = defaults;
    }
 
-   public Default getDefault(String val) {
+   public Default getDefault(String value) {
       Iterator var2 = this.defaults.iterator();
 
       Default defl;
@@ -66,7 +66,7 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
          }
 
          defl = (Default)var2.next();
-      } while(!defl.getArgStr().equals(val));
+      } while(!defl.getArgStr().equals(value));
 
       return defl;
    }
@@ -103,12 +103,12 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
       return validatorResultBuilder.build();
    }
 
-   public void removeDefault(String val) {
+   public void removeDefault(String value) {
       int idx = -1;
 
       for(int i = 0; i < this.defaults.size(); ++i) {
          Default def = (Default)this.defaults.get(i);
-         if (def != null && def.getArgStr().equals(val)) {
+         if (def != null && def.getArgStr().equals(value)) {
             idx = i;
             break;
          }

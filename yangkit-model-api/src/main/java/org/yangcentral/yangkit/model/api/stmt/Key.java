@@ -6,7 +6,7 @@ import java.util.List;
 public interface Key extends YangBuiltinStatement {
    List<Leaf> getkeyNodes();
 
-   boolean addKeyNode(Leaf var1);
+   boolean addKeyNode(Leaf keyNode);
 
-   Leaf getKeyNode(QName var1);
+   Leaf getKeyNode(QName identifier);
 }

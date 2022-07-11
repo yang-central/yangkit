@@ -74,8 +74,8 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
       return this.targetNode;
    }
 
-   public void setTarget(SchemaNode schemaNode) {
-      this.targetNode = schemaNode;
+   public void setTarget(SchemaNode target) {
+      this.targetNode = target;
    }
 
    public SchemaPath getTargetPath() {

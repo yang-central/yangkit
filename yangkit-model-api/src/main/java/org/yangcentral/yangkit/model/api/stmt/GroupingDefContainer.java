@@ -5,5 +5,5 @@ import java.util.List;
 public interface GroupingDefContainer {
    List<Grouping> getGroupings();
 
-   Grouping getGrouping(String var1);
+   Grouping getGrouping(String name);
 }

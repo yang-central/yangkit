@@ -26,31 +26,31 @@ public interface Module extends YangBuiltinStatement, MetaDef, SchemaNodeContain
 
    List<Extension> getExtensions();
 
-   Extension getExtension(String var1);
+   Extension getExtension(String name);
 
    List<Feature> getFeatures();
 
-   Feature getFeature(String var1);
+   Feature getFeature(String name);
 
    List<Identity> getIdentities();
 
-   Identity getIdentity(String var1);
+   Identity getIdentity(String name);
 
    List<Augment> getAugments();
 
    List<Rpc> getRpcs();
 
-   Rpc getRpc(String var1);
+   Rpc getRpc(String name);
 
    List<Deviation> getDeviations();
 
-   Optional<ModuleId> findModuleByPrefix(String var1);
+   Optional<ModuleId> findModuleByPrefix(String prefix);
 
-   Import getImportByPrefix(String var1);
+   Import getImportByPrefix(String prefix);
 
    Map<String, ModuleId> getPrefixes();
 
-   boolean isSelfPrefix(String var1);
+   boolean isSelfPrefix(String prefix);
 
    String getSelfPrefix();
 

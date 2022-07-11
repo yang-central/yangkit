@@ -6,7 +6,7 @@ import java.util.List;
 public interface NotificationContainer {
    List<Notification> getNotifications();
 
-   Notification getNotification(String var1);
+   Notification getNotification(String name);
 
-   ValidatorResult addNotification(Notification var1);
+   ValidatorResult addNotification(Notification notification);
 }

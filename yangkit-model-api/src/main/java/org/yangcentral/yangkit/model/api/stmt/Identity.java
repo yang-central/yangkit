@@ -5,9 +5,9 @@ import java.util.List;
 public interface Identity extends Entity, IfFeatureSupport, Identifiable {
    List<Base> getBases();
 
-   Base getBase(String var1);
+   Base getBase(String name);
 
-   boolean isDerived(Identity var1);
+   boolean isDerived(Identity other);
 
-   boolean isDerivedOrSelf(Identity var1);
+   boolean isDerivedOrSelf(Identity other);
 }

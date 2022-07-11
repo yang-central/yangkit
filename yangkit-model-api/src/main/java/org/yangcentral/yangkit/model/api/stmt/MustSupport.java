@@ -4,19 +4,19 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import java.util.List;
 
 public interface MustSupport {
-   Must getMust(int var1);
+   Must getMust(int index);
 
-   Must getMust(String var1);
+   Must getMust(String condition);
 
    List<Must> getMusts();
 
-   void setMusts(List<Must> var1);
+   void setMusts(List<Must> musts);
 
-   ValidatorResult addMust(Must var1);
+   ValidatorResult addMust(Must must);
 
-   void removeMust(String var1);
+   void removeMust(String condition);
 
-   ValidatorResult updateMust(Must var1);
+   ValidatorResult updateMust(Must must);
 
    ValidatorResult validateMusts();
 }

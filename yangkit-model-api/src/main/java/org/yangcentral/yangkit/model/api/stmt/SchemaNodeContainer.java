@@ -7,13 +7,13 @@ import java.util.List;
 public interface SchemaNodeContainer {
    List<SchemaNode> getSchemaNodeChildren();
 
-   ValidatorResult addSchemaNodeChild(SchemaNode var1);
+   ValidatorResult addSchemaNodeChild(SchemaNode schemaNode);
 
-   ValidatorResult addSchemaNodeChildren(List<SchemaNode> var1);
+   ValidatorResult addSchemaNodeChildren(List<SchemaNode> schemaNodes);
 
-   SchemaNode getSchemaNodeChild(QName var1);
+   SchemaNode getSchemaNodeChild(QName identifier);
 
-   DataNode getDataNodeChild(QName var1);
+   DataNode getDataNodeChild(QName identifier);
 
    List<DataNode> getDataNodeChildren();
 
@@ -21,9 +21,9 @@ public interface SchemaNodeContainer {
       return false;
    }
 
-   void removeSchemaNodeChild(QName var1);
+   void removeSchemaNodeChild(QName identifier);
 
-   void removeSchemaNodeChild(SchemaNode var1);
+   void removeSchemaNodeChild(SchemaNode schemaNode);
 
    SchemaNode getMandatoryDescendant();
 }

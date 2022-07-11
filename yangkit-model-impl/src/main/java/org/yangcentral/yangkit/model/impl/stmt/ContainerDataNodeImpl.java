@@ -47,8 +47,8 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       this.notificationContainer.setYangContext(context);
    }
 
-   public Action getAction(String name) {
-      return this.actionContainer.getAction(name);
+   public Action getAction(String actionName) {
+      return this.actionContainer.getAction(actionName);
    }
 
    public List<Action> getActions() {

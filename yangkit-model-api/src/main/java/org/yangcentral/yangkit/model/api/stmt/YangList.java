@@ -8,11 +8,11 @@ public interface YangList extends MultiInstancesDataNode, ContainerDataNode {
 
    List<Unique> getUniques();
 
-   Unique getUnique(String var1);
+   Unique getUnique(String unique);
 
-   ValidatorResult addUnique(Unique var1);
+   ValidatorResult addUnique(Unique unique);
 
-   void removeUnique(String var1);
+   void removeUnique(String unique);
 
-   ValidatorResult updateUnique(Unique var1);
+   ValidatorResult updateUnique(Unique unique);
 }

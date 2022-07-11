@@ -52,8 +52,8 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       return this.parent;
    }
 
-   public void setParent(Choice choice) {
-      this.parent = choice;
+   public void setParent(Choice parent) {
+      this.parent = parent;
    }
 
    public List<DataDefinition> getDataDefChildren() {

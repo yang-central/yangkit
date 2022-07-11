@@ -45,8 +45,8 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       super(argStr);
    }
 
-   public Action getAction(String name) {
-      return this.actionContainer.getAction(name);
+   public Action getAction(String actionName) {
+      return this.actionContainer.getAction(actionName);
    }
 
    public List<Action> getActions() {
@@ -150,7 +150,7 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       return YangBuiltinKeyword.GROUPING.getQName();
    }
 
-   public synchronized ValidatorResult build(BuildPhase phase) {
+   public synchronized ValidatorResult build(BuildPhase buildPhase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (this.isBuilding) {
          ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
@@ -163,8 +163,8 @@ public class GroupingImpl extends EntityImpl implements Grouping {
          return validatorResultBuilder.build();
       } else {
          this.isBuilding = true;
-         if (phase.compareTo(BuildPhase.GRAMMAR) <= 0) {
-            validatorResultBuilder.merge(this.buildChildren(phase));
+         if (buildPhase.compareTo(BuildPhase.GRAMMAR) <= 0) {
+            validatorResultBuilder.merge(this.buildChildren(buildPhase));
          }
 
          this.isBuilding = false;
@@ -182,15 +182,15 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       return this.referencedBys;
    }
 
-   public void addReference(YangStatement schemaNode) {
-      this.referencedBys.add(schemaNode);
+   public void addReference(YangStatement yangStatement) {
+      this.referencedBys.add(yangStatement);
    }
 
-   public void delReference(YangStatement schemaNode) {
+   public void delReference(YangStatement yangStatement) {
       int pos = -1;
 
       for(int i = 0; i < this.referencedBys.size(); ++i) {
-         if (this.referencedBys.get(i) == schemaNode) {
+         if (this.referencedBys.get(i) == yangStatement) {
             pos = i;
             break;
          }

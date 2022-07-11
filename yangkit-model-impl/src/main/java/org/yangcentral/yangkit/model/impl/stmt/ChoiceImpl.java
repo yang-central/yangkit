@@ -78,8 +78,8 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       return Collections.unmodifiableList(this.cases);
    }
 
-   public boolean addCase(Case c) {
-      if (c == null) {
+   public boolean addCase(Case aCase) {
+      if (aCase == null) {
          return false;
       } else {
          Iterator var2 = this.cases.iterator();
@@ -87,12 +87,12 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
          Case ca;
          do {
             if (!var2.hasNext()) {
-               c.setParent(this);
-               return this.cases.add(c);
+               aCase.setParent(this);
+               return this.cases.add(aCase);
             }
 
             ca = (Case)var2.next();
-         } while(!ca.getIdentifier().equals(c.getIdentifier()));
+         } while(!ca.getIdentifier().equals(aCase.getIdentifier()));
 
          return false;
       }
@@ -342,7 +342,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       return Collections.unmodifiableList(this.dataDefinitions);
    }
 
-   public DataDefinition getDataDefChild(String s) {
+   public DataDefinition getDataDefChild(String name) {
       Iterator var2 = this.dataDefinitions.iterator();
 
       DataDefinition dataDefinition;
@@ -352,7 +352,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
          }
 
          dataDefinition = (DataDefinition)var2.next();
-      } while(!dataDefinition.getArgStr().equals(s));
+      } while(!dataDefinition.getArgStr().equals(name));
 
       return dataDefinition;
    }

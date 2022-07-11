@@ -12,15 +12,15 @@ public interface YangStatement extends YangElement {
 
    String getArgStr();
 
-   void setArgStr(String var1);
+   void setArgStr(String argStr);
 
    List<YangElement> getSubElements();
 
-   List<YangStatement> getSubStatement(QName var1);
+   List<YangStatement> getSubStatement(QName keyword);
 
    List<YangUnknown> getUnknowns();
 
-   ValidatorResult build(BuildPhase var1);
+   ValidatorResult build(BuildPhase buildPhase);
 
    ValidatorResult build();
 
@@ -28,7 +28,7 @@ public interface YangStatement extends YangElement {
 
    ValidatorResult getValidateResult();
 
-   void setValidateResult(ValidatorResult var1);
+   void setValidateResult(ValidatorResult validatorResult);
 
    boolean isBuilt();
 
@@ -36,25 +36,25 @@ public interface YangStatement extends YangElement {
 
    boolean isValidated();
 
-   boolean addChild(YangElement var1);
+   boolean addChild(YangElement yangElement);
 
-   boolean addChild(int var1, YangElement var2);
+   boolean addChild(int index, YangElement yangElement);
 
-   boolean updateChild(YangStatement var1);
+   boolean updateChild(YangStatement yangStatement);
 
-   boolean updateChild(int var1, YangElement var2);
+   boolean updateChild(int index, YangElement yangElement);
 
-   boolean removeChild(YangElement var1);
+   boolean removeChild(YangElement yangElement);
 
-   void setChildren(List<YangElement> var1);
+   void setChildren(List<YangElement> yangElements);
 
    YangStatement getParentStatement();
 
-   void setParentStatement(YangStatement var1);
+   void setParentStatement(YangStatement parentStatement);
 
    YangContext getContext();
 
-   void setContext(YangContext var1);
+   void setContext(YangContext context);
 
    ValidatorResult init();
 
@@ -68,7 +68,7 @@ public interface YangStatement extends YangElement {
 
    boolean isErrorStatement();
 
-   void setErrorStatement(boolean var1);
+   void setErrorStatement(boolean errorStatement);
 
    ValidatorResult afterValidate();
 

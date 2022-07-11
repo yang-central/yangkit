@@ -10,7 +10,7 @@ public interface YangDataCodec<S extends SchemaNode, D extends YangData<S>, T> {
 
    YangSchemaContext getSchemaContext();
 
-   D deserialize(T var1, ValidatorResultBuilder var2);
+   D deserialize(T element, ValidatorResultBuilder validatorResultBuilder);
 
-   T serialize(YangData<?> var1);
+   T serialize(YangData<?> yangData);
 }

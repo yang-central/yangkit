@@ -7,7 +7,7 @@ public interface Deviate extends YangBuiltinStatement, MustSupport {
 
    SchemaNode getTarget();
 
-   void setTarget(SchemaNode var1);
+   void setTarget(SchemaNode target);
 
    Config getConfig();
 

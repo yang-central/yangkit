@@ -8,13 +8,13 @@ public interface LeafList extends MultiInstancesDataNode, TypedDataNode {
 
    List<Default> getEffectiveDefaults();
 
-   void setDefaults(List<Default> var1);
+   void setDefaults(List<Default> defaults);
 
-   Default getDefault(String var1);
+   Default getDefault(String value);
 
-   ValidatorResult addDefault(Default var1);
+   ValidatorResult addDefault(Default aDefault);
 
-   ValidatorResult updateDefault(Default var1);
+   ValidatorResult updateDefault(Default aDefault);
 
-   void removeDefault(String var1);
+   void removeDefault(String value);
 }

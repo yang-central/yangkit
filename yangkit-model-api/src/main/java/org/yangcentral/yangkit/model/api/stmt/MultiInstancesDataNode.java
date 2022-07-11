@@ -3,11 +3,11 @@ package org.yangcentral.yangkit.model.api.stmt;
 public interface MultiInstancesDataNode {
    MinElements getMinElements();
 
-   void setMinElements(MinElements var1);
+   void setMinElements(MinElements minElements);
 
    MaxElements getMaxElements();
 
-   void setMaxElements(MaxElements var1);
+   void setMaxElements(MaxElements maxElements);
 
    OrderedBy getOrderedBy();
 }

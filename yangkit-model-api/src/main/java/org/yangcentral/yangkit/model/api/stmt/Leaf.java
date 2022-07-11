@@ -5,9 +5,9 @@ public interface Leaf extends TypedDataNode, MandatorySupport {
 
    Default getEffectiveDefault();
 
-   void setDefault(Default var1);
+   void setDefault(Default aDefault);
 
    boolean isKey();
 
-   void setKey(boolean var1);
+   void setKey(boolean key);
 }

@@ -3,5 +3,5 @@ package org.yangcentral.yangkit.model.api.stmt;
 public interface Default extends YangBuiltinStatement {
    Object getValue();
 
-   void setValue(Object var1);
+   void setValue(Object value);
 }

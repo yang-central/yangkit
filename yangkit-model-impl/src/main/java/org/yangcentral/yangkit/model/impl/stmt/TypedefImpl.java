@@ -91,15 +91,15 @@ public class TypedefImpl extends EntityImpl implements Typedef {
       return this.referencedBys;
    }
 
-   public void addReference(YangStatement schemaNode) {
-      this.referencedBys.add(schemaNode);
+   public void addReference(YangStatement yangStatement) {
+      this.referencedBys.add(yangStatement);
    }
 
-   public void delReference(YangStatement schemaNode) {
+   public void delReference(YangStatement yangStatement) {
       int pos = -1;
 
       for(int i = 0; i < this.referencedBys.size(); ++i) {
-         if (this.referencedBys.get(i) == schemaNode) {
+         if (this.referencedBys.get(i) == yangStatement) {
             pos = i;
             break;
          }

@@ -6,7 +6,7 @@ import java.util.List;
 public interface DataDefContainer {
    List<DataDefinition> getDataDefChildren();
 
-   DataDefinition getDataDefChild(String var1);
+   DataDefinition getDataDefChild(String name);
 
-   ValidatorResult addDataDefChild(DataDefinition var1);
+   ValidatorResult addDataDefChild(DataDefinition dataDefinition);
 }

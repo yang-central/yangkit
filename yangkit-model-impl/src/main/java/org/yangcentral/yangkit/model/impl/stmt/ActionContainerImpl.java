@@ -25,7 +25,7 @@ class ActionContainerImpl implements ActionContainer {
       this.yangContext = yangContext;
    }
 
-   public Action getAction(String name) {
+   public Action getAction(String actionName) {
       Iterator var2 = this.actions.iterator();
 
       Action action;
@@ -35,7 +35,7 @@ class ActionContainerImpl implements ActionContainer {
          }
 
          action = (Action)var2.next();
-      } while(!action.getArgStr().equals(name));
+      } while(!action.getArgStr().equals(actionName));
 
       return action;
    }

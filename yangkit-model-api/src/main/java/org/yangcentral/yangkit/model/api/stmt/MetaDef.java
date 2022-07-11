@@ -3,9 +3,9 @@ package org.yangcentral.yangkit.model.api.stmt;
 public interface MetaDef {
    Description getDescription();
 
-   void setDescription(Description var1);
+   void setDescription(Description description);
 
    Reference getReference();
 
-   void setReference(Reference var1);
+   void setReference(Reference reference);
 }

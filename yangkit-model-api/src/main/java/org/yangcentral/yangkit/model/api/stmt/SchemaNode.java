@@ -15,7 +15,7 @@ public interface SchemaNode extends Entity {
 
    void setSupported(boolean var1);
 
-   void setParentSchemaNode(SchemaNodeContainer var1);
+   void setParentSchemaNode(SchemaNodeContainer schemaNodeContainer);
 
    SchemaNodeContainer getClosestAncestorNode();
 
@@ -25,11 +25,11 @@ public interface SchemaNode extends Entity {
 
    SchemaTreeType getSchemaTreeType();
 
-   void setSchemaTreeType(SchemaTreeType var1);
+   void setSchemaTreeType(SchemaTreeType treeType);
 
    QName getIdentifier();
 
-   boolean isAncestorNode(SchemaNode var1);
+   boolean isAncestorNode(SchemaNode ancestor);
 
    default boolean isActive() {
       if (!this.supported()) {
@@ -46,7 +46,7 @@ public interface SchemaNode extends Entity {
 
    boolean isDeviated();
 
-   void setDeviated(boolean var1);
+   void setDeviated(boolean deviated);
 
    SchemaNodeContainer getSchemaTreeRoot();
 }

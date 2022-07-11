@@ -105,11 +105,11 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       return validatorResultBuilder.build();
    }
 
-   public void removeUnique(String arg) {
+   public void removeUnique(String unique) {
       int index = -1;
 
       for(int i = 0; i < this.uniques.size(); ++i) {
-         if (((Unique)this.uniques.get(i)).getArgStr().equals(arg)) {
+         if (((Unique)this.uniques.get(i)).getArgStr().equals(unique)) {
             index = i;
          }
       }

@@ -5,9 +5,9 @@ import java.util.List;
 public interface Referencable {
    List<YangStatement> getReferencedBy();
 
-   void addReference(YangStatement var1);
+   void addReference(YangStatement yangStatement);
 
-   void delReference(YangStatement var1);
+   void delReference(YangStatement yangStatement);
 
-   boolean isReferencedBy(YangStatement var1);
+   boolean isReferencedBy(YangStatement yangStatement);
 }

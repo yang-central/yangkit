@@ -5,5 +5,5 @@ import java.util.List;
 public interface Unique extends YangBuiltinStatement {
    List<Leaf> getUniqueNodes();
 
-   boolean addUniqueNode(Leaf var1);
+   boolean addUniqueNode(Leaf uniqueNode);
 }

@@ -5,7 +5,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 public interface WhenSupport {
    When getWhen();
 
-   void setWhen(When var1);
+   void setWhen(When when);
 
    ValidatorResult validateWhen();
 }

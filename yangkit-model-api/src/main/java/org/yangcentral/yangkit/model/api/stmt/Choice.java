@@ -5,13 +5,13 @@ import java.util.List;
 public interface Choice extends Identifiable, Augmentable, MandatorySupport, SchemaDataNode, SchemaNodeContainer, DataDefContainer {
    Default getDefault();
 
-   boolean setDefault(Default var1);
+   boolean setDefault(Default aDefault);
 
    Case getDefaultCase();
 
-   boolean setDefaultCase(Case var1);
+   boolean setDefaultCase(Case defaultCase);
 
    List<Case> getCases();
 
-   boolean addCase(Case var1);
+   boolean addCase(Case aCase);
 }

@@ -55,8 +55,8 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
       return this.schemaParent;
    }
 
-   public void setParentSchemaNode(SchemaNodeContainer container) {
-      this.schemaParent = container;
+   public void setParentSchemaNode(SchemaNodeContainer schemaNodeContainer) {
+      this.schemaParent = schemaNodeContainer;
    }
 
    public SchemaNodeContainer getClosestAncestorNode() {
@@ -138,8 +138,8 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
       return this.schemaTreeType;
    }
 
-   public void setSchemaTreeType(SchemaTreeType schemaTreeType) {
-      this.schemaTreeType = schemaTreeType;
+   public void setSchemaTreeType(SchemaTreeType treeType) {
+      this.schemaTreeType = treeType;
    }
 
    public boolean isAncestorNode(SchemaNode ancestor) {
@@ -159,8 +159,8 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
       return this.deviated;
    }
 
-   public void setDeviated(boolean bool) {
-      this.deviated = bool;
+   public void setDeviated(boolean deviated) {
+      this.deviated = deviated;
    }
 
    public SchemaNodeContainer getSchemaTreeRoot() {

@@ -4,9 +4,9 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import java.util.List;
 
 public interface ActionContainer {
-   Action getAction(String var1);
+   Action getAction(String actionName);
 
    List<Action> getActions();
 
-   ValidatorResult addAction(Action var1);
+   ValidatorResult addAction(Action action);
 }

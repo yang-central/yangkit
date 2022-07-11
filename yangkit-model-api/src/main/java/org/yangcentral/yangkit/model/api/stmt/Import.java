@@ -11,5 +11,5 @@ public interface Import extends YangBuiltinStatement, MetaDef, Identifiable {
 
    boolean isReferenced();
 
-   void setReferenced(boolean var1);
+   void setReferenced(boolean referenced);
 }

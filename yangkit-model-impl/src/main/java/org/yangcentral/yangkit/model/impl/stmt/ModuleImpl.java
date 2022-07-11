@@ -831,7 +831,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       this.schemaNodeContainer.removeSchemaNodeChild(schemaNode);
    }
 
-   public Import getImportByPrefix(String s) {
+   public Import getImportByPrefix(String prefix) {
       Iterator var2 = this.imports.iterator();
 
       Import im;
@@ -841,7 +841,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          }
 
          im = (Import)var2.next();
-      } while(!im.getPrefix().getArgStr().equals(s));
+      } while(!im.getPrefix().getArgStr().equals(prefix));
 
       return im;
    }

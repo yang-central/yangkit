@@ -44,8 +44,8 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
       return this.target;
    }
 
-   public void setTarget(SchemaNode schemaNode) {
-      this.target = schemaNode;
+   public void setTarget(SchemaNode target) {
+      this.target = target;
    }
 
    public SchemaPath getTargetPath() {

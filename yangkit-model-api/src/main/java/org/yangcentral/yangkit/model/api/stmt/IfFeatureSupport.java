@@ -6,9 +6,9 @@ import java.util.List;
 public interface IfFeatureSupport {
    List<IfFeature> getIfFeatures();
 
-   ValidatorResult addIfFeature(IfFeature var1);
+   ValidatorResult addIfFeature(IfFeature ifFeature);
 
-   void setIfFeatures(List<IfFeature> var1);
+   void setIfFeatures(List<IfFeature> ifFeatures);
 
    boolean evaluateFeatures();
 }

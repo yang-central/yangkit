@@ -5,9 +5,9 @@ import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 public interface DataNodeModifier {
    SchemaNode getTarget();
 
-   void setTarget(SchemaNode var1);
+   void setTarget(SchemaNode target);
 
    SchemaPath getTargetPath();
 
-   void setTargetPath(SchemaPath var1);
+   void setTargetPath(SchemaPath schemaPath);
 }

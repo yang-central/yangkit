@@ -32,10 +32,10 @@ public class YangUnknownRegister {
       } else {
          this.unknownInfos.put(yangUnknownParserPolicy.getKeyword(), yangUnknownParserPolicy);
          if (yangUnknownParserPolicy.getParentStatements().size() != 0) {
-            Iterator var2 = yangUnknownParserPolicy.getParentStatements().iterator();
+            Iterator parentStatementInfoIterator = yangUnknownParserPolicy.getParentStatements().iterator();
 
-            while(var2.hasNext()) {
-               YangParentStatementInfo parentStatementInfo = (YangParentStatementInfo)var2.next();
+            while(parentStatementInfoIterator.hasNext()) {
+               YangParentStatementInfo parentStatementInfo = (YangParentStatementInfo)parentStatementInfoIterator.next();
                YangStatementDef parentStatementDefVer11 = YangSpecification.getVersion11Spec().getStatementDef(parentStatementInfo.getParentYangKeyword());
                if (parentStatementDefVer11 != null) {
                   parentStatementDefVer11.addSubStatementInfo(yangUnknownParserPolicy.getKeyword(), parentStatementInfo.getCardinality());
@@ -53,12 +53,12 @@ public class YangUnknownRegister {
    }
 
    public synchronized void unRegister(QName keyword) {
-      YangUnknownParserPolicy unknownParserPolicy = (YangUnknownParserPolicy)this.unknownInfos.remove(keyword);
+      YangUnknownParserPolicy unknownParserPolicy = this.unknownInfos.remove(keyword);
       if (unknownParserPolicy.getParentStatements().size() != 0) {
-         Iterator var3 = unknownParserPolicy.getParentStatements().iterator();
+         Iterator parentStatementInfoIterator = unknownParserPolicy.getParentStatements().iterator();
 
-         while(var3.hasNext()) {
-            YangParentStatementInfo parentStatementInfo = (YangParentStatementInfo)var3.next();
+         while(parentStatementInfoIterator.hasNext()) {
+            YangParentStatementInfo parentStatementInfo = (YangParentStatementInfo)parentStatementInfoIterator.next();
             YangSpecification specification11 = YangSpecification.getVersion11Spec();
             YangStatementDef parentStatementDef11 = specification11.getStatementDef(parentStatementInfo.getParentYangKeyword());
             if (null != parentStatementDef11) {
@@ -80,6 +80,6 @@ public class YangUnknownRegister {
    }
 
    public YangUnknownParserPolicy getUnknownInfo(QName keyword) {
-      return (YangUnknownParserPolicy)this.unknownInfos.get(keyword);
+      return this.unknownInfos.get(keyword);
    }
 }
