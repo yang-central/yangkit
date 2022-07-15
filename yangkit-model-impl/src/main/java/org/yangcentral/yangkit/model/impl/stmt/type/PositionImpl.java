@@ -42,7 +42,7 @@ public class PositionImpl extends YangBuiltInStatementImpl implements Position {
             validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_BIT_POSTION.getFieldName()));
             validatorResultBuilder.addRecord(validatorRecordBuilder.build());
          }
-      } catch (RuntimeException var4) {
+      } catch (RuntimeException e) {
          ValidatorRecordBuilder<org.yangcentral.yangkit.base.Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
          validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
          validatorRecordBuilder.setSeverity(Severity.ERROR);

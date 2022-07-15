@@ -102,15 +102,15 @@ public class EnumerationImpl extends RestrictionImpl<String> implements Enumerat
    }
 
    public boolean addEnum(YangEnum yangEnum) {
-      Iterator var2 = this.enums.iterator();
+      Iterator enumIterator = this.enums.iterator();
 
       YangEnum originalEnum;
       do {
-         if (!var2.hasNext()) {
+         if (!enumIterator.hasNext()) {
             return this.enums.add(yangEnum);
          }
 
-         originalEnum = (YangEnum)var2.next();
+         originalEnum = (YangEnum)enumIterator.next();
       } while(!originalEnum.getArgStr().equals(yangEnum.getArgStr()));
 
       return false;
@@ -118,10 +118,10 @@ public class EnumerationImpl extends RestrictionImpl<String> implements Enumerat
 
    public boolean evaluated(String value) {
       if (this.enums.size() > 0) {
-         Iterator var2 = this.enums.iterator();
+         Iterator enumIterator = this.enums.iterator();
 
-         while(var2.hasNext()) {
-            YangEnum yangEnum = (YangEnum)var2.next();
+         while(enumIterator.hasNext()) {
+            YangEnum yangEnum = (YangEnum)enumIterator.next();
             if (value.equals(yangEnum.getArgStr())) {
                return true;
             }
@@ -152,21 +152,21 @@ public class EnumerationImpl extends RestrictionImpl<String> implements Enumerat
          if (thisEnums.size() != anotherEnums.size()) {
             return false;
          } else {
-            Iterator var5 = thisEnums.iterator();
+            Iterator enumIterator = thisEnums.iterator();
 
             YangEnum thisEnum;
             YangEnum anotherSame;
             do {
-               if (!var5.hasNext()) {
+               if (!enumIterator.hasNext()) {
                   return true;
                }
 
-               thisEnum = (YangEnum)var5.next();
+               thisEnum = (YangEnum)enumIterator.next();
                anotherSame = null;
-               Iterator var8 = anotherEnums.iterator();
+               Iterator antoherEnumIterator = anotherEnums.iterator();
 
-               while(var8.hasNext()) {
-                  YangEnum anotherEnum = (YangEnum)var8.next();
+               while(antoherEnumIterator.hasNext()) {
+                  YangEnum anotherEnum = (YangEnum)antoherEnumIterator.next();
                   if (thisEnum.getArgStr().equals(anotherEnum.getArgStr())) {
                      anotherSame = anotherEnum;
                      break;

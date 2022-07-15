@@ -30,15 +30,15 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
    }
 
    public boolean addBase(Base identity) {
-      Iterator var2 = this.bases.iterator();
+      Iterator baseIterator = this.bases.iterator();
 
       Base base;
       do {
-         if (!var2.hasNext()) {
+         if (!baseIterator.hasNext()) {
             return this.bases.add(identity);
          }
 
-         base = (Base)var2.next();
+         base = (Base)baseIterator.next();
       } while(!base.getArgStr().equals(identity.getArgStr()));
 
       return false;
@@ -57,15 +57,15 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
          } else if (this.bases.size() == 0) {
             return this.getDerived().getType().getRestriction().evaluated(value);
          } else {
-            Iterator var6 = this.bases.iterator();
+            Iterator baseIterator = this.bases.iterator();
 
             Identity baseIdentity;
             do {
-               if (!var6.hasNext()) {
+               if (!baseIterator.hasNext()) {
                   return true;
                }
 
-               Base base = (Base)var6.next();
+               Base base = (Base)baseIterator.next();
                baseIdentity = base.getIdentity();
             } while(null == baseIdentity || identity.isDerivedOrSelf(baseIdentity));
 
@@ -95,20 +95,20 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
          if (thisBases.size() != anotherBases.size()) {
             return false;
          } else {
-            Iterator var5 = thisBases.iterator();
+            Iterator baseIterator = thisBases.iterator();
 
             Base theSame;
             do {
-               if (!var5.hasNext()) {
+               if (!baseIterator.hasNext()) {
                   return true;
                }
 
-               Base thisBase = (Base)var5.next();
+               Base thisBase = (Base)baseIterator.next();
                theSame = null;
-               Iterator var8 = anotherBases.iterator();
+               Iterator anotherBaseIterator = anotherBases.iterator();
 
-               while(var8.hasNext()) {
-                  Base anotherBase = (Base)var8.next();
+               while(anotherBaseIterator.hasNext()) {
+                  Base anotherBase = (Base)anotherBaseIterator.next();
                   if (thisBase.getIdentity().equals(anotherBase.getIdentity())) {
                      theSame = anotherBase;
                      break;

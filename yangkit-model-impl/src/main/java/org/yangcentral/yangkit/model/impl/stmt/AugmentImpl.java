@@ -136,10 +136,10 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator var3 = subElements.iterator();
+      Iterator elementIterator = subElements.iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
@@ -172,40 +172,40 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
-      Iterator var3;
+      Iterator iterator;
       SchemaNode child;
       switch (phase) {
          case SCHEMA_BUILD:
             List<DataDefinition> dataDefChildren = this.getDataDefChildren();
-            Iterator var9 = dataDefChildren.iterator();
+            Iterator schemaChildrenIt = dataDefChildren.iterator();
 
-            while(var9.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)var9.next();
+            while(schemaChildrenIt.hasNext()) {
+               DataDefinition dataDefinition = (DataDefinition)schemaChildrenIt.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
 
-            var9 = this.getActions().iterator();
+            schemaChildrenIt = this.getActions().iterator();
 
-            while(var9.hasNext()) {
-               Action action = (Action)var9.next();
+            while(schemaChildrenIt.hasNext()) {
+               Action action = (Action)schemaChildrenIt.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(action));
             }
 
-            var9 = this.getNotifications().iterator();
+            schemaChildrenIt = this.getNotifications().iterator();
 
-            while(var9.hasNext()) {
-               Notification notification = (Notification)var9.next();
+            while(schemaChildrenIt.hasNext()) {
+               Notification notification = (Notification)schemaChildrenIt.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(notification));
             }
 
             return validatorResultBuilder.build();
          case SCHEMA_EXPAND:
-            var3 = this.getSchemaNodeChildren().iterator();
+            iterator = this.getSchemaNodeChildren().iterator();
 
             while(true) {
                while(true) {
-                  while(var3.hasNext()) {
-                     child = (SchemaNode)var3.next();
+                  while(iterator.hasNext()) {
+                     child = (SchemaNode)iterator.next();
                      ValidatorRecordBuilder validatorRecordBuilder;
                      if (child instanceof DataDefinition) {
                         if (!(this.target instanceof DataDefContainer)) {
@@ -231,15 +231,15 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
                               ch = (Case)child;
                            } else {
                               ch = new CaseImpl(child.getArgStr());
-                              ((Case)ch).setContext(new YangContext(this.getContext()));
-                              ((Case)ch).setShortCase(true);
-                              ((Case)ch).addDataDefChild((DataDefinition)child);
-                              ((Case)ch).addSchemaNodeChild(child);
+                              ch.setContext(new YangContext(this.getContext()));
+                              ch.setShortCase(true);
+                              ch.addDataDefChild((DataDefinition)child);
+                              ch.addSchemaNodeChild(child);
                               this.removeSchemaNodeChild(child);
-                              this.addSchemaNodeChild((SchemaNode)ch);
+                              this.addSchemaNodeChild(ch);
                            }
 
-                           if (!choice.addCase((Case)ch)) {
+                           if (!choice.addCase(ch)) {
                               validatorRecordBuilder = new ValidatorRecordBuilder();
                               validatorRecordBuilder.setBadElement(child);
                               validatorRecordBuilder.setSeverity(Severity.ERROR);
@@ -274,10 +274,10 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
                }
             }
          case SCHEMA_TREE:
-            var3 = this.getSchemaNodeChildren().iterator();
+            iterator = this.getSchemaNodeChildren().iterator();
 
-            while(var3.hasNext()) {
-               child = (SchemaNode)var3.next();
+            while(iterator.hasNext()) {
+               child = (SchemaNode)iterator.next();
                if (child instanceof Case && ((Case)child).isShortCase()) {
                   validatorResultBuilder.merge(child.build(phase));
                }

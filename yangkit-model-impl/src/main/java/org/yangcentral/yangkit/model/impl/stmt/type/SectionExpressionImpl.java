@@ -88,10 +88,10 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
 
    private boolean checkSections() {
       Section lastSection = null;
-      Iterator var2 = this.sections.iterator();
+      Iterator iterator = this.sections.iterator();
 
-      while(var2.hasNext()) {
-         Section section = (Section)var2.next();
+      while(iterator.hasNext()) {
+         Section section = (Section)iterator.next();
          if (lastSection == null) {
             lastSection = section;
          } else if (section.getMin().compareTo(lastSection.getMax()) <= 0) {
@@ -118,7 +118,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
                   validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                   return validatorResultBuilder.build();
                }
-            } catch (RuntimeException var5) {
+            } catch (RuntimeException e) {
                validatorRecordBuilder = new ValidatorRecordBuilder();
                validatorRecordBuilder.setBadElement(this);
                validatorRecordBuilder.setErrorPath(this.getElementPosition());

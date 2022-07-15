@@ -89,15 +89,15 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
 
    public boolean evaluated(BigDecimal value) {
       if (this.getRange() != null) {
-         Iterator var2 = this.getRange().getSections().iterator();
+         Iterator iterator = this.getRange().getSections().iterator();
 
          Section section;
          do {
-            if (!var2.hasNext()) {
+            if (!iterator.hasNext()) {
                return false;
             }
 
-            section = (Section)var2.next();
+            section = (Section)iterator.next();
          } while(value.compareTo((BigDecimal)section.getMin()) < 0 || value.compareTo((BigDecimal)section.getMax()) > 0);
 
          return true;

@@ -26,15 +26,15 @@ class ActionContainerImpl implements ActionContainer {
    }
 
    public Action getAction(String actionName) {
-      Iterator var2 = this.actions.iterator();
+      Iterator iterator = this.actions.iterator();
 
       Action action;
       do {
-         if (!var2.hasNext()) {
+         if (!iterator.hasNext()) {
             return null;
          }
 
-         action = (Action)var2.next();
+         action = (Action)iterator.next();
       } while(!action.getArgStr().equals(actionName));
 
       return action;

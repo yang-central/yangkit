@@ -1,16 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.Cardinality;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.Yang;
-import org.yangcentral.yangkit.base.YangComment;
-import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.base.YangElement;
-import org.yangcentral.yangkit.base.YangSpecification;
-import org.yangcentral.yangkit.base.YangStatementDef;
-import org.yangcentral.yangkit.base.YangUnknownBlock;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
@@ -18,28 +8,13 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.Grouping;
-import org.yangcentral.yangkit.model.api.stmt.Identifiable;
-import org.yangcentral.yangkit.model.api.stmt.IdentifierRef;
-import org.yangcentral.yangkit.model.api.stmt.Import;
-import org.yangcentral.yangkit.model.api.stmt.Referencable;
-import org.yangcentral.yangkit.model.api.stmt.Typedef;
-import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
-import org.yangcentral.yangkit.register.YangStatementParserPolicy;
-import org.yangcentral.yangkit.register.YangStatementParserRegister;
-import org.yangcentral.yangkit.register.YangUnknownParserPolicy;
-import org.yangcentral.yangkit.register.YangUnknownRegister;
+import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.register.*;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class YangStatementImpl implements YangStatement {
@@ -275,7 +250,7 @@ public abstract class YangStatementImpl implements YangStatement {
          return validatorResultBuilder.build();
       } else {
          this.isBuilding = true;
-         YangStatementParserPolicy parserPolicy = YangStatementParserRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
+         YangStatementParserPolicy parserPolicy = YangStatementRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
          if (parserPolicy == null) {
             ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
             validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
@@ -380,7 +355,7 @@ public abstract class YangStatementImpl implements YangStatement {
       } else if (!this.isInit()) {
          return false;
       } else {
-         YangStatementParserPolicy parserPolicy = YangStatementParserRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
+         YangStatementParserPolicy parserPolicy = YangStatementRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
          if (parserPolicy == null) {
             return false;
          } else if (this.getValidateResult() != null && this.getValidateResult().isOk()) {

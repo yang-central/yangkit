@@ -1,26 +1,15 @@
 package org.yangcentral.yangkit.parser;
 
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.Yang;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangComment;
-import org.yangcentral.yangkit.base.YangElement;
+import org.dom4j.*;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.register.YangStatementParserPolicy;
-import org.yangcentral.yangkit.register.YangStatementParserRegister;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import org.yangcentral.yangkit.register.YangStatementRegister;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.dom4j.Comment;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.Namespace;
-import org.dom4j.Node;
 
 public class YinParser {
    private String fileName;
@@ -56,45 +45,38 @@ public class YinParser {
          } else {
             value = element.attributeValue(yangBuiltinKeyword.getArgument());
          }
+         YangStatement statement = YangStatementRegister.getInstance().getYangStatementInstance(new QName(Yang.NAMESPACE, keyword),value);
+         if(null == statement){
+            throw new YangParserException(Severity.ERROR, new Position(fileName, new XPathLocation(element.getUniquePath())), "can not create instance for this statement.");
+         }
+         statement.setElementPosition(new Position(fileName, new XPathLocation(element.getUniquePath())));
+         boolean hasChildren = false;
+         if (yangBuiltinKeyword.isYinElement()) {
+            if (element.nodeCount() > 1) {
+               hasChildren = true;
+            }
+         } else if (element.nodeCount() > 0) {
+            hasChildren = true;
+         }
 
-         YangStatementParserPolicy parserPolicy = YangStatementParserRegister.getInstance().getStatementParserPolicy(new QName(Yang.NAMESPACE, keyword));
-         if (null == parserPolicy) {
-            throw new YangParserException(Severity.ERROR, new Position(fileName, new XPathLocation(element.getUniquePath())), "can not find the parser policy for statement:" + keyword + ". please check whether register parser policy for this statement.");
-         } else {
-            try {
-               Constructor<? extends YangStatement> constructor = parserPolicy.getClazz().getConstructor(String.class);
-               YangStatement statement = (YangStatement)constructor.newInstance(value);
-               statement.setElementPosition(new Position(fileName, new XPathLocation(element.getUniquePath())));
-               boolean hasChildren = false;
-               if (yangBuiltinKeyword.isYinElement()) {
-                  if (element.nodeCount() > 1) {
-                     hasChildren = true;
-                  }
-               } else if (element.nodeCount() > 0) {
-                  hasChildren = true;
-               }
-
-               if (hasChildren) {
-                  for(int i = 0; i < element.nodeCount(); ++i) {
-                     Node node = element.node(i);
-                     if (node != null) {
-                        if (node instanceof Comment) {
-                           statement.addChild(buildYangComment((Comment)node, fileName));
-                        } else if (node instanceof Element) {
-                           Element childElement = (Element)node;
-                           if (!yangBuiltinKeyword.isYinElement() || !childElement.getName().equals(yangBuiltinKeyword.getArgument())) {
-                              statement.addChild(buildYangElement(childElement, fileName));
-                           }
-                        }
+         if (hasChildren) {
+            for(int i = 0; i < element.nodeCount(); ++i) {
+               Node node = element.node(i);
+               if (node != null) {
+                  if (node instanceof Comment) {
+                     statement.addChild(buildYangComment((Comment)node, fileName));
+                  } else if (node instanceof Element) {
+                     Element childElement = (Element)node;
+                     if (!yangBuiltinKeyword.isYinElement() || !childElement.getName().equals(yangBuiltinKeyword.getArgument())) {
+                        statement.addChild(buildYangElement(childElement, fileName));
                      }
                   }
                }
-
-               return statement;
-            } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException var12) {
-               throw new YangParserException(Severity.ERROR, new Position(fileName, new XPathLocation(element.getUniquePath())), "can not create instance for this statement.");
             }
          }
+
+         return statement;
+
       }
    }
 

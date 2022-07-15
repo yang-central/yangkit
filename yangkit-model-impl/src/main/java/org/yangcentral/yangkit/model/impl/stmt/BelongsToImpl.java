@@ -51,10 +51,10 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
       String moduleName = this.getArgStr();
       List<Module> modules = this.getContext().getSchemaContext().getModule(moduleName);
       if (modules != null) {
-         Iterator var5 = modules.iterator();
+         Iterator moduleIterator = modules.iterator();
 
-         while(var5.hasNext()) {
-            Module module = (Module)var5.next();
+         while(moduleIterator.hasNext()) {
+            Module module = (Module)moduleIterator.next();
             if (module instanceof SubModule) {
                ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
                validatorRecordBuilder.setSeverity(Severity.ERROR);

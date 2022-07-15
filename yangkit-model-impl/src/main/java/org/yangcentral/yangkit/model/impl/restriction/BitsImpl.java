@@ -101,30 +101,30 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
    }
 
    public boolean addBit(Bit bit) {
-      Iterator var2 = this.bits.iterator();
+      Iterator bitIterator = this.bits.iterator();
 
       Bit orignalBit;
       do {
-         if (!var2.hasNext()) {
+         if (!bitIterator.hasNext()) {
             return this.bits.add(bit);
          }
 
-         orignalBit = (Bit)var2.next();
+         orignalBit = (Bit)bitIterator.next();
       } while(!orignalBit.getArgStr().equals(bit.getArgStr()));
 
       return false;
    }
 
    public Bit getBit(String name) {
-      Iterator var2 = this.bits.iterator();
+      Iterator bitIterator = this.bits.iterator();
 
       Bit bit;
       do {
-         if (!var2.hasNext()) {
+         if (!bitIterator.hasNext()) {
             return null;
          }
 
-         bit = (Bit)var2.next();
+         bit = (Bit)bitIterator.next();
       } while(!name.equals(bit.getArgStr()));
 
       return bit;
@@ -133,15 +133,15 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
    public boolean evaluated(List<String> value) {
       if (null != value && value.size() != 0) {
          if (this.bits.size() > 0) {
-            Iterator var2 = value.iterator();
+            Iterator iterator = value.iterator();
 
             Bit bit;
             do {
-               if (!var2.hasNext()) {
+               if (!iterator.hasNext()) {
                   return true;
                }
 
-               String str = (String)var2.next();
+               String str = (String)iterator.next();
                bit = this.getBit(str);
             } while(bit != null);
 

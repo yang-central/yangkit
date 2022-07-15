@@ -45,17 +45,17 @@ public class UnionStringValueCodecImpl extends ComplexStringValueCodecImpl<Objec
       } else {
          List<Type> types = union.getTypes();
          Object o = null;
-         Iterator var6 = types.iterator();
+         Iterator iterator = types.iterator();
 
-         while(var6.hasNext()) {
-            Type type = (Type)var6.next();
+         while(iterator.hasNext()) {
+            Type type = (Type)iterator.next();
             StringValueCodec<?> codec = StringValueCodecFactory.getInstance().getStringValueCodec(this.getSchemaNode(), type.getRestriction());
             Restriction typeRes = type.getRestriction();
 
             try {
                o = codec.deserialize(typeRes, input);
                break;
-            } catch (Exception var11) {
+            } catch (Exception e) {
             }
          }
 
@@ -73,10 +73,10 @@ public class UnionStringValueCodecImpl extends ComplexStringValueCodecImpl<Objec
       } else {
          List<Type> types = ((Union)restriction).getTypes();
          String s = null;
-         Iterator var5 = types.iterator();
+         Iterator iterator = types.iterator();
 
-         while(var5.hasNext()) {
-            Type type = (Type)var5.next();
+         while(iterator.hasNext()) {
+            Type type = (Type)iterator.next();
             StringValueCodec<?> codec = StringValueCodecFactory.getInstance().getStringValueCodec(this.getSchemaNode(), type.getRestriction());
             Restriction typeRes = type.getRestriction();
 

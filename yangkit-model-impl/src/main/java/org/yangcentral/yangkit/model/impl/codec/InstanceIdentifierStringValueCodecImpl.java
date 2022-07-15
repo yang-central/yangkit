@@ -22,8 +22,8 @@ public class InstanceIdentifierStringValueCodecImpl extends ComplexStringValueCo
          } else {
             throw new YangCodecException("the value:" + input + " is invalid instance-identifier.");
          }
-      } catch (JaxenException var4) {
-         throw new YangCodecException(var4.getMessage());
+      } catch (JaxenException e) {
+         throw new YangCodecException(e.getMessage());
       }
    }
 

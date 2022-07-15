@@ -5,12 +5,9 @@ import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.register.YangStatementParserPolicy;
-import org.yangcentral.yangkit.register.YangStatementParserRegister;
+import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.util.ModelUtil;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -257,25 +254,18 @@ public class YangParser {
                }
 
                if (ModelUtil.isExtensionKeyword(keyword)) {
-                  statement = YangStatementParserRegister.getInstance().getUnknownInstance(keyword, value);
+                  statement = YangStatementRegister.getInstance().getDefaultUnknownInstance(keyword, value);
                   statement.setElementPosition(new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())));
                   return statement;
                } else if (!YangBuiltinKeyword.isKeyword(keyword)) {
                   throw new YangParserException(Severity.ERROR, new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())), ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName());
                } else {
-                  YangStatementParserPolicy parserPolicy = YangStatementParserRegister.getInstance().getStatementParserPolicy(new QName(Yang.NAMESPACE, keyword));
-                  if (null == parserPolicy) {
-                     throw new YangParserException(Severity.ERROR, new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())), "can not find the parser policy for statement:" + keyword + ". please check whether register parser policy for this statement.");
-                  } else {
-                     try {
-                        Constructor<? extends YangStatement> constructor = parserPolicy.getClazz().getConstructor(String.class);
-                        statement = (YangStatement)constructor.newInstance(value);
-                        statement.setElementPosition(new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())));
-                        return statement;
-                     } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException var14) {
-                        throw new YangParserException(Severity.ERROR, new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())), "can not create instance for this statement.");
-                     }
+                  statement = YangStatementRegister.getInstance().getYangStatementInstance(new QName(Yang.NAMESPACE, keyword),value);
+                  if(statement == null){
+                     throw new YangParserException(Severity.ERROR, new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())), "can not create instance for this statement.");
                   }
+                  statement.setElementPosition(new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())));
+                  return statement;
                }
             }
          }

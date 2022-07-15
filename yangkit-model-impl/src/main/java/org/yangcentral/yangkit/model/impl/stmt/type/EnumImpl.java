@@ -13,9 +13,8 @@ import org.yangcentral.yangkit.model.api.stmt.type.Value;
 import org.yangcentral.yangkit.model.api.stmt.type.YangEnum;
 import org.yangcentral.yangkit.model.impl.stmt.EntityImpl;
 import org.yangcentral.yangkit.model.impl.stmt.IfFeatureSupportImpl;
-import org.yangcentral.yangkit.register.YangStatementParserRegister;
+import org.yangcentral.yangkit.register.YangStatementRegister;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,21 +73,13 @@ public class EnumImpl extends EntityImpl implements YangEnum {
          Type type = (Type)this.getParentStatement();
          Enumeration enumeration = (Enumeration)type.getRestriction();
          Integer actualVal = enumeration.getEnumActualValue(this.getArgStr());
-
-         try {
-            Value newVal = (Value) YangStatementParserRegister.getInstance().getStatementParserPolicy(YangBuiltinKeyword.VALUE.getQName()).getClazz().getConstructor(String.class).newInstance(actualVal.toString());
+         Value newVal = (Value) YangStatementRegister.getInstance().getYangStatementInstance(YangBuiltinKeyword.VALUE.getQName(),actualVal.toString());
+         if(newVal != null){
             newVal.setContext(this.getContext());
             newVal.setElementPosition(this.getElementPosition());
             statements.add(newVal);
-         } catch (InstantiationException var6) {
-            var6.printStackTrace();
-         } catch (IllegalAccessException var7) {
-            var7.printStackTrace();
-         } catch (InvocationTargetException var8) {
-            var8.printStackTrace();
-         } catch (NoSuchMethodException var9) {
-            var9.printStackTrace();
          }
+
       }
 
       statements.addAll(this.ifFeatureSupport.getIfFeatures());

@@ -54,20 +54,20 @@ public class UnionImpl extends RestrictionImpl<Object> implements Union {
          if (thisTypes.size() != anotherTypes.size()) {
             return false;
          } else {
-            Iterator var5 = thisTypes.iterator();
+            Iterator typeIterator = thisTypes.iterator();
 
             Type theSame;
             do {
-               if (!var5.hasNext()) {
+               if (!typeIterator.hasNext()) {
                   return true;
                }
 
-               Type thisType = (Type)var5.next();
+               Type thisType = (Type)typeIterator.next();
                theSame = null;
-               Iterator var8 = anotherTypes.iterator();
+               Iterator antoherTypeIterator = anotherTypes.iterator();
 
-               while(var8.hasNext()) {
-                  Type anotherType = (Type)var8.next();
+               while(antoherTypeIterator.hasNext()) {
+                  Type anotherType = (Type)antoherTypeIterator.next();
                   if (thisType.getRestriction().equals(anotherType.getRestriction())) {
                      theSame = anotherType;
                      break;

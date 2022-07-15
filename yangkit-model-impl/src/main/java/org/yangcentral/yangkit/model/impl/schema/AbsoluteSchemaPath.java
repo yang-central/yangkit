@@ -24,8 +24,8 @@ public class AbsoluteSchemaPath extends SchemaPathImpl implements SchemaPath.Abs
          return false;
       } else {
          for(int i = 0; i < anotherSteps.size(); ++i) {
-            QName step = (QName)steps.get(i);
-            QName anotherStep = (QName)anotherSteps.get(i);
+            QName step = steps.get(i);
+            QName anotherStep = anotherSteps.get(i);
             if (!step.equals(anotherStep)) {
                return false;
             }
@@ -46,7 +46,7 @@ public class AbsoluteSchemaPath extends SchemaPathImpl implements SchemaPath.Abs
          int descendentSie = path.getPath().size();
 
          for(int i = thisSize; i < descendentSie; ++i) {
-            steps.add((QName) path.getPath().get(i));
+            steps.add( path.getPath().get(i));
          }
 
          return steps;

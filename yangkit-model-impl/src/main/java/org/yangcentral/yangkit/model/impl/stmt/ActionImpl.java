@@ -144,13 +144,13 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.GROUPING.getQName());
-      Iterator var3;
+      Iterator iterator;
       YangStatement statement;
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            statement = (YangStatement)iterator.next();
             Grouping grouping = (Grouping)statement;
             validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(grouping));
          }
@@ -158,10 +158,10 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
 
       matched = this.getSubStatement(YangBuiltinKeyword.TYPEDEF.getQName());
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            statement = (YangStatement)iterator.next();
             Typedef typedef = (Typedef)statement;
             validatorResultBuilder.merge(this.typedefContainer.addTypedef(typedef));
          }
@@ -169,10 +169,10 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
 
       matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            statement = (YangStatement)iterator.next();
             IfFeature ifFeature = (IfFeature)statement;
             validatorResultBuilder.merge(this.ifFeatureSupport.addIfFeature(ifFeature));
          }
@@ -231,7 +231,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
             if (this.input != null) {
                this.schemaNodeContainer.addSchemaNodeChild(this.input);
             } else {
-               Input input = new InputImpl((String)null);
+               Input input = new InputImpl(null);
                input.setContext(new YangContext(this.getContext()));
                input.setElementPosition(this.getElementPosition());
                input.setParentStatement(this);
@@ -243,7 +243,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
             if (this.output != null) {
                this.schemaNodeContainer.addSchemaNodeChild(this.output);
             } else {
-               Output output = new OutputImpl((String)null);
+               Output output = new OutputImpl(null);
                output.setContext(new YangContext(this.getContext()));
                output.setElementPosition(this.getElementPosition());
                output.setParentStatement(this);

@@ -36,10 +36,10 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
 
    public boolean evaluated(String value) {
       if (this.patterns.size() > 0) {
-         Iterator var4 = this.patterns.iterator();
+         Iterator patternIterator = this.patterns.iterator();
 
-         while(var4.hasNext()) {
-            Pattern pattern = (Pattern)var4.next();
+         while(patternIterator.hasNext()) {
+            Pattern pattern = (Pattern)patternIterator.next();
             if (pattern.getModifier() != null) {
                if (!pattern.getPattern().matcher(value).matches()) {
                   return true;
@@ -107,15 +107,15 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
    }
 
    public boolean addPattern(Pattern pattern) {
-      Iterator var2 = this.patterns.iterator();
+      Iterator patternIterator = this.patterns.iterator();
 
       Pattern o;
       do {
-         if (!var2.hasNext()) {
+         if (!patternIterator.hasNext()) {
             return this.patterns.add(pattern);
          }
 
-         o = (Pattern)var2.next();
+         o = (Pattern)patternIterator.next();
       } while(!o.equals(pattern));
 
       return false;

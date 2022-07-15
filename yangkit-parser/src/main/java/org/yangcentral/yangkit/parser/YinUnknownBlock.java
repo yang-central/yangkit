@@ -13,7 +13,7 @@ import org.yangcentral.yangkit.model.api.stmt.Extension;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
-import org.yangcentral.yangkit.register.YangStatementParserRegister;
+import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.register.YangUnknownParserPolicy;
 import org.yangcentral.yangkit.register.YangUnknownRegister;
 
@@ -64,7 +64,7 @@ class YinUnknownBlock extends YangUnknownBlock<Element> {
                   throw new IllegalArgumentException((new Position(this.fileName, new XPathLocation(((Element)this.getBlock()).getUniquePath()))).toString() + " can not create instance for this statement.");
                }
             } else {
-               yangUnknown = YangStatementParserRegister.getInstance().getUnknownInstance(((Element)this.getBlock()).getQualifiedName(), argStr);
+               yangUnknown = YangStatementRegister.getInstance().getDefaultUnknownInstance(((Element)this.getBlock()).getQualifiedName(), argStr);
                yangUnknown.setElementPosition(new Position(this.fileName, new XPathLocation(((Element)this.getBlock()).getUniquePath())));
             }
 

@@ -60,10 +60,10 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             namespace = ((MainModule)module).getNamespace().getUri();
          } else {
             mainModuleList = curModule.getContext().getSchemaContext().getModules();
-            Iterator var14 = mainModuleList.iterator();
+            Iterator iterator = mainModuleList.iterator();
 
-            while(var14.hasNext()) {
-               module = (Module)var14.next();
+            while(iterator.hasNext()) {
+               module = (Module)iterator.next();
                if (module.getSelfPrefix().equals(prefix)) {
                   namespace = module.getMainModule().getNamespace().getUri();
                }

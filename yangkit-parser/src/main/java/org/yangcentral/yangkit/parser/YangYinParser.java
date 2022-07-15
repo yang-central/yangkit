@@ -9,7 +9,8 @@ import org.yangcentral.yangkit.model.api.schema.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.SubModule;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.register.YangStatementParserRegister;
+import org.yangcentral.yangkit.register.YangStatementImplRegister;
+import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.utils.file.FileUtil;
 
 import java.io.File;
@@ -20,11 +21,14 @@ import java.util.List;
 import java.util.Map;
 
 public class YangYinParser {
+   static {
+      YangStatementImplRegister.registerImpl();
+   }
    public static YangSchemaContext parse(List<File> yangFiles) throws IOException, YangParserException, DocumentException {
       if (null == yangFiles) {
          return null;
       } else {
-         YangSchemaContext schemaContext = YangStatementParserRegister.getInstance().getSchemeContextInstance();
+         YangSchemaContext schemaContext = YangStatementRegister.getInstance().getSchemeContextInstance();
          return parse(yangFiles, schemaContext);
       }
    }

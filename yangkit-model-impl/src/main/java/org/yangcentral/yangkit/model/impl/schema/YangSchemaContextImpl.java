@@ -31,7 +31,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    private Map<String, List<Module>> moduleMap = new ConcurrentHashMap();
    private Map<String, List<YangElement>> parseResult = new ConcurrentHashMap();
    private YangSchema schema;
-   private SchemaNodeContainer schemaNodeContainer = new SchemaNodeContainerImpl((SchemaNodeContainer)null);
+   private SchemaNodeContainer schemaNodeContainer = new SchemaNodeContainerImpl(null);
 
    public List<Module> getModules() {
       return this.modules;
@@ -57,10 +57,10 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          return Optional.empty();
       } else {
          List<Module> matched = (List)this.moduleMap.get(moduleId.getModuleName());
-         Iterator var3 = matched.iterator();
+         Iterator iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            Module module = (Module)var3.next();
+         while(iterator.hasNext()) {
+            Module module = (Module)iterator.next();
             if (moduleId.getRevision() == null) {
                if (module.getArgStr().equals(moduleId.getModuleName())) {
                   return Optional.of(module);
@@ -89,13 +89,13 @@ public class YangSchemaContextImpl implements YangSchemaContext {
                return candiate;
             }
 
-            modules = (List)valueIt.next();
+            modules = valueIt.next();
          } while(null == modules);
 
-         Iterator var5 = modules.iterator();
+         Iterator iterator = modules.iterator();
 
-         while(var5.hasNext()) {
-            Module module = (Module)var5.next();
+         while(iterator.hasNext()) {
+            Module module = (Module)iterator.next();
             if (module.getMainModule() != null) {
                URI uri = module.getMainModule().getNamespace().getUri();
                if (uri.equals(namespace)) {
@@ -129,19 +129,19 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    public void addImportOnlyModule(Module module) {
-      List<Module> filterModules = (List)this.moduleMap.get(module.getArgStr());
+      List<Module> filterModules = this.moduleMap.get(module.getArgStr());
       if (filterModules != null && filterModules.size() != 0) {
-         Iterator var3 = filterModules.iterator();
+         Iterator iterator = filterModules.iterator();
 
          Module candidate;
          do {
-            if (!var3.hasNext()) {
+            if (!iterator.hasNext()) {
                filterModules.add(module);
                this.importOnlyModules.add(module);
                return;
             }
 
-            candidate = (Module)var3.next();
+            candidate = (Module)iterator.next();
          } while(!candidate.getModuleId().equals(module.getModuleId()));
 
       } else {
@@ -153,15 +153,15 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    public boolean isImportOnly(Module module) {
-      Iterator var2 = this.importOnlyModules.iterator();
+      Iterator iterator = this.importOnlyModules.iterator();
 
       Module importOnlyModule;
       do {
-         if (!var2.hasNext()) {
+         if (!iterator.hasNext()) {
             return false;
          }
 
-         importOnlyModule = (Module)var2.next();
+         importOnlyModule = (Module)iterator.next();
       } while(importOnlyModule != module);
 
       return true;
@@ -173,10 +173,10 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       } else {
          List<Module> filterModules = (List)this.moduleMap.get(moduleId.getModuleName());
          Module matchedModule = null;
-         Iterator var4 = filterModules.iterator();
+         Iterator iterator = filterModules.iterator();
 
-         while(var4.hasNext()) {
-            Module module = (Module)var4.next();
+         while(iterator.hasNext()) {
+            Module module = (Module)iterator.next();
             if (module.getModuleId().equals(moduleId)) {
                matchedModule = module;
                break;
@@ -187,10 +187,10 @@ public class YangSchemaContextImpl implements YangSchemaContext {
             return null;
          } else {
             filterModules.remove(matchedModule);
-            var4 = this.getSchemaNodeChildren().iterator();
+            iterator = this.getSchemaNodeChildren().iterator();
 
-            while(var4.hasNext()) {
-               SchemaNode schemaNode = (SchemaNode)var4.next();
+            while(iterator.hasNext()) {
+               SchemaNode schemaNode = (SchemaNode)iterator.next();
                if (schemaNode.getContext().getCurModule() == matchedModule) {
                   this.removeSchemaNodeChild(schemaNode);
                }
@@ -216,12 +216,12 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       List<Module> modules = new ArrayList();
       modules.addAll(this.getModules());
       modules.addAll(this.getImportOnlyModules());
-      Iterator var3 = modules.iterator();
+      Iterator iterator = modules.iterator();
 
       Module module;
       ValidatorResult result;
-      while(var3.hasNext()) {
-         module = (Module)var3.next();
+      while(iterator.hasNext()) {
+         module = (Module)iterator.next();
          if (!module.isInit()) {
             module.setContext(new YangContext(this, module));
             result = module.init();
@@ -229,17 +229,17 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          }
       }
 
-      var3 = modules.iterator();
+      iterator = modules.iterator();
 
       while(true) {
          do {
             do {
                do {
-                  if (!var3.hasNext()) {
-                     var3 = modules.iterator();
+                  if (!iterator.hasNext()) {
+                     iterator = modules.iterator();
 
-                     while(var3.hasNext()) {
-                        module = (Module)var3.next();
+                     while(iterator.hasNext()) {
+                        module = (Module)iterator.next();
                         if (module.isInit() && module.isBuilt()) {
                            result = module.validate();
                            validatorResultBuilder.merge(result);
@@ -251,7 +251,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
                      return validatorResult;
                   }
 
-                  module = (Module)var3.next();
+                  module = (Module)iterator.next();
                } while(!module.isInit());
             } while(module.isBuilt());
          } while(module instanceof SubModule && module.getContext().getYangSpecification() == YangSpecification.getVersion11Spec());
@@ -271,10 +271,10 @@ public class YangSchemaContextImpl implements YangSchemaContext {
 
    public ValidatorResult addSchemaNodeChildren(List<SchemaNode> schemaNodes) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = schemaNodes.iterator();
+      Iterator iterator = schemaNodes.iterator();
 
-      while(var3.hasNext()) {
-         SchemaNode schemaNode = (SchemaNode)var3.next();
+      while(iterator.hasNext()) {
+         SchemaNode schemaNode = (SchemaNode)iterator.next();
          validatorResultBuilder.merge(this.addSchemaNodeChild(schemaNode));
       }
 

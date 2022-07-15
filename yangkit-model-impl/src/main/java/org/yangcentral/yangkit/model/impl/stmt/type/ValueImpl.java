@@ -34,7 +34,7 @@ public class ValueImpl extends YangBuiltInStatementImpl implements Value {
 
       try {
          this.value = Integer.parseInt(this.getArgStr());
-      } catch (RuntimeException var4) {
+      } catch (RuntimeException e) {
          ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
          validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
          validatorRecordBuilder.setSeverity(Severity.ERROR);

@@ -68,10 +68,10 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator var3 = subElements.iterator();
+      Iterator subElementIt = subElements.iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(subElementIt.hasNext()) {
+         YangElement subElement = (YangElement)subElementIt.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
@@ -151,10 +151,10 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       validatorResultBuilder.merge(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            Iterator var3 = this.getDataDefChildren().iterator();
+            Iterator iterator = this.getDataDefChildren().iterator();
 
-            while(var3.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)var3.next();
+            while(iterator.hasNext()) {
+               DataDefinition dataDefinition = (DataDefinition)iterator.next();
                if (dataDefinition.evaluateFeatures()) {
                   validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
                }

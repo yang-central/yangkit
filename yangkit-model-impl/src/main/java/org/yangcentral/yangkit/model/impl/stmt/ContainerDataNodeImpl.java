@@ -111,10 +111,10 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator var3 = subElements.iterator();
+      Iterator iterator = subElements.iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(iterator.hasNext()) {
+         YangElement subElement = (YangElement)iterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
@@ -193,24 +193,24 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       validatorResultBuilder.merge(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            Iterator var3 = this.getDataDefChildren().iterator();
+            Iterator iterator = this.getDataDefChildren().iterator();
 
-            while(var3.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)var3.next();
+            while(iterator.hasNext()) {
+               DataDefinition dataDefinition = (DataDefinition)iterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
 
-            var3 = this.getActions().iterator();
+            iterator = this.getActions().iterator();
 
-            while(var3.hasNext()) {
-               Action action = (Action)var3.next();
+            while(iterator.hasNext()) {
+               Action action = (Action)iterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(action));
             }
 
-            var3 = this.getNotifications().iterator();
+            iterator = this.getNotifications().iterator();
 
-            while(var3.hasNext()) {
-               Notification notification = (Notification)var3.next();
+            while(iterator.hasNext()) {
+               Notification notification = (Notification)iterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(notification));
             }
          default:

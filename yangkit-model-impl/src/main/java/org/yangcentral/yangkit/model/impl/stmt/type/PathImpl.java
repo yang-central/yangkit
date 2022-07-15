@@ -49,7 +49,7 @@ public class PathImpl extends YangBuiltInStatementImpl implements Path {
          }
 
          this.path = xPath;
-      } catch (JaxenException var4) {
+      } catch (JaxenException e) {
          validatorRecordBuilder = new ValidatorRecordBuilder();
          validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
          validatorRecordBuilder.setSeverity(Severity.ERROR);

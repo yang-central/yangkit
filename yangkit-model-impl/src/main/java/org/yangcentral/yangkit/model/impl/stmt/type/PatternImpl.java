@@ -77,7 +77,7 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
          String fixedName = this.getArgStr().replaceAll("\\\\p\\{IsBasicLatin\\}", "\\\\p\\{InBasicLatin\\}");
          fixedName = fixedName.replaceAll("\\\\p\\{IsLatin-1Supplement\\}", "\\\\p\\{InLatin-1Supplement\\}");
          this.pattern = java.util.regex.Pattern.compile(fixedName);
-      } catch (RuntimeException var4) {
+      } catch (RuntimeException e) {
          ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
          validatorRecordBuilder.setSeverity(Severity.ERROR);
          validatorRecordBuilder.setBadElement(this);

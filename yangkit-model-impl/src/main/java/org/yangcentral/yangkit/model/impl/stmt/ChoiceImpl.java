@@ -82,16 +82,16 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       if (aCase == null) {
          return false;
       } else {
-         Iterator var2 = this.cases.iterator();
+         Iterator caseIterator = this.cases.iterator();
 
          Case ca;
          do {
-            if (!var2.hasNext()) {
+            if (!caseIterator.hasNext()) {
                aCase.setParent(this);
                return this.cases.add(aCase);
             }
 
-            ca = (Case)var2.next();
+            ca = (Case)caseIterator.next();
          } while(!ca.getIdentifier().equals(aCase.getIdentifier()));
 
          return false;
@@ -99,15 +99,15 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
    }
 
    private Case getCase(String name) {
-      Iterator var2 = this.cases.iterator();
+      Iterator caseIterator = this.cases.iterator();
 
       Case c;
       do {
-         if (!var2.hasNext()) {
+         if (!caseIterator.hasNext()) {
             return null;
          }
 
-         c = (Case)var2.next();
+         c = (Case)caseIterator.next();
       } while(!c.getArgStr().equals(name));
 
       return c;
@@ -169,10 +169,10 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator var3 = subElements.iterator();
+      Iterator iterator = subElements.iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(iterator.hasNext()) {
+         YangElement subElement = (YangElement)iterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
@@ -267,7 +267,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       ValidatorResultBuilder validatorResultBuilder;
       validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.buildSelf(phase));
-      Iterator var3;
+      Iterator iterator;
       Case c;
       label44:
       switch (phase) {
@@ -295,14 +295,14 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
             }
             break;
          case SCHEMA_BUILD:
-            var3 = this.cases.iterator();
+            iterator = this.cases.iterator();
 
             while(true) {
-               if (!var3.hasNext()) {
+               if (!iterator.hasNext()) {
                   break label44;
                }
 
-               c = (Case)var3.next();
+               c = (Case)iterator.next();
                if (c.evaluateFeatures()) {
                   this.addSchemaNodeChild(c);
                   if (c.isShortCase()) {
@@ -311,10 +311,10 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
                }
             }
          case SCHEMA_TREE:
-            var3 = this.cases.iterator();
+            iterator = this.cases.iterator();
 
-            while(var3.hasNext()) {
-               c = (Case)var3.next();
+            while(iterator.hasNext()) {
+               c = (Case)iterator.next();
                if (c.evaluateFeatures() && c.isShortCase()) {
                   validatorResultBuilder.merge(c.build(phase));
                }
@@ -343,15 +343,15 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
    }
 
    public DataDefinition getDataDefChild(String name) {
-      Iterator var2 = this.dataDefinitions.iterator();
+      Iterator iterator = this.dataDefinitions.iterator();
 
       DataDefinition dataDefinition;
       do {
-         if (!var2.hasNext()) {
+         if (!iterator.hasNext()) {
             return null;
          }
 
-         dataDefinition = (DataDefinition)var2.next();
+         dataDefinition = (DataDefinition)iterator.next();
       } while(!dataDefinition.getArgStr().equals(name));
 
       return dataDefinition;

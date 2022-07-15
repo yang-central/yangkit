@@ -13,11 +13,10 @@ public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>>
    public List<String> deserialize(Restriction<List<String>> restriction, String input) throws YangCodecException {
       String[] splitStr = input.split(" ");
       List<String> ret = new ArrayList();
-      String[] var5 = splitStr;
-      int var6 = splitStr.length;
+      int length = splitStr.length;
 
-      for(int var7 = 0; var7 < var6; ++var7) {
-         String str = var5[var7];
+      for(int i = 0; i < length; ++i) {
+         String str = splitStr[i];
          str = str.trim();
          if (str.length() > 0) {
             ret.add(str);
@@ -38,10 +37,10 @@ public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>>
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          StringBuffer sb = new StringBuffer();
-         Iterator var5 = output.iterator();
+         Iterator iterator = output.iterator();
 
-         while(var5.hasNext()) {
-            String str = (String)var5.next();
+         while(iterator.hasNext()) {
+            String str = (String)iterator.next();
             sb.append(str);
             sb.append(" ");
          }
