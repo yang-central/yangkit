@@ -287,4 +287,22 @@ public class ModelUtil {
 
       return new Namespace(namespace, prefix);
    }
+
+   public static YangStatement getTopAncestorStatement(YangStatement statement){
+      YangStatement parentStatement = statement.getParentStatement();
+
+      while(parentStatement != null){
+         statement = parentStatement;
+         parentStatement = statement.getParentStatement();
+      }
+      return statement;
+
+   }
+   public static boolean isAvailableStatement(YangStatement yangStatement){
+      YangStatement topAncestor = getTopAncestorStatement(yangStatement);
+      if(topAncestor instanceof Module){
+         return true;
+      }
+      return false;
+   }
 }

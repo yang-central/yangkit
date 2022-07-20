@@ -10,4 +10,11 @@ public interface Referencable {
    void delReference(YangStatement yangStatement);
 
    boolean isReferencedBy(YangStatement yangStatement);
+
+   default boolean isReferenced(){
+      if(getReferencedBy() == null){
+         return false;
+      }
+      return !getReferencedBy().isEmpty();
+   }
 }

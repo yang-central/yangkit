@@ -60,7 +60,7 @@ class ActionContainerImpl implements ActionContainer {
 
    public ValidatorResult addAction(Action action) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      SchemaNode schemaNode = (SchemaNode)this.getYangContext().getSchemaNodeIdentifierCache().get(action.getArgStr());
+      SchemaNode schemaNode = this.getYangContext().getSchemaNodeIdentifierCache().get(action.getArgStr());
       if (schemaNode != null) {
          validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(schemaNode, action));
          action.setErrorStatement(true);

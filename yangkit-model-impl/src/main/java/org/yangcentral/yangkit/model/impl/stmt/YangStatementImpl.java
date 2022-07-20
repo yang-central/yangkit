@@ -50,20 +50,9 @@ public abstract class YangStatementImpl implements YangStatement {
    protected ValidatorResult afterValidateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       ValidatorRecordBuilder validatorRecordBuilder;
-      if (this instanceof Import) {
-         Import im = (Import)this;
-         if (!im.isReferenced()) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setSeverity(Severity.WARNING);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNUSED_IMPORT.toString(new String[]{"name=" + im.getArgStr()})));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-         }
-      } else if (this instanceof Referencable) {
+      if (this instanceof Referencable) {
          Referencable referencable = (Referencable)this;
-         if (referencable.getReferencedBy().size() == 0) {
+         if (!referencable.isReferenced()) {
             validatorRecordBuilder = new ValidatorRecordBuilder();
             validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
             validatorRecordBuilder.setBadElement(this);
@@ -75,7 +64,7 @@ public abstract class YangStatementImpl implements YangStatement {
             } else if (referencable instanceof Grouping) {
                errorCode = ErrorCode.UNUSED_GROUPING;
             } else {
-               assert false;
+               errorCode = ErrorCode.UNUSED_IMPORT;
             }
 
             validatorRecordBuilder.setErrorMessage(new ErrorMessage(errorCode.toString(new String[]{"name=" + this.getArgStr()})));

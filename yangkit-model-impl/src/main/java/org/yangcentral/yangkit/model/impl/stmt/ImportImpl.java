@@ -22,6 +22,7 @@ import org.yangcentral.yangkit.model.api.stmt.Prefix;
 import org.yangcentral.yangkit.model.api.stmt.Reference;
 import org.yangcentral.yangkit.model.api.stmt.RevisionDate;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +53,10 @@ public class ImportImpl extends YangStatementImpl implements Import {
       return null == this.importedModule ? Optional.empty() : Optional.of(this.importedModule);
    }
 
-   public boolean isReferenced() {
-      return !this.referencedStmts.isEmpty();
+
+   @Override
+   public List<YangStatement> getReferencedBy() {
+      return referencedStmts;
    }
 
    @Override
@@ -67,9 +70,20 @@ public class ImportImpl extends YangStatementImpl implements Import {
    }
 
    @Override
-   public void removeReference(YangStatement yangStatement) {
+   public void delReference(YangStatement yangStatement) {
       referencedStmts.remove(yangStatement);
    }
+
+   @Override
+   public boolean isReferencedBy(YangStatement yangStatement) {
+      for(YangStatement ref:referencedStmts){
+         if(ref == yangStatement){
+            return true;
+         }
+      }
+      return false;
+   }
+
 
 
 
@@ -107,13 +121,8 @@ public class ImportImpl extends YangStatementImpl implements Import {
          List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
          if (null != moduleList && moduleList.size() != 0) {
             if (moduleList.size() > 1) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorPath(this.prefix.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.TOO_MANY_DEPENDECE_MODULES.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.TOO_MANY_DEPENDECE_MODULES.getFieldName()));
                return validatorResultBuilder.build();
             }
 
@@ -126,7 +135,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
             notFound = true;
          }
       } else {
-         Optional<org.yangcentral.yangkit.model.api.stmt.Module> moduleOp = schemaContext.getModule(this.getArgStr(), this.revisionDate.getArgStr());
+         Optional<Module> moduleOp = schemaContext.getModule(this.getArgStr(), this.revisionDate.getArgStr());
          if (!moduleOp.isPresent()) {
             notFound = true;
          } else if (!(moduleOp.get() instanceof MainModule)) {
@@ -255,5 +264,25 @@ public class ImportImpl extends YangStatementImpl implements Import {
 
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
+   }
+
+   @Override
+   protected ValidatorResult validateSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
+      if(!referencedStmts.isEmpty()){
+         int[] unAvailableIndexes = new int[referencedStmts.size()];
+         int pos = 0;
+         for(int i = 0; i < referencedStmts.size();i++){
+            YangStatement ref = referencedStmts.get(i);
+            if(!ModelUtil.isAvailableStatement(ref)){
+               unAvailableIndexes[pos] = i;
+               pos++;
+            }
+         }
+         for(int i = 0; i < pos;i++){
+            referencedStmts.remove(unAvailableIndexes[i]);
+         }
+      }
+      return validatorResultBuilder.build();
    }
 }

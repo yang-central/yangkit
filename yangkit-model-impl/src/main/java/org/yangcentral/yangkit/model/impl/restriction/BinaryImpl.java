@@ -2,20 +2,18 @@ package org.yangcentral.yangkit.model.impl.restriction;
 
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
+import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.restriction.Binary;
 import org.yangcentral.yangkit.model.api.restriction.Section;
 import org.yangcentral.yangkit.model.api.restriction.YangString;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.type.Length;
 import org.yangcentral.yangkit.model.impl.stmt.type.LengthImpl;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.math.BigInteger;
 
@@ -42,12 +40,8 @@ public class BinaryImpl extends RestrictionImpl<byte[]> implements Binary {
       }
 
       if (this.getDerived() != null && !length.isSubSet(((Binary)this.getDerived().getType().getRestriction()).getLength())) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setBadElement(length);
-         validatorRecordBuilder.setErrorPath(length.getElementPosition());
-         validatorRecordBuilder.setSeverity(ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(length,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),
+                 ErrorTag.BAD_ELEMENT,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
          if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {
             return validatorResultBuilder.build();
          }

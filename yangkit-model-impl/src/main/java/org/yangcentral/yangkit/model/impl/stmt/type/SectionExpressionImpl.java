@@ -3,18 +3,13 @@ package org.yangcentral.yangkit.model.impl.stmt.type;
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.restriction.Section;
-import org.yangcentral.yangkit.model.api.stmt.Description;
-import org.yangcentral.yangkit.model.api.stmt.ErrorAppTagStmt;
-import org.yangcentral.yangkit.model.api.stmt.ErrorMessageStmt;
-import org.yangcentral.yangkit.model.api.stmt.Reference;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.type.SectionExpression;
 import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -107,24 +102,17 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case GRAMMAR:
-            ValidatorRecordBuilder validatorRecordBuilder;
             try {
                List<Section> sections = this.parseRange(this.getArgStr());
                this.sections = sections;
                if (!this.checkSections()) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.SECTIONS_MUST_ASCEND_ORDER.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                          ErrorCode.SECTIONS_MUST_ASCEND_ORDER.getFieldName()));
                   return validatorResultBuilder.build();
                }
             } catch (RuntimeException e) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.INVALID_ARG.getFieldName()));
                return validatorResultBuilder.build();
             }
          default:
@@ -222,30 +210,30 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    }
 
    private boolean match(Section section, List<Section> derivedSections) {
-      Iterator var3 = derivedSections.iterator();
+      Iterator sectionIterator = derivedSections.iterator();
 
       Section derivedSection;
       do {
-         if (!var3.hasNext()) {
+         if (!sectionIterator.hasNext()) {
             return false;
          }
 
-         derivedSection = (Section)var3.next();
+         derivedSection = (Section)sectionIterator.next();
       } while(!section.isSubSection(derivedSection));
 
       return true;
    }
 
    private boolean match(List<Section> sections, List<Section> derivedSections) {
-      Iterator var3 = sections.iterator();
+      Iterator sectionIterator = sections.iterator();
 
       Section section;
       do {
-         if (!var3.hasNext()) {
+         if (!sectionIterator.hasNext()) {
             return true;
          }
 
-         section = (Section)var3.next();
+         section = (Section)sectionIterator.next();
       } while(this.match(section, derivedSections));
 
       return false;
@@ -260,15 +248,15 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    }
 
    public boolean evaluate(Comparable val) {
-      Iterator var2 = this.sections.iterator();
+      Iterator sectionIterator = this.sections.iterator();
 
       Section section;
       do {
-         if (!var2.hasNext()) {
+         if (!sectionIterator.hasNext()) {
             return false;
          }
 
-         section = (Section)var2.next();
+         section = (Section)sectionIterator.next();
       } while(!section.evaluate(val));
 
       return true;
@@ -276,7 +264,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
 
    public Comparable<?> getMax() {
       int size = this.sections.size();
-      return ((Section)this.sections.get(size - 1)).getMax();
+      return (this.sections.get(size - 1)).getMax();
    }
 
    public Comparable<?> getMin() {
@@ -293,8 +281,8 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
             return false;
          } else {
             for(int i = 0; i < this.sections.size(); ++i) {
-               Section thisSection = (Section)this.sections.get(i);
-               Section anotherSection = (Section)anotherSections.get(i);
+               Section thisSection = this.sections.get(i);
+               Section anotherSection = anotherSections.get(i);
                if (!thisSection.equals(anotherSection)) {
                   return false;
                }
