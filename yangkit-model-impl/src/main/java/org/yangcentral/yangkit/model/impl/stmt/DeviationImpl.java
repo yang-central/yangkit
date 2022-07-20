@@ -143,7 +143,7 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
       switch (phase) {
          case GRAMMAR:
             try {
-               SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), (SchemaNodeContainer)null, this.getArgStr());
+               SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), (SchemaNodeContainer)null, this,this.getArgStr());
                if (targetPath instanceof SchemaPath.Descendant) {
                   validatorRecordBuilder = new ValidatorRecordBuilder();
                   validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);

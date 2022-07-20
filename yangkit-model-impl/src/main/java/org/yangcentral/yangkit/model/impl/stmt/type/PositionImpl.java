@@ -30,7 +30,6 @@ public class PositionImpl extends YangBuiltInStatementImpl implements Position {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-
       try {
          this.value = Long.parseLong(this.getArgStr());
          if (this.value < 0L) {

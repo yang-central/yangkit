@@ -40,7 +40,7 @@ public class BaseImpl extends YangBuiltInStatementImpl implements Base {
             FName fName = new FName(this.getArgStr());
             Import im = this.getContext().getCurModule().getImportByPrefix(fName.getPrefix());
             if (im != null) {
-               im.setReferenced(true);
+               im.addReference(this);
             }
 
             ValidatorRecordBuilder validatorRecordBuilder;
@@ -54,11 +54,11 @@ public class BaseImpl extends YangBuiltInStatementImpl implements Base {
                   validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_IDENTITY.toString(new String[]{"name=" + fName.getLocalName()})));
                   validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                }
-            } catch (ModelException var7) {
+            } catch (ModelException e) {
                validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(var7.getElement());
-               validatorRecordBuilder.setErrorPath(var7.getElement().getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(var7.getDescription()));
+               validatorRecordBuilder.setBadElement(e.getElement());
+               validatorRecordBuilder.setErrorPath(e.getElement().getElementPosition());
+               validatorRecordBuilder.setErrorMessage(new ErrorMessage(e.getDescription()));
                validatorResultBuilder.addRecord(validatorRecordBuilder.build());
             }
          default:

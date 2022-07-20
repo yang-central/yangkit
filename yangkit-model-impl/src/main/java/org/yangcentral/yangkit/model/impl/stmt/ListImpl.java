@@ -24,6 +24,7 @@ import org.yangcentral.yangkit.model.api.stmt.Unique;
 import org.yangcentral.yangkit.model.api.stmt.YangList;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -146,24 +147,17 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    private ValidatorResult validateUnique(Unique unique) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       String[] uniStrs = unique.getArgStr().split(" ");
-      String[] var4 = uniStrs;
-      int var5 = uniStrs.length;
+      int length = uniStrs.length;
 
-      for(int var6 = 0; var6 < var5; ++var6) {
-         String uniStr = var4[var6];
+      for(int i = 0; i < length; ++i) {
+         String uniStr = uniStrs[i];
          uniStr = uniStr.trim();
          if (uniStr.length() != 0) {
             ValidatorRecordBuilder validatorRecordBuilder;
             try {
-               SchemaPath path = SchemaPathImpl.from(this.getContext().getCurModule(), this, uniStr);
+               SchemaPath path = SchemaPathImpl.from(this.getContext().getCurModule(), this, unique,uniStr);
                if (!(path instanceof SchemaPath.Descendant)) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(unique.getElementPosition());
-                  validatorRecordBuilder.setBadElement(unique);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(unique,ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
                } else {
                   SchemaPath.Descendant descendantPath = (SchemaPath.Descendant)path;
                   SchemaNode schemaNode = descendantPath.getSchemaNode(this.getContext().getSchemaContext());

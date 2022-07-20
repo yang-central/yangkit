@@ -32,6 +32,7 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.model.api.stmt.Uses;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -157,7 +158,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.buildSelf(phase));
-      Iterator var16;
+      Iterator iterator;
       Augment augment;
       Refine refine;
       SchemaPath targetPath;
@@ -168,59 +169,49 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                String prefix = fName.getPrefix();
                Import im = this.getContext().getCurModule().getImportByPrefix(prefix);
                if (im != null) {
-                  im.setReferenced(true);
+                  im.addReference(this);
                }
             }
 
             this.refGrouping = this.buildRefGrouping(validatorResultBuilder);
             this.refGrouping.addReference(this);
-            var16 = this.augments.iterator();
+            iterator = this.augments.iterator();
 
             ValidatorRecordBuilder validatorRecordBuilder;
-            while(var16.hasNext()) {
-               augment = (Augment)var16.next();
+            while(iterator.hasNext()) {
+               augment = (Augment)iterator.next();
 
                try {
-                  targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, augment.getArgStr());
+                  targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, augment,augment.getArgStr());
                   augment.setTargetPath(targetPath);
-               } catch (ModelException var13) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(var13.getSeverity());
-                  validatorRecordBuilder.setBadElement(var13.getElement());
-                  validatorRecordBuilder.setErrorPath(var13.getElement().getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(var13.getDescription()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               } catch (ModelException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getSeverity(),
+                          ErrorTag.BAD_ELEMENT,e.getDescription()));
                }
             }
 
-            var16 = this.refines.iterator();
+            iterator = this.refines.iterator();
 
-            while(var16.hasNext()) {
-               refine = (Refine)var16.next();
+            while(iterator.hasNext()) {
+               refine = (Refine)iterator.next();
 
                try {
-                  targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, refine.getArgStr());
+                  targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, refine,refine.getArgStr());
                   refine.setTargetPath(targetPath);
-               } catch (ModelException var12) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(var12.getSeverity());
-                  validatorRecordBuilder.setErrorPath(refine.getElementPosition());
-                  validatorRecordBuilder.setBadElement(refine);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(var12.getDescription()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               } catch (ModelException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getSeverity(),
+                          ErrorTag.BAD_ELEMENT,e.getDescription()));
                }
             }
 
             return validatorResultBuilder.build();
          case SCHEMA_BUILD:
             List<DataDefinition> dataDefChildren = this.refGrouping.getDataDefChildren();
-            var16 = dataDefChildren.iterator();
+            iterator = dataDefChildren.iterator();
 
             int var9;
-            while(var16.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)var16.next();
+            while(iterator.hasNext()) {
+               DataDefinition dataDefinition = (DataDefinition)iterator.next();
                DataDefinition clonedDataDefiniton = (DataDefinition)dataDefinition.clone();
                YangContext newYangContext = new YangContext(dataDefinition.getContext());
                newYangContext.setCurGrouping(this.getContext().getCurGrouping());
@@ -241,13 +232,13 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedDataDefiniton));
             }
 
-            var16 = this.refGrouping.getActions().iterator();
+            iterator = this.refGrouping.getActions().iterator();
 
             BuildPhase[] var26;
             int var28;
             BuildPhase buildPhase;
-            while(var16.hasNext()) {
-               Action action = (Action)var16.next();
+            while(iterator.hasNext()) {
+               Action action = (Action)iterator.next();
                Action clonedAction = (Action)action.clone();
                clonedAction.setContext(new YangContext(action.getContext()));
                clonedAction.getContext().setNamespace(this.getContext().getNamespace());
@@ -266,10 +257,10 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedAction));
             }
 
-            var16 = this.refGrouping.getNotifications().iterator();
+            iterator = this.refGrouping.getNotifications().iterator();
 
-            while(var16.hasNext()) {
-               Notification notification = (Notification)var16.next();
+            while(iterator.hasNext()) {
+               Notification notification = (Notification)iterator.next();
                Notification clonedNotification = (Notification)notification.clone();
                clonedNotification.setContext(new YangContext(notification.getContext()));
                clonedNotification.getContext().setNamespace(this.getContext().getNamespace());
@@ -288,11 +279,11 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedNotification));
             }
 
-            var16 = this.augments.iterator();
+            iterator = this.augments.iterator();
 
             SchemaNode target;
-            while(var16.hasNext()) {
-               augment = (Augment)var16.next();
+            while(iterator.hasNext()) {
+               augment = (Augment)iterator.next();
                targetPath = augment.getTargetPath();
                target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
                if (!(target instanceof Augmentable)) {
@@ -310,10 +301,10 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                }
             }
 
-            var16 = this.refines.iterator();
+            iterator = this.refines.iterator();
 
-            while(var16.hasNext()) {
-               refine = (Refine)var16.next();
+            while(iterator.hasNext()) {
+               refine = (Refine)iterator.next();
                targetPath = refine.getTargetPath();
                target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
                refine.setTarget(target);

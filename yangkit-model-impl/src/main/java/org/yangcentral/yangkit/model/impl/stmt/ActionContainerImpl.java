@@ -40,8 +40,22 @@ class ActionContainerImpl implements ActionContainer {
       return action;
    }
 
+   public Action removeAction(String actionName){
+      Action action = getAction(actionName);
+      this.getYangContext().getSchemaNodeIdentifierCache().remove(actionName);
+      actions.remove(action);
+      return action;
+   }
+
    public List<Action> getActions() {
       return Collections.unmodifiableList(this.actions);
+   }
+
+   public void removeActions(){
+      for(Action action :actions){
+         this.getYangContext().getSchemaNodeIdentifierCache().remove(action.getArgStr());
+      }
+      actions.clear();
    }
 
    public ValidatorResult addAction(Action action) {

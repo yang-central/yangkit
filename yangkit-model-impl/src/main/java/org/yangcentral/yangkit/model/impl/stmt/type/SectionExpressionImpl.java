@@ -63,21 +63,22 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.description = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() != 0) {
          this.description = (Description)matched.get(0);
       }
-
+      this.reference = null;
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() != 0) {
          this.reference = (Reference)matched.get(0);
       }
-
+      this.errorMessage = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ERRORMESSAGE.getQName());
       if (matched.size() != 0) {
          this.errorMessage = (ErrorMessageStmt)matched.get(0);
       }
-
+      this.errorAppTag = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ERRORAPPTAG.getQName());
       if (matched.size() != 0) {
          this.errorAppTag = (ErrorAppTagStmt)matched.get(0);

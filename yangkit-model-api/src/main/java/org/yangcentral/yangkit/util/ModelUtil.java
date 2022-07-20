@@ -11,15 +11,9 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
-import org.yangcentral.yangkit.model.api.stmt.MainModule;
-import org.yangcentral.yangkit.model.api.stmt.ModelException;
-import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.SubModule;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.*;
 
 import java.net.URI;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -221,17 +215,28 @@ public class ModelUtil {
    }
 
    public static ValidatorRecord<Position, YangStatement> reportDuplicateError(YangStatement original, YangStatement duplicated, Severity severity) {
-      ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-      validatorRecordBuilder.setBadElement(duplicated);
-      validatorRecordBuilder.setSeverity(severity);
-      validatorRecordBuilder.setErrorPath(duplicated.getElementPosition());
-      validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-      validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in " + original.getElementPosition()));
-      return validatorRecordBuilder.build();
+      return reportError(duplicated,severity,ErrorTag.BAD_ELEMENT,
+              ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in " + original.getElementPosition());
    }
 
    public static ValidatorRecord<Position, YangStatement> reportDuplicateError(YangStatement original, YangStatement duplicated) {
       return reportDuplicateError(original, duplicated, Severity.ERROR);
+   }
+
+   public static ValidatorRecord<Position,YangStatement> reportError(YangStatement badElement,Severity severity,
+                                                                     ErrorTag errorTag,String errorMsg){
+      ValidatorRecordBuilder  validatorRecordBuilder = new ValidatorRecordBuilder();
+      validatorRecordBuilder.setBadElement(badElement);
+      validatorRecordBuilder.setSeverity(severity);
+      validatorRecordBuilder.setErrorPath(badElement.getElementPosition());
+      validatorRecordBuilder.setErrorTag(errorTag);
+      validatorRecordBuilder.setErrorMessage(new ErrorMessage(errorMsg));
+      return validatorRecordBuilder.build();
+   }
+
+   public static ValidatorRecord<Position,YangStatement> reportError(YangStatement badElement,
+                                                                     String errorMsg){
+      return reportError(badElement,Severity.ERROR,ErrorTag.BAD_ELEMENT,errorMsg);
    }
 
    public static <T extends YangStatement> T checkConflict(T candidate, List<T> original) {

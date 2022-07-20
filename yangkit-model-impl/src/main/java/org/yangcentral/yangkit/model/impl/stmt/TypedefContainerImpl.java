@@ -47,4 +47,22 @@ class TypedefContainerImpl implements TypedefContainer {
    public Typedef getTypedef(String defName) {
       return this.yangContext.getTypedef(defName);
    }
+
+   public Typedef removeTypedef(String name) {
+      Typedef typedef = getTypedef(name);
+      if(typedef == null){
+         return null;
+      }
+      this.typedefs.remove(typedef);
+      this.yangContext.getTypedefIdentifierCache().remove(typedef.getArgStr());
+      return typedef;
+   }
+
+
+   public void removeTypedefs() {
+      for(Typedef typedef:typedefs){
+         getYangContext().getTypedefIdentifierCache().remove(typedef.getArgStr());
+      }
+      typedefs.clear();
+   }
 }

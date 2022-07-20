@@ -31,6 +31,22 @@ class GroupingDefContainerImpl implements GroupingDefContainer {
       return this.getYangContext().getGrouping(name);
    }
 
+   public Grouping removeGrouping(String name) {
+      Grouping target = getGrouping(name);
+      if(!groupings.remove(target)){
+         return null;
+      }
+      getYangContext().getGroupingIdentifierCache().remove(name);
+      return target;
+   }
+
+   public void removeGroupings() {
+      for(Grouping grouping: groupings){
+         getYangContext().getGroupingIdentifierCache().remove(grouping.getArgStr());
+      }
+      groupings.clear();
+   }
+
    public ValidatorResult addGrouping(Grouping grouping) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Grouping orig = this.getGrouping(grouping.getArgStr());

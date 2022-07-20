@@ -5,7 +5,6 @@ import java.util.List;
 
 public interface IfFeatureSupport {
    List<IfFeature> getIfFeatures();
-
    ValidatorResult addIfFeature(IfFeature ifFeature);
 
    void setIfFeatures(List<IfFeature> ifFeatures);

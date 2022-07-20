@@ -52,7 +52,7 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
          String extensionName = pair[1];
          Import im = curModule.getImportByPrefix(prefix);
          if (im != null) {
-            im.setReferenced(true);
+            im.addReference(this);
          }
 
          if (curModule.isSelfPrefix(prefix)) {

@@ -41,6 +41,7 @@ public class EnumImpl extends EntityImpl implements YangEnum {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      this.value = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.VALUE.getQName());
       if (matched.size() != 0) {
          this.value = (Value)matched.get(0);

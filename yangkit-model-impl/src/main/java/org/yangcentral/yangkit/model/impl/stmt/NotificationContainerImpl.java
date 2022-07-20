@@ -30,18 +30,34 @@ class NotificationContainerImpl implements NotificationContainer {
    }
 
    public Notification getNotification(String name) {
-      Iterator var2 = this.notifications.iterator();
+      Iterator iterator = this.notifications.iterator();
 
       Notification notification;
       do {
-         if (!var2.hasNext()) {
+         if (!iterator.hasNext()) {
             return null;
          }
 
-         notification = (Notification)var2.next();
+         notification = (Notification)iterator.next();
       } while(!notification.getArgStr().equals(name));
 
       return notification;
+   }
+
+   public Notification removeNotification(String name){
+      Notification notification = (Notification) this.getYangContext().getSchemaNodeIdentifierCache().remove(name);
+      if(notification == null){
+         return null;
+      }
+      notifications.remove(notification);
+      return notification;
+   }
+
+   public void removeNotifications(){
+      for(Notification notification:notifications){
+         this.getYangContext().getSchemaNodeIdentifierCache().remove(notification.getArgStr());
+      }
+      notifications.clear();
    }
 
    public ValidatorResult addNotification(Notification notification) {

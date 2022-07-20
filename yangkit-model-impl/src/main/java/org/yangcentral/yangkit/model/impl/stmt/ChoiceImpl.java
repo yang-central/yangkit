@@ -98,6 +98,19 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       }
    }
 
+   public boolean removeCase(Case ca){
+      return cases.remove(ca);
+   }
+
+   public Case removeCase(QName identifier){
+      for(Case c:cases){
+         if(c.getIdentifier().equals(identifier)){
+            cases.remove(c);
+            return c;
+         }
+      }
+      return null;
+   }
    private Case getCase(String name) {
       Iterator caseIterator = this.cases.iterator();
 
@@ -170,7 +183,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
       Iterator iterator = subElements.iterator();
-
+      this.dataDefinitions.clear();
       while(iterator.hasNext()) {
          YangElement subElement = (YangElement)iterator.next();
          if (subElement instanceof YangBuiltinStatement) {

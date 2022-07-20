@@ -73,7 +73,7 @@ public abstract class SchemaPathImpl implements SchemaPath {
       return sb.toString();
    }
 
-   public static SchemaPath from(Module module, SchemaNodeContainer contextNode, String path) throws ModelException {
+   public static SchemaPath from(Module module, SchemaNodeContainer contextNode, YangStatement yangStatement,String path) throws ModelException {
       boolean isAbsolute = false;
       if (path.startsWith("/")) {
          isAbsolute = true;
@@ -97,7 +97,7 @@ public abstract class SchemaPathImpl implements SchemaPath {
             } else {
                Import im = module.getImportByPrefix(prefix);
                if (im != null) {
-                  im.setReferenced(true);
+                  im.addReference(yangStatement);
                }
 
                Optional<ModuleId> moduleIdOp = module.findModuleByPrefix(prefix);

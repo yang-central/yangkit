@@ -34,7 +34,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
    private Description description;
    private Reference reference;
    private MainModule importedModule;
-   private boolean isReferenced = false;
+   private List<YangStatement> referencedStmts = new ArrayList<>();
 
    public ImportImpl(String argStr) {
       super(argStr);
@@ -53,12 +53,25 @@ public class ImportImpl extends YangStatementImpl implements Import {
    }
 
    public boolean isReferenced() {
-      return this.isReferenced;
+      return !this.referencedStmts.isEmpty();
    }
 
-   public void setReferenced(boolean referenced) {
-      this.isReferenced = referenced;
+   @Override
+   public void addReference(YangStatement yangStatement) {
+      for(YangStatement statement:referencedStmts){
+         if(statement == yangStatement){
+            return;
+         }
+      }
+      referencedStmts.add(yangStatement);
    }
+
+   @Override
+   public void removeReference(YangStatement yangStatement) {
+      referencedStmts.remove(yangStatement);
+   }
+
+
 
    public Description getDescription() {
       return this.description;

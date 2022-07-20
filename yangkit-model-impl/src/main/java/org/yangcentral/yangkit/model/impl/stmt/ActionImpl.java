@@ -143,6 +143,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      groupingDefContainer.removeGroupings();
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.GROUPING.getQName());
       Iterator iterator;
       YangStatement statement;
@@ -155,7 +156,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
             validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(grouping));
          }
       }
-
+      typedefContainer.removeTypedefs();
       matched = this.getSubStatement(YangBuiltinKeyword.TYPEDEF.getQName());
       if (matched.size() > 0) {
          iterator = matched.iterator();
@@ -166,7 +167,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
             validatorResultBuilder.merge(this.typedefContainer.addTypedef(typedef));
          }
       }
-
+      ifFeatureSupport.removeIfFeatures();
       matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
       if (matched.size() > 0) {
          iterator = matched.iterator();
@@ -177,12 +178,12 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
             validatorResultBuilder.merge(this.ifFeatureSupport.addIfFeature(ifFeature));
          }
       }
-
+      this.input = null;
       matched = this.getSubStatement(YangBuiltinKeyword.INPUT.getQName());
       if (matched.size() > 0) {
          this.input = (Input)matched.get(0);
       }
-
+      this.output = null;
       matched = this.getSubStatement(YangBuiltinKeyword.OUTPUT.getQName());
       if (matched.size() > 0) {
          this.output = (Output)matched.get(0);
@@ -229,6 +230,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
          case SCHEMA_BUILD:
             this.setSchemaTreeType(SchemaTreeType.RPCTREE);
             if (this.input != null) {
+               this.schemaNodeContainer.removeSchemaNodeChild(this.input.getIdentifier());
                this.schemaNodeContainer.addSchemaNodeChild(this.input);
             } else {
                Input input = new InputImpl(null);
@@ -237,10 +239,12 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
                input.setParentStatement(this);
                input.init();
                input.build();
+               this.schemaNodeContainer.removeSchemaNodeChild(input.getIdentifier());
                this.schemaNodeContainer.addSchemaNodeChild(input);
             }
 
             if (this.output != null) {
+               this.schemaNodeContainer.removeSchemaNodeChild(this.output.getIdentifier());
                this.schemaNodeContainer.addSchemaNodeChild(this.output);
             } else {
                Output output = new OutputImpl(null);
@@ -249,6 +253,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
                output.setParentStatement(this);
                output.init();
                output.build();
+               this.schemaNodeContainer.removeSchemaNodeChild(output.getIdentifier());
                this.schemaNodeContainer.addSchemaNodeChild(output);
             }
          default:

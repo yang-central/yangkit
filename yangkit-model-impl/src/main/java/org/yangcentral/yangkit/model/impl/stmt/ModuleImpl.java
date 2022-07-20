@@ -492,7 +492,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
                ValidatorRecordBuilder validatorRecordBuilder;
                try {
-                  SchemaPath targetPath = SchemaPathImpl.from(this, this, augment.getArgStr());
+                  SchemaPath targetPath = SchemaPathImpl.from(this, this, augment,augment.getArgStr());
                   if (targetPath instanceof SchemaPath.Descendant) {
                      validatorRecordBuilder = new ValidatorRecordBuilder();
                      validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);

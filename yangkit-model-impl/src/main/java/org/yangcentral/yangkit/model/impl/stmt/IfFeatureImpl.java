@@ -1,5 +1,7 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.yangcentral.yangkit.antlr.IfFeatureExpressionBaseVisitor;
 import org.yangcentral.yangkit.antlr.IfFeatureExpressionLexer;
 import org.yangcentral.yangkit.antlr.IfFeatureExpressionParser;
@@ -15,24 +17,13 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.schema.ModuleId;
-import org.yangcentral.yangkit.model.api.schema.ModuleSet;
-import org.yangcentral.yangkit.model.api.schema.YangModuleDescription;
-import org.yangcentral.yangkit.model.api.schema.YangSchema;
-import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.Feature;
-import org.yangcentral.yangkit.model.api.stmt.IfFeature;
-import org.yangcentral.yangkit.model.api.stmt.Import;
-import org.yangcentral.yangkit.model.api.stmt.MainModule;
-import org.yangcentral.yangkit.model.api.stmt.ModelException;
-import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.schema.*;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 
 public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature {
    private IfFeature.IfFeatureExpr ifFeatureExpr;
@@ -79,7 +70,7 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
          } else {
             IfFeatureExpressionParser parser = new IfFeatureExpressionParser(new CommonTokenStream(new IfFeatureExpressionLexer(CharStreams.fromString(this.getArgStr()))));
             IfFeatureExpressionVisitor visitor = new IfFeatureExpressionVisitor();
-            IfFeature.IfFeatureExpr ifFeatureExpr = (IfFeature.IfFeatureExpr)visitor.visit(parser.if_feature_expr());
+            IfFeature.IfFeatureExpr ifFeatureExpr = visitor.visit(parser.if_feature_expr());
             this.ifFeatureExpr = ifFeatureExpr;
             return validatorResultBuilder.build();
          }
@@ -217,7 +208,7 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
          try {
             Import im = IfFeatureImpl.this.getContext().getCurModule().getImportByPrefix(this.refFeature.getPrefix());
             if (im != null) {
-               im.setReferenced(true);
+               im.addReference(IfFeatureImpl.this);
             }
 
             Module module = ModelUtil.findModuleByPrefix(IfFeatureImpl.this.getContext(), this.refFeature.getPrefix());
@@ -334,11 +325,24 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
    }
 
    public abstract class Factor implements IfFeature.IfFeatureExpr {
+      IfFeature self;
+
+      @Override
+      public IfFeature getSelf() {
+         return self;
+      }
    }
 
    public class Term implements IfFeature.IfFeatureExpr {
       Factor factor;
       Term another;
+
+      IfFeature self;
+
+      @Override
+      public IfFeature getSelf() {
+         return self;
+      }
 
       public Factor getFactor() {
          return this.factor;
@@ -384,6 +388,12 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
    public class Expression implements IfFeature.IfFeatureExpr {
       Term ifFeatureTerm;
       Expression another;
+      IfFeature self;
+
+      @Override
+      public IfFeature getSelf() {
+         return self;
+      }
 
       public Term getIfFeatureTerm() {
          return this.ifFeatureTerm;

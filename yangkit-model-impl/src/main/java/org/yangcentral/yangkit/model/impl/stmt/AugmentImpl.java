@@ -1,36 +1,15 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
-import org.yangcentral.yangkit.model.api.stmt.Action;
-import org.yangcentral.yangkit.model.api.stmt.ActionContainer;
-import org.yangcentral.yangkit.model.api.stmt.Augment;
-import org.yangcentral.yangkit.model.api.stmt.Case;
-import org.yangcentral.yangkit.model.api.stmt.Choice;
-import org.yangcentral.yangkit.model.api.stmt.DataDefContainer;
-import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
-import org.yangcentral.yangkit.model.api.stmt.Notification;
-import org.yangcentral.yangkit.model.api.stmt.NotificationContainer;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
-import org.yangcentral.yangkit.model.api.stmt.Uses;
-import org.yangcentral.yangkit.model.api.stmt.WhenSupport;
-import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -137,7 +116,9 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
       Iterator elementIterator = subElements.iterator();
-
+      dataDefContainer.removeDataDefs();
+      actionContainer.removeActions();
+      notificationContainer.removeNotifications();
       while(elementIterator.hasNext()) {
          YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
@@ -176,6 +157,7 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       SchemaNode child;
       switch (phase) {
          case SCHEMA_BUILD:
+            this.schemaNodeContainer.removeSchemaNodeChildren();
             List<DataDefinition> dataDefChildren = this.getDataDefChildren();
             Iterator schemaChildrenIt = dataDefChildren.iterator();
 
@@ -201,78 +183,48 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
             return validatorResultBuilder.build();
          case SCHEMA_EXPAND:
             iterator = this.getSchemaNodeChildren().iterator();
-
-            while(true) {
-               while(true) {
-                  while(iterator.hasNext()) {
-                     child = (SchemaNode)iterator.next();
-                     ValidatorRecordBuilder validatorRecordBuilder;
-                     if (child instanceof DataDefinition) {
-                        if (!(this.target instanceof DataDefContainer)) {
-                           validatorRecordBuilder = new ValidatorRecordBuilder();
-                           validatorRecordBuilder.setBadElement(child);
-                           validatorRecordBuilder.setSeverity(Severity.ERROR);
-                           validatorRecordBuilder.setErrorPath(child.getElementPosition());
-                           validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                           validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                           validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                        } else if (this.target instanceof Choice && child instanceof Uses) {
-                           validatorRecordBuilder = new ValidatorRecordBuilder();
-                           validatorRecordBuilder.setBadElement(child);
-                           validatorRecordBuilder.setSeverity(Severity.ERROR);
-                           validatorRecordBuilder.setErrorPath(child.getElementPosition());
-                           validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                           validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                           validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                        } else if (this.target instanceof Choice) {
-                           Choice choice = (Choice)this.target;
-                           Case ch = null;
-                           if (child instanceof Case) {
-                              ch = (Case)child;
-                           } else {
-                              ch = new CaseImpl(child.getArgStr());
-                              ch.setContext(new YangContext(this.getContext()));
-                              ch.setShortCase(true);
-                              ch.addDataDefChild((DataDefinition)child);
-                              ch.addSchemaNodeChild(child);
-                              this.removeSchemaNodeChild(child);
-                              this.addSchemaNodeChild(ch);
-                           }
-
-                           if (!choice.addCase(ch)) {
-                              validatorRecordBuilder = new ValidatorRecordBuilder();
-                              validatorRecordBuilder.setBadElement(child);
-                              validatorRecordBuilder.setSeverity(Severity.ERROR);
-                              validatorRecordBuilder.setErrorPath(child.getElementPosition());
-                              validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                              validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                              validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                           }
-                        }
-                     } else if (child instanceof Action) {
-                        if (!(this.target instanceof ActionContainer)) {
-                           validatorRecordBuilder = new ValidatorRecordBuilder();
-                           validatorRecordBuilder.setBadElement(child);
-                           validatorRecordBuilder.setSeverity(Severity.ERROR);
-                           validatorRecordBuilder.setErrorPath(child.getElementPosition());
-                           validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                           validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                           validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                        }
-                     } else if (child instanceof Notification && !(this.target instanceof NotificationContainer)) {
-                        validatorRecordBuilder = new ValidatorRecordBuilder();
-                        validatorRecordBuilder.setBadElement(child);
-                        validatorRecordBuilder.setSeverity(Severity.ERROR);
-                        validatorRecordBuilder.setErrorPath(child.getElementPosition());
-                        validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                        validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                        validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            while(iterator.hasNext()) {
+               child = (SchemaNode)iterator.next();
+               if (child instanceof DataDefinition) {
+                  if (!(this.target instanceof DataDefContainer)) {
+                     validatorResultBuilder.addRecord(
+                             ModelUtil.reportError(child,ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+                  } else if (this.target instanceof Choice && child instanceof Uses) {
+                     validatorResultBuilder.addRecord(
+                             ModelUtil.reportError(child,ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+                  } else if (this.target instanceof Choice) {
+                     ChoiceImpl choice = (ChoiceImpl)this.target;
+                     Case ch = null;
+                     if (child instanceof Case) {
+                        ch = (Case)child;
+                     } else {
+                        ch = new CaseImpl(child.getArgStr());
+                        ch.setContext(new YangContext(this.getContext()));
+                        ch.setShortCase(true);
+                        ch.addDataDefChild((DataDefinition)child);
+                        ch.addSchemaNodeChild(child);
+                        this.removeSchemaNodeChild(child);
+                        this.removeSchemaNodeChild(ch);//remove the old if it's built
+                        this.addSchemaNodeChild(ch);
+                     }
+                     choice.removeCase(ch.getIdentifier());//remove the old if it's built
+                     if (!choice.addCase(ch)) {
+                        validatorResultBuilder.addRecord(
+                                ModelUtil.reportError(child,ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                      }
                   }
-
-                  return validatorResultBuilder.build();
+               } else if (child instanceof Action) {
+                  if (!(this.target instanceof ActionContainer)) {
+                     validatorResultBuilder.addRecord(
+                             ModelUtil.reportError(child,ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+                  }
+               } else if (child instanceof Notification && !(this.target instanceof NotificationContainer)) {
+                  validatorResultBuilder.addRecord(
+                          ModelUtil.reportError(child,ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                }
             }
+
+            return validatorResultBuilder.build();
          case SCHEMA_TREE:
             iterator = this.getSchemaNodeChildren().iterator();
 
@@ -340,19 +292,17 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
       if (this.isMandatory()) {
          SchemaNode mandatoryDescendant = this.getMandatoryDescendant();
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setBadElement(mandatoryDescendant);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(mandatoryDescendant.getElementPosition());
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.AUGMENT_MANDATORY_NODE.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         Severity severity = Severity.ERROR;
          if (mandatoryDescendant instanceof WhenSupport) {
             WhenSupport whenSupport = (WhenSupport)mandatoryDescendant;
             if (whenSupport.getWhen() != null) {
-               validatorRecordBuilder.setSeverity(Severity.WARNING);
+               severity = Severity.WARNING;
             }
          }
+         validatorResultBuilder.addRecord(
+                 ModelUtil.reportError(mandatoryDescendant,severity, ErrorTag.BAD_ELEMENT,
+                         ErrorCode.AUGMENT_MANDATORY_NODE.getFieldName()));
+
       }
 
       return validatorResultBuilder.build();

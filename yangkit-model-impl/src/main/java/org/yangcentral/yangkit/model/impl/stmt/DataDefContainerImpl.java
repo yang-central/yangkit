@@ -30,7 +30,7 @@ class DataDefContainerImpl implements DataDefContainer {
    }
 
    public DataDefinition getDataDefChild(String name) {
-      SchemaNode schemaNode = (SchemaNode)this.getYangContext().getSchemaNodeIdentifierCache().get(name);
+      SchemaNode schemaNode = this.getYangContext().getSchemaNodeIdentifierCache().get(name);
       if (null == schemaNode) {
          return null;
       } else {
@@ -38,6 +38,21 @@ class DataDefContainerImpl implements DataDefContainer {
       }
    }
 
+   public DataDefinition removeDataDefChild(String name){
+      DataDefinition dataDefinition = (DataDefinition) this.getYangContext().getSchemaNodeIdentifierCache().remove(name);
+      if(null == dataDefinition){
+         return null;
+      }
+      this.dataDefs.remove(dataDefinition);
+      return dataDefinition;
+   }
+
+   public void removeDataDefs(){
+      for(DataDefinition dataDefinition:dataDefs){
+         this.getYangContext().getSchemaNodeIdentifierCache().remove(dataDefinition.getArgStr());
+      }
+      dataDefs.clear();
+   }
    public ValidatorResult addDataDefChild(DataDefinition dataDefinition) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(dataDefinition instanceof Uses)) {

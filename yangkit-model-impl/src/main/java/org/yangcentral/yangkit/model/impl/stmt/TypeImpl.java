@@ -981,7 +981,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                   String prefix = fName.getPrefix();
                   Import im = this.getContext().getCurModule().getImportByPrefix(prefix);
                   if (im != null) {
-                     im.setReferenced(true);
+                     im.addReference(this);
                   }
                }
 

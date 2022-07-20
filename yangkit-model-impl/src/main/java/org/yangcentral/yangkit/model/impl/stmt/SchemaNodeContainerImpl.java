@@ -210,10 +210,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
 
    public void removeSchemaNodeChild(QName identifier) {
       SchemaNode target = null;
-      Iterator var3 = this.schemaNodes.iterator();
+      Iterator iterator = this.schemaNodes.iterator();
 
-      while(var3.hasNext()) {
-         SchemaNode schemaNode = (SchemaNode)var3.next();
+      while(iterator.hasNext()) {
+         SchemaNode schemaNode = (SchemaNode)iterator.next();
          if (schemaNode instanceof VirtualSchemaNode) {
             VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)schemaNode;
             virtualSchemaNode.removeSchemaNodeChild(identifier);
@@ -232,10 +232,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       if (this.schemaNodes.contains(schemaNode)) {
          this.schemaNodes.remove(schemaNode);
       } else {
-         Iterator var2 = this.schemaNodes.iterator();
+         Iterator iterator = this.schemaNodes.iterator();
 
-         while(var2.hasNext()) {
-            SchemaNode node = (SchemaNode)var2.next();
+         while(iterator.hasNext()) {
+            SchemaNode node = (SchemaNode)iterator.next();
             if (node instanceof VirtualSchemaNode) {
                VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)node;
                virtualSchemaNode.removeSchemaNodeChild(schemaNode);
@@ -243,6 +243,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
          }
 
       }
+   }
+
+   public void removeSchemaNodeChildren(){
+      schemaNodes.clear();
    }
 
    public SchemaNode getMandatoryDescendant() {

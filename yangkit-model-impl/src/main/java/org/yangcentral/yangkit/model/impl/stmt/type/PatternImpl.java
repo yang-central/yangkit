@@ -72,7 +72,7 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-
+      this.pattern = null;
       try {
          String fixedName = this.getArgStr().replaceAll("\\\\p\\{IsBasicLatin\\}", "\\\\p\\{InBasicLatin\\}");
          fixedName = fixedName.replaceAll("\\\\p\\{IsLatin-1Supplement\\}", "\\\\p\\{InLatin-1Supplement\\}");
@@ -85,27 +85,27 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
          validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_PATTERN.toString(new String[]{"name=" + this.getArgStr()})));
          validatorResultBuilder.addRecord(validatorRecordBuilder.build());
       }
-
+      this.description = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() != 0) {
          this.description = (Description)matched.get(0);
       }
-
+      this.reference = null;
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() != 0) {
          this.reference = (Reference)matched.get(0);
       }
-
+      this.errorMessage = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ERRORMESSAGE.getQName());
       if (matched.size() != 0) {
          this.errorMessage = (ErrorMessageStmt)matched.get(0);
       }
-
+      this.errorAppTag = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ERRORAPPTAG.getQName());
       if (matched.size() != 0) {
          this.errorAppTag = (ErrorAppTagStmt)matched.get(0);
       }
-
+      this.modifier = null;
       matched = this.getSubStatement(YangBuiltinKeyword.MODIFIER.getQName());
       if (matched.size() != 0) {
          this.modifier = (Modifier)matched.get(0);

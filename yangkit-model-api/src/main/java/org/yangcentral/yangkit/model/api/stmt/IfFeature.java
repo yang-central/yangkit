@@ -11,5 +11,7 @@ public interface IfFeature extends YangBuiltinStatement {
       boolean evaluate();
 
       ValidatorResult validate();
+
+      IfFeature getSelf();
    }
 }

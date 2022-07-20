@@ -28,18 +28,34 @@ public class IfFeatureSupportImpl implements IfFeatureSupport {
       return Collections.unmodifiableList(this.ifFeatures);
    }
 
+
+   public void removeIfFeatures() {
+      ifFeatures.clear();
+   }
+
+
+   public IfFeature removeIfFeature(String arg) {
+      for(IfFeature ifFeature:ifFeatures){
+         if(ifFeature.getArgStr().equals(arg)){
+            ifFeatures.remove(ifFeature);
+            return ifFeature;
+         }
+      }
+      return null;
+   }
+
    public ValidatorResult addIfFeature(IfFeature ifFeature) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.ifFeatures.iterator();
+      Iterator iterator = this.ifFeatures.iterator();
 
       IfFeature feature;
       do {
-         if (!var3.hasNext()) {
+         if (!iterator.hasNext()) {
             this.ifFeatures.add(ifFeature);
             return validatorResultBuilder.build();
          }
 
-         feature = (IfFeature)var3.next();
+         feature = (IfFeature)iterator.next();
       } while(!feature.getArgStr().equals(ifFeature.getArgStr()));
 
       validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(feature, ifFeature));

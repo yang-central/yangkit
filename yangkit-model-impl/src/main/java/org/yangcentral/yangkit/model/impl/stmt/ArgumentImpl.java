@@ -30,6 +30,7 @@ public class ArgumentImpl extends YangBuiltInStatementImpl implements Argument {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.YINELEMENT.getQName());
+      yinElement = null;
       if (matched.size() > 0) {
          this.yinElement = (YinElement)matched.get(0);
       }
