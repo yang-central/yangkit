@@ -266,23 +266,4 @@ public class ImportImpl extends YangStatementImpl implements Import {
       return statements;
    }
 
-   @Override
-   protected ValidatorResult validateSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
-      if(!referencedStmts.isEmpty()){
-         int[] unAvailableIndexes = new int[referencedStmts.size()];
-         int pos = 0;
-         for(int i = 0; i < referencedStmts.size();i++){
-            YangStatement ref = referencedStmts.get(i);
-            if(!ModelUtil.isAvailableStatement(ref)){
-               unAvailableIndexes[pos] = i;
-               pos++;
-            }
-         }
-         for(int i = 0; i < pos;i++){
-            referencedStmts.remove(unAvailableIndexes[i]);
-         }
-      }
-      return validatorResultBuilder.build();
-   }
 }

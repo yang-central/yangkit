@@ -110,6 +110,12 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      //clear current state
+      this.typedefContainer.removeTypedefs();
+      this.groupingDefContainer.removeGroupings();
+      this.dataDefContainer.removeDataDefs();
+      this.actionContainer.removeActions();
+      this.notificationContainer.removeNotifications();
       List<YangElement> subElements = this.getSubElements();
       Iterator iterator = subElements.iterator();
 
@@ -191,6 +197,7 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.buildSelf(phase));
+      this.schemaNodeContainer.removeSchemaNodeChildren();
       switch (phase) {
          case SCHEMA_BUILD:
             Iterator iterator = this.getDataDefChildren().iterator();

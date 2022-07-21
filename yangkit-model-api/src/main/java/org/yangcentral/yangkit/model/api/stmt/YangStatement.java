@@ -18,6 +18,8 @@ public interface YangStatement extends YangElement {
 
    List<YangStatement> getSubStatement(QName keyword);
 
+   YangStatement getSubStatement(QName keyword,String arg);
+
    List<YangUnknown> getUnknowns();
 
    ValidatorResult build(BuildPhase buildPhase);

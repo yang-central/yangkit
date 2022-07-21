@@ -1,11 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
@@ -67,25 +62,27 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-
+      this.deviateType = null;
       try {
          DeviateType deviateType = DeviateType.forValue(this.getArgStr());
          this.deviateType = deviateType;
-      } catch (IllegalArgumentException var6) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+      } catch (IllegalArgumentException e) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.INVALID_ARG.getFieldName()));
          return validatorResultBuilder.build();
       }
+      this.config = null;
+      this.mustSupport.removeMusts();
+      this.defaults.clear();
+      this.mandatory = null;
+      this.minElements = null;
+      this.maxElements = null;
+      this.type = null;
+      this.uniques.clear();
+      this.units = null;
+      Iterator elementIterator = this.getSubElements().iterator();
 
-      Iterator var7 = this.getSubElements().iterator();
-
-      while(var7.hasNext()) {
-         YangElement subElement = (YangElement)var7.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(((YangBuiltinStatement)subElement).getYangKeyword());
             switch (builtinKeyword) {
@@ -136,35 +133,17 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
 
    private ValidatorResult deviateConfig() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      ValidatorRecordBuilder validatorRecordBuilder;
       if (!(this.target instanceof ConfigSupport)) {
-         validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.config.getElementPosition());
-         validatorRecordBuilder.setBadElement(this.config);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.NOT_SUPPORT_CONFIG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-         return validatorResultBuilder.build();
+         validatorResultBuilder.addRecord(ModelUtil.reportError(config,ErrorCode.NOT_SUPPORT_CONFIG.getFieldName()));
       } else {
          switch (this.deviateType) {
             case ADD:
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.config.getElementPosition());
-               validatorRecordBuilder.setBadElement(this.config);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=config"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(config,
+                       ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=config"})));
                break;
             case DELETE:
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.config.getElementPosition());
-               validatorRecordBuilder.setBadElement(this.config);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DEVIATE_NOT_ALLOWED.toString(new String[]{"property=config", "deviate=delete"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(config,
+                       ErrorCode.DEVIATE_NOT_ALLOWED.toString(new String[]{"property=config", "deviate=delete"}) ));
                break;
             case REPLACE:
                ConfigSupport configSupport = (ConfigSupport)this.target;
@@ -173,79 +152,71 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                schemaNode.setDeviated(true);
          }
 
-         return validatorResultBuilder.build();
       }
+      return validatorResultBuilder.build();
    }
 
    private ValidatorResult deviateMust() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(this.target instanceof MustSupport)) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getMust(0).getElementPosition());
-         validatorRecordBuilder.setBadElement(this.getMust(0));
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-         return validatorResultBuilder.build();
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.getMust(0),
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
       } else {
          MustSupport mustSupport = (MustSupport)this.target;
-         Iterator var3 = this.getMusts().iterator();
+         Iterator mustIterator = this.getMusts().iterator();
 
-         while(var3.hasNext()) {
-            Must must = (Must)var3.next();
-            ValidatorRecordBuilder validatorRecordBuilder;
+         while(mustIterator.hasNext()) {
+            Must must = (Must)mustIterator.next();
             SchemaNode schemaNode;
             switch (this.deviateType) {
-               case ADD:
-                  if (mustSupport.getMust(must.getArgStr()) != null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(must.getElementPosition());
-                     validatorRecordBuilder.setBadElement(must);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=must"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               case ADD: {
+                  YangStatement matchedStatement = this.target.getSubStatement(YangBuiltinKeyword.MUST.getQName(),must.getArgStr());
+                  if (matchedStatement != null) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(must,
+                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=must"})));
                   } else {
+                     Must orig = mustSupport.getMust(must.getArgStr());
+                     if( orig != null){
+                        mustSupport.removeMust(must.getArgStr());
+                     }
                      validatorResultBuilder.merge(mustSupport.addMust(must));
                      schemaNode = (SchemaNode)mustSupport;
                      schemaNode.setDeviated(true);
                   }
                   break;
-               case DELETE:
-                  if (mustSupport.getMust(must.getArgStr()) == null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(must.getElementPosition());
-                     validatorRecordBuilder.setBadElement(must);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               }
+
+               case DELETE: {
+                  YangStatement matchedStatement = this.target.getSubStatement(YangBuiltinKeyword.MUST.getQName(),must.getArgStr());
+                  if (matchedStatement == null) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(must,
+                             ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
                   } else {
                      mustSupport.removeMust(must.getArgStr());
                      schemaNode = (SchemaNode)mustSupport;
                      schemaNode.setDeviated(true);
                   }
                   break;
-               case REPLACE:
-                  if (mustSupport.getMust(must.getArgStr()) == null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(must.getElementPosition());
-                     validatorRecordBuilder.setBadElement(must);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               }
+
+               case REPLACE:{
+                  YangStatement matchedStatement = this.target.getSubStatement(YangBuiltinKeyword.MUST.getQName(),must.getArgStr());
+                  if (matchedStatement == null) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(must,
+                             ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
                   } else {
                      mustSupport.updateMust(must);
                      schemaNode = (SchemaNode)mustSupport;
                      schemaNode.setDeviated(true);
                   }
+                  break;
+               }
+
             }
          }
 
-         return validatorResultBuilder.build();
       }
+      return validatorResultBuilder.build();
    }
 
    private ValidatorResult deviateLeafDefault() {
@@ -253,65 +224,49 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       Leaf leaf = (Leaf)this.target;
       ValidatorRecordBuilder validatorRecordBuilder;
       if (this.defaults.size() > 1) {
-         validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(1)).getElementPosition());
-         validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(1));
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(1),
+                 ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
       }
 
       switch (this.deviateType) {
-         case ADD:
-            if (leaf.getDefault() != null) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         case ADD:{
+            List<YangStatement> defaultStmts = leaf.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
+            if (defaultStmts != null && !defaultStmts.isEmpty()) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"})));
             } else {
-               leaf.setDefault((Default)this.defaults.get(0));
+               leaf.setDefault(this.defaults.get(0));
                leaf.setDeviated(true);
             }
             break;
-         case DELETE:
-            if (leaf.getDefault() == null) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            } else if (!leaf.getDefault().getArgStr().equals(((Default)this.defaults.get(0)).getArgStr())) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         }
+         case DELETE:{
+            List<YangStatement> defaultStmts = leaf.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
+            if (defaultStmts == null || defaultStmts.isEmpty()) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
+            } else if (!defaultStmts.get(0).getArgStr().equals((this.defaults.get(0)).getArgStr())) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=default"})));
             } else {
-               leaf.setDefault((Default)null);
+               leaf.setDefault(null);
                leaf.setDeviated(true);
             }
             break;
-         case REPLACE:
-            if (leaf.getDefault() == null) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         }
+
+         case REPLACE:{
+            List<YangStatement> defaultStmts = leaf.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
+            if (defaultStmts == null || defaultStmts.isEmpty()) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"}) ));
             } else {
-               leaf.setDefault((Default)this.defaults.get(0));
+               leaf.setDefault(this.defaults.get(0));
                leaf.setDeviated(true);
             }
+            break;
+         }
+
       }
 
       return validatorResultBuilder.build();
@@ -320,60 +275,36 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateChoiceDefault() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Choice choice = (Choice)this.target;
-      ValidatorRecordBuilder validatorRecordBuilder;
       if (this.defaults.size() > 1) {
-         validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(1)).getElementPosition());
-         validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(1));
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(1),
+                 ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
       }
-
+      List<YangStatement> matched = choice.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       boolean bool;
       switch (this.deviateType) {
-         case ADD:
-            if (choice.getDefault() != null) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         case ADD:{
+            if (matched != null && !matched.isEmpty()) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"}) ));
             } else {
                bool = choice.setDefault((Default)this.defaults.get(0));
                if (!bool) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_CASE.toString(new String[]{"name=" + ((Default)this.defaults.get(0)).getArgStr()})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                          ErrorCode.MISSING_CASE.toString(new String[]{"name=" + ((Default)this.defaults.get(0)).getArgStr()})));
                } else {
                   choice.setDeviated(true);
                }
             }
             break;
+         }
+
          case DELETE:
-            if (choice.getDefault() == null) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            } else if (!choice.getDefault().getArgStr().equals(((Default)this.defaults.get(0)).getArgStr())) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            if (matched == null || matched.isEmpty()) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
+            } else if (!matched.get(0).getArgStr().equals((this.defaults.get(0)).getArgStr())) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=default"})));
             } else {
                choice.setDefault((Default)null);
                choice.setDeviated(true);
@@ -381,23 +312,13 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
             break;
          case REPLACE:
             if (choice.getDefault() == null) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-               validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                       ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"}) ));
             } else {
                bool = choice.setDefault((Default)this.defaults.get(0));
                if (!bool) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_CASE.toString(new String[]{"name=" + ((Default)this.defaults.get(0)).getArgStr()})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                          ErrorCode.MISSING_CASE.toString(new String[]{"name=" + ((Default)this.defaults.get(0)).getArgStr()})));
                } else {
                   choice.setDeviated(true);
                }
@@ -410,57 +331,51 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateLeafListDefault() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       LeafList leafList = (LeafList)this.target;
-      Iterator var3 = this.defaults.iterator();
+      Iterator defaultIterator = this.defaults.iterator();
 
-      while(var3.hasNext()) {
-         Default defl = (Default)var3.next();
+      while(defaultIterator.hasNext()) {
+         Default defl = (Default)defaultIterator.next();
          ValidatorRecordBuilder validatorRecordBuilder;
+         YangStatement orig = leafList.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName(),defl.getArgStr());
          switch (this.deviateType) {
-            case ADD:
-               if (leafList.getDefault(defl.getArgStr()) != null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(defl.getElementPosition());
-                  validatorRecordBuilder.setBadElement(defl);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            case ADD:{
+               if ( orig != null) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(defl,
+                          ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"})));
                } else {
+                  if(leafList.getDefault(defl.getArgStr()) != null){
+                     leafList.removeDefault(defl.getArgStr());
+                  }
                   validatorResultBuilder.merge(leafList.addDefault(defl));
                   leafList.setDeviated(true);
                }
                break;
-            case DELETE:
-               if (leafList.getDefault(defl.getArgStr()) == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(defl.getElementPosition());
-                  validatorRecordBuilder.setBadElement(defl);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case DELETE:{
+               if (orig == null) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(defl,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
                } else {
                   leafList.removeDefault(defl.getArgStr());
                   leafList.setDeviated(true);
                }
                break;
-            case REPLACE:
-               if (leafList.getDefault(defl.getArgStr()) == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(defl.getElementPosition());
-                  validatorRecordBuilder.setBadElement(defl);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case REPLACE:{
+               if (orig == null) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(defl,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
                } else {
                   validatorResultBuilder.merge(leafList.updateDefault(defl));
                   leafList.setDeviated(true);
                }
+               break;
+            }
+
          }
       }
-
-      leafList.setDefaults(this.defaults);
       return validatorResultBuilder.build();
    }
 
@@ -473,13 +388,8 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       } else if (this.target instanceof LeafList) {
          validatorResultBuilder.merge(this.deviateLeafListDefault());
       } else {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-         validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
       }
 
       return validatorResultBuilder.build();

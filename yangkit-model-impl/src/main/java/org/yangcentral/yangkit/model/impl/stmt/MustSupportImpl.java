@@ -31,15 +31,15 @@ class MustSupportImpl implements MustSupport {
    }
 
    public Must getMust(String condition) {
-      Iterator var2 = this.musts.iterator();
+      Iterator mustIterator = this.musts.iterator();
 
       Must must;
       do {
-         if (!var2.hasNext()) {
+         if (!mustIterator.hasNext()) {
             return null;
          }
 
-         must = (Must)var2.next();
+         must = (Must)mustIterator.next();
       } while(!must.getArgStr().equals(condition));
 
       return must;
@@ -82,7 +82,17 @@ class MustSupportImpl implements MustSupport {
       }
 
    }
-
+   /**
+    * remove all musts
+    * @version 1.0.0
+    * @throws
+    * @return void
+    * @author frank feng
+    * @since 7/21/2022
+    */
+   public void removeMusts(){
+      this.musts.clear();
+   }
    public ValidatorResult updateMust(Must must) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       int size = this.musts.size();

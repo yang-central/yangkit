@@ -62,12 +62,13 @@ public abstract class DataNodeImpl extends SchemaDataNodeImpl implements DataNod
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.mustSupport.removeMusts();
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MUST.getQName());
       if (matched.size() != 0) {
-         Iterator var3 = matched.iterator();
+         Iterator iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            YangStatement statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            YangStatement statement = (YangStatement)iterator.next();
             validatorResultBuilder.merge(this.mustSupport.addMust((Must)statement));
          }
       }

@@ -1,27 +1,12 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.Case;
-import org.yangcentral.yangkit.model.api.stmt.Choice;
-import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
-import org.yangcentral.yangkit.model.api.stmt.Default;
-import org.yangcentral.yangkit.model.api.stmt.Mandatory;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
@@ -202,35 +187,25 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
             }
          }
       }
-
+      this.mandatory = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MANDATORY.getQName());
       if (matched.size() > 0) {
          this.mandatory = (Mandatory)matched.get(0);
       }
-
+      this.aDefault = null;
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() > 0) {
          if (this.mandatory != null && this.mandatory.getValue()) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setBadElement((YangStatement)matched.get(0));
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorPath(((YangStatement)matched.get(0)).getElementPosition());
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MANDATORY_HASDEFAULT.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(matched.get(0),Severity.WARNING,ErrorTag.BAD_ELEMENT,
+                    ErrorCode.MANDATORY_HASDEFAULT.getFieldName()));
             return validatorResultBuilder.build();
          }
 
          this.aDefault = (Default)matched.get(0);
          Case defaultCase = this.getCase(this.aDefault.getArgStr());
          if (null == defaultCase) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setBadElement(this.aDefault);
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorPath(this.aDefault.getElementPosition());
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_CASE.toString(new String[]{"name=" + this.aDefault.getArgStr()})));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this.aDefault,
+                    ErrorCode.MISSING_CASE.toString(new String[]{"name=" + this.aDefault.getArgStr()})));
             return validatorResultBuilder.build();
          }
 
@@ -251,25 +226,14 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       if (null == defCase) {
          return validatorResultBuilder.build();
       } else {
-         ValidatorRecordBuilder validatorRecordBuilder;
          if (!defCase.hasDefault()) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setBadElement(defCase);
-            validatorRecordBuilder.setSeverity(Severity.WARNING);
-            validatorRecordBuilder.setErrorPath(defCase.getElementPosition());
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DEFAULT_CASE_NO_DEFAULT.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(defCase,Severity.WARNING,ErrorTag.BAD_ELEMENT,
+                    ErrorCode.DEFAULT_CASE_NO_DEFAULT.getFieldName()));
          }
 
          if (defCase.isMandatory()) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setBadElement(defCase);
-            validatorRecordBuilder.setSeverity(Severity.WARNING);
-            validatorRecordBuilder.setErrorPath(defCase.getElementPosition());
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DEFAULT_CASE_IS_MANDATORY.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(defCase,Severity.WARNING,ErrorTag.BAD_ELEMENT,
+                    ErrorCode.DEFAULT_CASE_IS_MANDATORY.getFieldName() ));
          }
 
          return validatorResultBuilder.build();
@@ -287,29 +251,18 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
          case GRAMMAR:
             Case defaultCase = this.getDefaultCase();
             if (defaultCase != null) {
-               ValidatorRecordBuilder validatorRecordBuilder;
                if (!defaultCase.evaluateFeatures()) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setBadElement(defaultCase);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(defaultCase.getElementPosition());
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_CASE.toString(new String[]{"name=" + defaultCase.getArgStr()})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(defaultCase,
+                          ErrorCode.MISSING_CASE.toString(new String[]{"name=" + defaultCase.getArgStr()})));
                } else if (this.getIfFeatures().size() > 0) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setBadElement(defaultCase);
-                  validatorRecordBuilder.setSeverity(Severity.WARNING);
-                  validatorRecordBuilder.setErrorPath(defaultCase.getElementPosition());
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DEFAULT_CASE_IS_OPTIONAL.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(defaultCase,
+                          ErrorCode.DEFAULT_CASE_IS_OPTIONAL.getFieldName()));
                }
             }
             break;
          case SCHEMA_BUILD:
             iterator = this.cases.iterator();
-
+            this.schemaNodeContainer.removeSchemaNodeChildren();
             while(true) {
                if (!iterator.hasNext()) {
                   break label44;

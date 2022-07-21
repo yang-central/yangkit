@@ -37,6 +37,7 @@ public class ContainerImpl extends ContainerDataNodeImpl implements Container {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.presence = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.PRESENCE.getQName());
       if (matched.size() != 0) {
          this.presence = (Presence)matched.get(0);

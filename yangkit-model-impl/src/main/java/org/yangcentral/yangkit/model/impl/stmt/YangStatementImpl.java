@@ -52,12 +52,21 @@ public abstract class YangStatementImpl implements YangStatement {
       ValidatorRecordBuilder validatorRecordBuilder;
       if (this instanceof Referencable) {
          Referencable referencable = (Referencable)this;
+         if(!referencable.getReferencedBy().isEmpty()){
+            int[] unAvailableIndexes = new int[referencable.getReferencedBy().size()];
+            int pos = 0;
+            for(int i = 0; i < referencable.getReferencedBy().size();i++){
+               YangStatement ref = referencable.getReferencedBy().get(i);
+               if(!ModelUtil.isAvailableStatement(ref)){
+                  unAvailableIndexes[pos] = i;
+                  pos++;
+               }
+            }
+            for(int i = 0; i < pos;i++){
+               referencable.getReferencedBy().remove(unAvailableIndexes[i]);
+            }
+         }
          if (!referencable.isReferenced()) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setSeverity(Severity.WARNING);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
             ErrorCode errorCode = null;
             if (referencable instanceof Typedef) {
                errorCode = ErrorCode.UNUSED_TYPEDEF;
@@ -66,9 +75,8 @@ public abstract class YangStatementImpl implements YangStatement {
             } else {
                errorCode = ErrorCode.UNUSED_IMPORT;
             }
-
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(errorCode.toString(new String[]{"name=" + this.getArgStr()})));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.WARNING,ErrorTag.BAD_ELEMENT,
+                    errorCode.toString(new String[]{"name=" + this.getArgStr()})));
          }
       }
 
@@ -114,10 +122,10 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public List<YangStatement> getSubStatement(QName keyword) {
       List<YangStatement> matched = new ArrayList();
-      Iterator var3 = this.subElements.iterator();
+      Iterator yangElementIterator = this.subElements.iterator();
 
-      while(var3.hasNext()) {
-         YangElement element = (YangElement)var3.next();
+      while(yangElementIterator.hasNext()) {
+         YangElement element = (YangElement)yangElementIterator.next();
          if (element instanceof YangStatement) {
             YangStatement subStatement = (YangStatement)element;
             if (subStatement.getYangKeyword().equals(keyword)) {
@@ -127,6 +135,20 @@ public abstract class YangStatementImpl implements YangStatement {
       }
 
       return matched;
+   }
+
+   @Override
+   public YangStatement getSubStatement(QName keyword, String arg) {
+      List<YangStatement> matched = getSubStatement(keyword);
+      if(matched == null || matched.isEmpty()){
+         return null;
+      }
+      for(YangStatement statement:matched){
+         if(statement.getArgStr().equals(arg)){
+            return statement;
+         }
+      }
+      return null;
    }
 
    public List<YangUnknown> getUnknowns() {

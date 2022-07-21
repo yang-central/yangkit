@@ -74,7 +74,7 @@ public class YangStatementImplRegister {
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.DEVIATE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.DEVIATE.getQName(), DeviateImpl.class, Arrays.asList(BuildPhase.SCHEMA_MODIFIER)));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.CONFIG.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.CONFIG.getQName(), ConfigImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.STATUS.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.STATUS.getQName(), StatusImpl.class));
-      YangStatementRegister.getInstance().register(YangBuiltinKeyword.DESCRIPTION.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.DESCRIPTION.getQName(), DesciptionImpl.class));
+      YangStatementRegister.getInstance().register(YangBuiltinKeyword.DESCRIPTION.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.DESCRIPTION.getQName(), DescriptionImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.REFERENCE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.REFERENCE.getQName(), ReferenceImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.WHEN.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.WHEN.getQName(), WhenImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.RANGE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.RANGE.getQName(), RangeImpl.class, Arrays.asList(BuildPhase.GRAMMAR)));

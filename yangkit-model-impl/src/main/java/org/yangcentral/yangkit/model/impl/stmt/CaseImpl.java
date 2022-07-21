@@ -69,7 +69,7 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
       Iterator subElementIt = subElements.iterator();
-
+      this.dataDefContainer.removeDataDefs();
       while(subElementIt.hasNext()) {
          YangElement subElement = (YangElement)subElementIt.next();
          if (subElement instanceof YangBuiltinStatement) {
@@ -152,7 +152,7 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       switch (phase) {
          case SCHEMA_BUILD:
             Iterator iterator = this.getDataDefChildren().iterator();
-
+            this.schemaNodeContainer.removeSchemaNodeChildren();
             while(iterator.hasNext()) {
                DataDefinition dataDefinition = (DataDefinition)iterator.next();
                if (dataDefinition.evaluateFeatures()) {
