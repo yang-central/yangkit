@@ -12,6 +12,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.*;
@@ -89,6 +90,10 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
    }
 
    public QName getYangKeyword() {
+      if(extension !=null){
+         return new QName(extension.getContext().getCurModule().getMainModule().getNamespace().getUri(),
+                 extension.getArgStr());
+      }
       return Yang.UNKNOWN;
    }
 

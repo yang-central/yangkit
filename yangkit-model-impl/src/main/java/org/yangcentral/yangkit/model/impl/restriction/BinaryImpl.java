@@ -34,6 +34,10 @@ public class BinaryImpl extends RestrictionImpl<byte[]> implements Binary {
 
    public ValidatorResult setLength(Length length) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      if(length == null){
+         this.length = null;
+         return validatorResultBuilder.build();
+      }
       if (!length.isBuilt()) {
          length.setBound(this.getHighBound(), this.getLowBound());
          validatorResultBuilder.merge(length.build(BuildPhase.GRAMMAR));
@@ -91,6 +95,7 @@ public class BinaryImpl extends RestrictionImpl<byte[]> implements Binary {
             newLength.setContext(new YangContext(this.getContext()));
             newLength.setElementPosition(this.getContext().getSelf().getElementPosition());
             newLength.setParentStatement(this.getContext().getSelf());
+            newLength.setBound(this.getHighBound(),this.getLowBound());
             newLength.init();
             newLength.build();
             return newLength;

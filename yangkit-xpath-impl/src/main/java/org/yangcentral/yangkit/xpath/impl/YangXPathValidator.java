@@ -10,13 +10,8 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.ModelException;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
-import org.yangcentral.yangkit.model.api.stmt.WhenSupport;
-import org.yangcentral.yangkit.model.api.stmt.YangList;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
 import java.net.URI;
 import java.util.Iterator;
@@ -105,12 +100,12 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
                   validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                   builder.merge(validatorResultBuilder.build());
                }
-            } catch (ModelException var11) {
+            } catch (ModelException e) {
                validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(var11.getElement());
-               validatorRecordBuilder.setErrorPath(var11.getElement().getElementPosition());
-               validatorRecordBuilder.setSeverity(var11.getSeverity());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(var11.getDescription()));
+               validatorRecordBuilder.setBadElement(e.getElement());
+               validatorRecordBuilder.setErrorPath(e.getElement().getElementPosition());
+               validatorRecordBuilder.setSeverity(e.getSeverity());
+               validatorRecordBuilder.setErrorMessage(new ErrorMessage(e.getDescription()));
                ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
                validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                builder.merge(validatorResultBuilder.build());
@@ -137,7 +132,7 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
             String localName = nameStep.getLocalName();
             URI namespace = null;
             if (prefix != null && prefix.length() > 0) {
-               Module module = ModelUtil.findModuleByPrefix(((YangXPathContext)this.getContext()).getYangContext(), prefix);
+               Module module = ModelUtil.findModuleByPrefix(this.getContext().getYangContext(), prefix);
                if (null == module) {
                   throw new ModelException(Severity.WARNING, ((YangXPathContext)this.getContext()).getDefineNode(), ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + prefix}));
                }

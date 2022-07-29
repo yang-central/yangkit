@@ -19,7 +19,7 @@ public class YangStatementImplRegister {
    }
 
    private static  void builtinKeywordRegister() {
-      YangStatementRegister.getInstance().register(Yang.UNKNOWN, new YangStatementParserPolicy(Yang.UNKNOWN, DefaultYangUnknown.class, new ArrayList(Arrays.asList(BuildPhase.GRAMMAR))));
+      //YangStatementRegister.getInstance().register(Yang.UNKNOWN, new YangStatementParserPolicy(Yang.UNKNOWN, DefaultYangUnknown.class, new ArrayList(Arrays.asList(BuildPhase.GRAMMAR))));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.MODULE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.MODULE.getQName(), MainModuleImpl.class, Arrays.asList(BuildPhase.GRAMMAR, BuildPhase.SCHEMA_BUILD, BuildPhase.SCHEMA_EXPAND, BuildPhase.SCHEMA_MODIFIER, BuildPhase.SCHEMA_TREE)));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.YANGVERSION.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.YANGVERSION.getQName(), YangVersionImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.NAMESPACE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.NAMESPACE.getQName(), NamespaceImpl.class));

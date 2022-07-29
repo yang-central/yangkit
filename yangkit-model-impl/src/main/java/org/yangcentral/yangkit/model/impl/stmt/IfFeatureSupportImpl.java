@@ -44,6 +44,16 @@ public class IfFeatureSupportImpl implements IfFeatureSupport {
       return null;
    }
 
+   @Override
+   public IfFeature getIfFeature(String exp) {
+      for(IfFeature ifFeature:ifFeatures){
+         if(ifFeature.getArgStr().equals(exp)){
+            return ifFeature;
+         }
+      }
+      return null;
+   }
+
    public ValidatorResult addIfFeature(IfFeature ifFeature) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Iterator iterator = this.ifFeatures.iterator();
@@ -68,15 +78,15 @@ public class IfFeatureSupportImpl implements IfFeatureSupport {
    }
 
    public boolean evaluateFeatures() {
-      Iterator var1 = this.ifFeatures.iterator();
+      Iterator ifFeatureIterator = this.ifFeatures.iterator();
 
       IfFeature ifFeature;
       do {
-         if (!var1.hasNext()) {
+         if (!ifFeatureIterator.hasNext()) {
             return true;
          }
 
-         ifFeature = (IfFeature)var1.next();
+         ifFeature = (IfFeature)ifFeatureIterator.next();
       } while(ifFeature.evaluate());
 
       return false;

@@ -19,6 +19,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.*;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.Iterator;
@@ -56,16 +57,11 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-
+      this.ifFeatureExpr = null;
       try {
          if (this.getContext().getCurModule().getEffectiveYangVersion().equals("1") && !ModelUtil.isIdentifierRef(this.getArgStr())) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.INVALID_ARG.getFieldName()));
             return validatorResultBuilder.build();
          } else {
             IfFeatureExpressionParser parser = new IfFeatureExpressionParser(new CommonTokenStream(new IfFeatureExpressionLexer(CharStreams.fromString(this.getArgStr()))));
@@ -74,14 +70,8 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
             this.ifFeatureExpr = ifFeatureExpr;
             return validatorResultBuilder.build();
          }
-      } catch (RuntimeException var5) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+      } catch (RuntimeException e) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.INVALID_ARG.getFieldName()));
          return validatorResultBuilder.build();
       }
    }
@@ -127,7 +117,7 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
       }
 
       public IfFeature.IfFeatureExpr visitIdentifier_ref_arg(IfFeatureExpressionParser.Identifier_ref_argContext ctx) {
-         return (IfFeature.IfFeatureExpr)super.visitIdentifier_ref_arg(ctx);
+         return super.visitIdentifier_ref_arg(ctx);
       }
    }
 
@@ -155,25 +145,25 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
          } else {
             Module curModule = this.feature.getContext().getCurModule();
             List<ModuleSet> moduleSets = yangSchema.getModuleSets();
-            Iterator var5 = moduleSets.iterator();
+            Iterator moduleSetIterator = moduleSets.iterator();
 
-            while(var5.hasNext()) {
-               ModuleSet moduleSet = (ModuleSet)var5.next();
+            while(moduleSetIterator.hasNext()) {
+               ModuleSet moduleSet = (ModuleSet)moduleSetIterator.next();
                boolean matchedModule = false;
-               Iterator var8 = moduleSet.getModules().iterator();
+               Iterator moduleDescriptionIterator = moduleSet.getModules().iterator();
 
-               while(var8.hasNext()) {
-                  YangModuleDescription moduleDescription = (YangModuleDescription)var8.next();
-                  Iterator var10;
+               while(moduleDescriptionIterator.hasNext()) {
+                  YangModuleDescription moduleDescription = (YangModuleDescription)moduleDescriptionIterator.next();
+                  Iterator iterator;
                   if (curModule instanceof MainModule) {
                      if (moduleDescription.getModuleId().equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? (String)curModule.getCurRevisionDate().get() : null))) {
                         matchedModule = true;
                      }
                   } else {
-                     var10 = moduleDescription.getSubModules().iterator();
+                     iterator = moduleDescription.getSubModules().iterator();
 
-                     while(var10.hasNext()) {
-                        ModuleId subModuleDescription = (ModuleId)var10.next();
+                     while(iterator.hasNext()) {
+                        ModuleId subModuleDescription = (ModuleId)iterator.next();
                         if (subModuleDescription.equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? (String)curModule.getCurRevisionDate().get() : null))) {
                            matchedModule = true;
                            break;
@@ -182,15 +172,15 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
                   }
 
                   if (matchedModule) {
-                     var10 = moduleDescription.getFeatures().iterator();
+                     iterator = moduleDescription.getFeatures().iterator();
 
                      String featureStr;
                      do {
-                        if (!var10.hasNext()) {
+                        if (!iterator.hasNext()) {
                            return false;
                         }
 
-                        featureStr = (String)var10.next();
+                        featureStr = (String)iterator.next();
                      } while(!this.feature.getArgStr().equals(featureStr));
 
                      return true;
@@ -204,35 +194,27 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
 
       public ValidatorResult validate() {
          ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-
+         this.feature =null;
          try {
             Import im = IfFeatureImpl.this.getContext().getCurModule().getImportByPrefix(this.refFeature.getPrefix());
             if (im != null) {
-               im.addReference(IfFeatureImpl.this);
+               if(!im.isReferencedBy(IfFeatureImpl.this)){
+                  im.addReference(IfFeatureImpl.this);
+               }
             }
 
             Module module = ModelUtil.findModuleByPrefix(IfFeatureImpl.this.getContext(), this.refFeature.getPrefix());
             Feature feature = module.getFeature(this.refFeature.getLocalName());
             if (feature == null) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilderx = new ValidatorRecordBuilder();
-               validatorRecordBuilderx.setSeverity(Severity.ERROR);
-               validatorRecordBuilderx.setBadElement(IfFeatureImpl.this.getContext().getSelf());
-               validatorRecordBuilderx.setErrorPath(IfFeatureImpl.this.getContext().getSelf().getElementPosition());
-               validatorRecordBuilderx.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilderx.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_FEATURE.toString(new String[]{"name=" + this.refFeature})));
-               validatorResultBuilder.addRecord(validatorRecordBuilderx.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(IfFeatureImpl.this,
+                       ErrorCode.UNRECOGNIZED_FEATURE.toString(new String[]{"name=" + this.refFeature})));
                return validatorResultBuilder.build();
             }
 
             this.feature = feature;
-         } catch (ModelException var6) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setSeverity(var6.getSeverity());
-            validatorRecordBuilder.setBadElement(var6.getElement());
-            validatorRecordBuilder.setErrorPath(var6.getElement().getElementPosition());
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(var6.getDescription()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         } catch (ModelException e) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getSeverity(),
+                    ErrorTag.BAD_ELEMENT,e.getDescription()));
          }
 
          return validatorResultBuilder.build();

@@ -10,17 +10,15 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.Description;
-import org.yangcentral.yangkit.model.api.stmt.ErrorAppTagStmt;
-import org.yangcentral.yangkit.model.api.stmt.ErrorMessageStmt;
-import org.yangcentral.yangkit.model.api.stmt.Must;
-import org.yangcentral.yangkit.model.api.stmt.Reference;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.YangXPath;
 import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
 import java.util.ArrayList;
 import java.util.List;
 import org.jaxen.JaxenException;
+import org.yangcentral.yangkit.xpath.impl.YangXPathPrefixVisitor;
 
 public class MustImpl extends YangBuiltInStatementImpl implements Must {
    private ErrorMessageStmt errorMessage;
@@ -72,31 +70,37 @@ public class MustImpl extends YangBuiltInStatementImpl implements Must {
       try {
          YangXPath xPath = new YangXPathImpl(this.getArgStr());
          this.expression = xPath;
-      } catch (JaxenException var4) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_XPATH.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         Module curModule = this.getContext().getCurModule();
+         YangXPathPrefixVisitor pathPrefixVisitor = new YangXPathPrefixVisitor(this,curModule);
+         List<String> prefixes = pathPrefixVisitor.visit(xPath.getRootExpr(),this);
+         if(!prefixes.isEmpty()){
+            for(String prefix:prefixes){
+               Import im = curModule.getImportByPrefix(prefix);
+               if(im !=null){
+                  im.addReference(this);
+               }
+            }
+         }
+      } catch (JaxenException e) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_XPATH.getFieldName()));
       }
-
+      this.description = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() != 0) {
          this.description = (Description)matched.get(0);
       }
-
+      this.reference = null;
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() != 0) {
          this.reference = (Reference)matched.get(0);
       }
-
+      this.errorMessage = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ERRORMESSAGE.getQName());
       if (matched.size() != 0) {
          this.errorMessage = (ErrorMessageStmt)matched.get(0);
       }
-
+      this.errorAppTag = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ERRORAPPTAG.getQName());
       if (matched.size() != 0) {
          this.errorAppTag = (ErrorAppTagStmt)matched.get(0);

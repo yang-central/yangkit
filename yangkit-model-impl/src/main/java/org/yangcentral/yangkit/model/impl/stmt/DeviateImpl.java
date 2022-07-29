@@ -32,6 +32,8 @@ import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangList;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
+import org.yangcentral.yangkit.register.YangStatementParserPolicy;
+import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import java.util.ArrayList;
@@ -398,67 +400,49 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateMandatory() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(this.target instanceof MandatorySupport)) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.mandatory.getElementPosition());
-         validatorRecordBuilder.setBadElement(this.mandatory);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.mandatory,
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          MandatorySupport mandatorySupport = (MandatorySupport)this.target;
-         ValidatorRecordBuilder validatorRecordBuilder;
+         List<YangStatement> matched = this.target.getSubStatement(YangBuiltinKeyword.MANDATORY.getQName());
          switch (this.deviateType) {
-            case ADD:
-               if (mandatorySupport.getMandatory() != null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.mandatory.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.mandatory);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=mandatory"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            case ADD:{
+               if (matched != null && !matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.mandatory,
+                          ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=mandatory"})));
                } else {
                   mandatorySupport.setMandatory(this.mandatory);
                   ((SchemaNode)mandatorySupport).setDeviated(true);
                }
                break;
-            case DELETE:
-               if (mandatorySupport.getMandatory() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.mandatory.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.mandatory);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=mandatory"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               } else if (!mandatorySupport.getMandatory().getArgStr().equals(this.mandatory.getArgStr())) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.mandatory.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.mandatory);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=mandatory"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case DELETE:{
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.mandatory,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=mandatory"})));
+               } else if (!matched.get(0).getArgStr().equals(this.mandatory.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.mandatory,
+                          ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=mandatory"})));
                } else {
-                  mandatorySupport.setMandatory((Mandatory)null);
+                  mandatorySupport.setMandatory(null);
                   ((SchemaNode)mandatorySupport).setDeviated(true);
                }
                break;
-            case REPLACE:
-               if (mandatorySupport.getMandatory() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.mandatory.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.mandatory);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=mandatory"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case REPLACE:{
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.mandatory,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=mandatory"})));
                } else {
                   mandatorySupport.setMandatory(this.mandatory);
                   ((SchemaNode)mandatorySupport).setDeviated(true);
                }
+               break;
+            }
+
          }
 
          return validatorResultBuilder.build();
@@ -468,67 +452,49 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateMaxElements() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(this.target instanceof MultiInstancesDataNode)) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.maxElements.getElementPosition());
-         validatorRecordBuilder.setBadElement(this.maxElements);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.maxElements,
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          MultiInstancesDataNode multiInstancesDataNode = (MultiInstancesDataNode)this.target;
-         ValidatorRecordBuilder validatorRecordBuilder;
+         List<YangStatement> matched = this.target.getSubStatement(YangBuiltinKeyword.MAXELEMENTS.getQName());
          switch (this.deviateType) {
-            case ADD:
-               if (multiInstancesDataNode.getMaxElements() != null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.maxElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.maxElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=max-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            case ADD:{
+               if (matched != null && !matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.maxElements,
+                          ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=max-elements"})));
                } else {
                   multiInstancesDataNode.setMaxElements(this.maxElements);
                   ((SchemaNode)multiInstancesDataNode).setDeviated(true);
                }
                break;
-            case DELETE:
-               if (multiInstancesDataNode.getMaxElements() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.maxElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.maxElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=max-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               } else if (!multiInstancesDataNode.getMaxElements().getArgStr().equals(this.maxElements.getArgStr())) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.maxElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.maxElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=max-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case DELETE:{
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.maxElements,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=max-elements"})));
+               } else if (!matched.get(0).getArgStr().equals(this.maxElements.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.maxElements,
+                          ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=max-elements"})));
                } else {
-                  multiInstancesDataNode.setMaxElements((MaxElements)null);
+                  multiInstancesDataNode.setMaxElements(null);
                   ((SchemaNode)multiInstancesDataNode).setDeviated(true);
                }
                break;
-            case REPLACE:
-               if (multiInstancesDataNode.getMaxElements() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.maxElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.maxElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=max-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case REPLACE:{
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.maxElements,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=max-elements"})));
                } else {
                   multiInstancesDataNode.setMaxElements(this.maxElements);
                   ((SchemaNode)multiInstancesDataNode).setDeviated(true);
                }
+               break;
+            }
+
          }
 
          return validatorResultBuilder.build();
@@ -538,63 +504,42 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateMinElements() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(this.target instanceof MultiInstancesDataNode)) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.minElements.getElementPosition());
-         validatorRecordBuilder.setBadElement(this.minElements);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.minElements,
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          MultiInstancesDataNode multiInstancesDataNode = (MultiInstancesDataNode)this.target;
-         ValidatorRecordBuilder validatorRecordBuilder;
+         List<YangStatement> matched = this.target.getSubStatement(YangBuiltinKeyword.MINELEMENTS.getQName());
          switch (this.deviateType) {
-            case ADD:
-               if (multiInstancesDataNode.getMinElements() != null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.minElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.minElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=min-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            case ADD:{
+               if (matched != null && !matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.minElements,
+                          ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=min-elements"})));
                } else {
                   multiInstancesDataNode.setMinElements(this.minElements);
                   ((SchemaNode)multiInstancesDataNode).setDeviated(true);
                }
                break;
-            case DELETE:
-               if (multiInstancesDataNode.getMinElements() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.minElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.minElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=min-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               } else if (!multiInstancesDataNode.getMinElements().getArgStr().equals(this.minElements.getArgStr())) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.minElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.minElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=min-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case DELETE:{
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.minElements,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=min-elements"})));
+               } else if (!matched.get(0).getArgStr().equals(this.minElements.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.minElements,
+                          ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=min-elements"})));
                } else {
-                  multiInstancesDataNode.setMinElements((MinElements)null);
+                  multiInstancesDataNode.setMinElements(null);
                   ((SchemaNode)multiInstancesDataNode).setDeviated(true);
                }
                break;
+            }
+
             case REPLACE:
-               if (multiInstancesDataNode.getMinElements() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.minElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.minElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=min-elements"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.minElements,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=min-elements"})));
                } else {
                   multiInstancesDataNode.setMinElements(this.minElements);
                   ((SchemaNode)multiInstancesDataNode).setDeviated(true);
@@ -608,63 +553,49 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateUnique() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(this.target instanceof YangList)) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(((Unique)this.uniques.get(0)).getElementPosition());
-         validatorRecordBuilder.setBadElement((YangStatement)this.uniques.get(0));
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.uniques.get(0),
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          YangList list = (YangList)this.target;
-         Iterator var3 = this.uniques.iterator();
+         Iterator uniqueIterator = this.uniques.iterator();
 
-         while(var3.hasNext()) {
-            Unique unique = (Unique)var3.next();
-            ValidatorRecordBuilder validatorRecordBuilder;
+         while(uniqueIterator.hasNext()) {
+            Unique unique = (Unique)uniqueIterator.next();
+            YangStatement orig = this.target.getSubStatement(YangBuiltinKeyword.UNIQUE.getQName(),unique.getArgStr());
             switch (this.deviateType) {
-               case ADD:
-                  if (list.getUnique(unique.getArgStr()) != null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(unique.getElementPosition());
-                     validatorRecordBuilder.setBadElement(unique);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=unique"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               case ADD:{
+                  if (orig != null) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
+                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=unique"})));
                   } else {
                      validatorResultBuilder.merge(list.addUnique(unique));
                      list.setDeviated(true);
                   }
                   break;
-               case DELETE:
-                  if (list.getUnique(unique.getArgStr()) == null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(unique.getElementPosition());
-                     validatorRecordBuilder.setBadElement(unique);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               }
+
+               case DELETE:{
+                  if (orig == null) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
+                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
                   } else {
                      list.removeUnique(unique.getArgStr());
                      list.setDeviated(true);
                   }
                   break;
-               case REPLACE:
-                  if (list.getUnique(unique.getArgStr()) == null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(unique.getElementPosition());
-                     validatorRecordBuilder.setBadElement(unique);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               }
+
+               case REPLACE:{
+                  if (orig == null) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
+                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
                   } else {
                      validatorResultBuilder.merge(list.updateUnique(unique));
                      list.setDeviated(true);
                   }
+               }
+
             }
          }
 
@@ -675,67 +606,49 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateUnits() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(this.target instanceof TypedDataNode)) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.units.getElementPosition());
-         validatorRecordBuilder.setBadElement(this.units);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(units,
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          TypedDataNode typedDataNode = (TypedDataNode)this.target;
-         ValidatorRecordBuilder validatorRecordBuilder;
+         List<YangStatement> matched = this.target.getSubStatement(YangBuiltinKeyword.UNITS.getQName());
          switch (this.deviateType) {
-            case ADD:
-               if (typedDataNode.getUnits() != null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.units.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.units);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=units"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            case ADD:{
+               if (matched != null && !matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.units,
+                          ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=units"})));
                } else {
                   typedDataNode.setUnits(this.units);
                   typedDataNode.setDeviated(true);
                }
                break;
-            case DELETE:
-               if (typedDataNode.getUnits() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.units.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.units);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=units"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               } else if (!typedDataNode.getUnits().getArgStr().equals(this.units.getArgStr())) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.units.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.units);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=units"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case DELETE:{
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(units,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=units"})));
+               } else if (!matched.get(0).getArgStr().equals(this.units.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(units,
+                          ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=units"})));
                } else {
-                  typedDataNode.setUnits((Units)null);
+                  typedDataNode.setUnits(null);
                   typedDataNode.setDeviated(true);
                }
                break;
-            case REPLACE:
-               if (typedDataNode.getUnits() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.units.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.units);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=units"})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case REPLACE:{
+               if (matched == null || matched.isEmpty()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(units,
+                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=units"})));
                } else {
                   typedDataNode.setUnits(this.units);
                   typedDataNode.setDeviated(true);
                }
+               break;
+            }
+
          }
 
          return validatorResultBuilder.build();
@@ -745,39 +658,30 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateType() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(this.target instanceof TypedDataNode)) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.units.getElementPosition());
-         validatorRecordBuilder.setBadElement(this.units);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.type,
+                 ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          TypedDataNode typedDataNode = (TypedDataNode)this.target;
-         ValidatorRecordBuilder validatorRecordBuilder;
          switch (this.deviateType) {
-            case ADD:
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.type.getElementPosition());
-               validatorRecordBuilder.setBadElement(this.type);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=type"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            case ADD:{
+               validatorResultBuilder.addRecord(ModelUtil.reportError(type,
+                       ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=type"})));
                break;
-            case DELETE:
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.type.getElementPosition());
-               validatorRecordBuilder.setBadElement(this.type);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MANDATORY_CAN_NOT_DELETED.toString(new String[]{"name=type"})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            }
+
+            case DELETE:{
+               validatorResultBuilder.addRecord(ModelUtil.reportError(type,
+                       ErrorCode.MANDATORY_CAN_NOT_DELETED.toString(new String[]{"name=type"})));
                break;
-            case REPLACE:
+            }
+
+            case REPLACE:{
                validatorResultBuilder.merge(typedDataNode.setType(this.type));
                typedDataNode.setDeviated(true);
+               break;
+            }
+
          }
 
          return validatorResultBuilder.build();
@@ -786,96 +690,111 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
 
    private ValidatorResult deviateUnknown() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var2 = this.getUnknowns().iterator();
-
-      while(true) {
-         while(var2.hasNext()) {
-            YangUnknown yangUnknown = (YangUnknown)var2.next();
-            YangUnknown same;
-            Iterator var8;
-            ValidatorRecordBuilder validatorRecordBuilder;
-            YangUnknown targetUnknown;
+      Iterator unknownIterator = this.getUnknowns().iterator();
+      while(unknownIterator.hasNext()) {
+         YangUnknown yangUnknown = (YangUnknown)unknownIterator.next();
+         boolean isMultiInstance = true;
+         YangSpecification yangSpecification = this.target.getContext().getYangSpecification();
+         YangStatementDef yangStatementDef = yangSpecification.getStatementDef(this.target.getYangKeyword());
+         Cardinality cardinality = yangStatementDef.getSubStatementCardinality(yangUnknown.getYangKeyword());
+         if(cardinality != null){
+            if(cardinality.getMaxElements() <=1){
+               isMultiInstance = false;
+            }
+         }
+         if(!isMultiInstance){
+            List<YangStatement> matched = this.target.getSubStatement(yangUnknown.getYangKeyword());
             switch (this.deviateType) {
-               case ADD:
-                  same = null;
-                  var8 = this.target.getUnknowns().iterator();
-
-                  while(var8.hasNext()) {
-                     targetUnknown = (YangUnknown)var8.next();
-                     if (targetUnknown.equals(yangUnknown)) {
-                        same = targetUnknown;
-                        break;
-                     }
-                  }
-
-                  if (same != null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(yangUnknown.getElementPosition());
-                     validatorRecordBuilder.setBadElement(yangUnknown);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=unique"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               case ADD:{
+                  if(matched != null && !matched.isEmpty()){
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
+                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
+                     List<YangUnknown> targetUnknowns = this.target.getUnknowns(yangUnknown.getYangKeyword());
+                     for(YangUnknown targetUnknown:targetUnknowns){
+                        this.target.getUnknowns().remove(targetUnknown);
+                     }
                      this.target.getUnknowns().add(yangUnknown);
                      this.target.setDeviated(true);
                   }
                   break;
-               case DELETE:
-                  same = null;
-                  var8 = this.target.getUnknowns().iterator();
-
-                  while(var8.hasNext()) {
-                     targetUnknown = (YangUnknown)var8.next();
-                     if (targetUnknown.equals(yangUnknown)) {
-                        same = targetUnknown;
-                        break;
-                     }
-                  }
-
-                  if (same == null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(yangUnknown.getElementPosition());
-                     validatorRecordBuilder.setBadElement(yangUnknown);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               }
+               case DELETE:{
+                  if(matched == null || matched.isEmpty()){
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
+                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
-                     this.target.getUnknowns().remove(same);
+                     if(!matched.get(0).getArgStr().equals(yangUnknown.getArgStr())){
+                        validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
+                                ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                     } else {
+                        this.target.getUnknowns().remove(matched.get(0));
+                        this.target.setDeviated(true);
+                     }
+
+                  }
+                  break;
+               }
+
+               case REPLACE:{
+                  if(matched == null || matched.isEmpty()){
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
+                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                  } else {
+                     this.target.getUnknowns().remove(matched.get(0));
+                     this.target.getUnknowns().add(yangUnknown);
                      this.target.setDeviated(true);
                   }
                   break;
-               case REPLACE:
-                  same = null;
-                  int pos = -1;
+               }
+            }
 
-                  for(int i = 0; i < this.target.getUnknowns().size(); ++i) {
-                     targetUnknown = this.target.getUnknowns().get(i);
-                     if (targetUnknown.equals(yangUnknown)) {
-                        same = targetUnknown;
-                        pos = i;
-                        break;
-                     }
-                  }
-
-                  if (same == null) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(yangUnknown.getElementPosition());
-                     validatorRecordBuilder.setBadElement(yangUnknown);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         } else {
+            YangUnknown orig = (YangUnknown) this.target.getSubStatement(yangUnknown.getYangKeyword(),yangUnknown.getArgStr());
+            switch (this.deviateType) {
+               case ADD:{
+                  if(orig != null){
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
+                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
-                     this.target.getUnknowns().set(pos, yangUnknown);
+                     YangUnknown targetUnknown = this.target.getUnknown(yangUnknown.getYangKeyword(),yangUnknown.getArgStr());
+                     if(null != targetUnknown){
+                        this.target.getUnknowns().remove(targetUnknown);
+                     }
+                     this.target.getUnknowns().add(yangUnknown);
                      this.target.setDeviated(true);
                   }
+                  break;
+               }
+               case DELETE:{
+                  if(orig == null){
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
+                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                  } else {
+                     this.target.getUnknowns().remove(orig);
+                     this.target.setDeviated(true);
+                  }
+                  break;
+               }
+
+               case REPLACE:{
+                  if(orig == null){
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
+                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                  } else {
+                     this.target.getUnknowns().remove(orig);
+                     this.target.getUnknowns().add(yangUnknown);
+                     this.target.setDeviated(true);
+                  }
+                  break;
+               }
             }
          }
 
-         return validatorResultBuilder.build();
+
       }
+
+      return validatorResultBuilder.build();
    }
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
@@ -883,13 +802,8 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       switch (phase) {
          case SCHEMA_MODIFIER:
             if (this.target == null) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_TARGET.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.MISSING_TARGET.getFieldName()));
                return validatorResultBuilder.build();
             } else {
                this.mustSupport.setContextNode(XPathUtil.getXPathContextNode(this.target));

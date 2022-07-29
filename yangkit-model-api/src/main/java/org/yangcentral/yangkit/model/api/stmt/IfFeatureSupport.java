@@ -7,6 +7,9 @@ public interface IfFeatureSupport {
    List<IfFeature> getIfFeatures();
    ValidatorResult addIfFeature(IfFeature ifFeature);
 
+   IfFeature getIfFeature(String exp);
+   IfFeature removeIfFeature(String exp);
+
    void setIfFeatures(List<IfFeature> ifFeatures);
 
    boolean evaluateFeatures();

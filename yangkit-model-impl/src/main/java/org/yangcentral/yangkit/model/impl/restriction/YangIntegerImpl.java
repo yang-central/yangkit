@@ -49,6 +49,7 @@ public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionI
          newRange.setContext(new YangContext(this.getContext()));
          newRange.setElementPosition(this.getContext().getSelf().getElementPosition());
          newRange.setParentStatement(this.getContext().getSelf());
+         newRange.setBound(this.getHighBound(),this.getLowBound());
          newRange.init();
          newRange.build();
          return newRange;
@@ -57,21 +58,24 @@ public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionI
 
    public ValidatorResult setRange(Range range) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      if (!range.isBuilt()) {
-         range.setBound(this.getHighBound(), this.getLowBound());
-         validatorResultBuilder.merge(range.build(BuildPhase.GRAMMAR));
-      }
+      if(range != null){
+         if (!range.isBuilt()) {
+            range.setBound(this.getHighBound(), this.getLowBound());
+            validatorResultBuilder.merge(range.build(BuildPhase.GRAMMAR));
+         }
 
-      if (this.getDerived() != null) {
-         Range derivedRange = ((YangInteger)this.getDerived().getType().getRestriction()).getRange();
-         if (derivedRange != null && !range.isSubSet(derivedRange)) {
-            validatorResultBuilder.addRecord(ModelUtil.reportError(range,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),
-                    ErrorTag.BAD_ELEMENT,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
-            if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.DEBUG) {
-               return validatorResultBuilder.build();
+         if (this.getDerived() != null) {
+            Range derivedRange = ((YangInteger)this.getDerived().getType().getRestriction()).getRange();
+            if (derivedRange != null && !range.isSubSet(derivedRange)) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(range,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),
+                       ErrorTag.BAD_ELEMENT,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
+               if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.DEBUG) {
+                  return validatorResultBuilder.build();
+               }
             }
          }
       }
+
 
       this.range = range;
       return validatorResultBuilder.build();

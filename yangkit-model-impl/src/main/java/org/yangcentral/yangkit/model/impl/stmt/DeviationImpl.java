@@ -83,110 +83,91 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       if (!ModelUtil.isAbsoluteSchemaNodeIdentifier(this.getArgStr())) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-         return validatorResultBuilder.build();
-      } else {
-         List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
-         if (matched.size() != 0) {
-            this.description = (Description)matched.get(0);
-         }
-
-         matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
-         if (matched.size() != 0) {
-            this.reference = (Reference)matched.get(0);
-         }
-
-         matched = this.getSubStatement(YangBuiltinKeyword.DEVIATE.getQName());
-         if (matched.size() != 0) {
-            Iterator var3;
-            YangStatement subStatement;
-            if (matched.size() > 1) {
-               var3 = matched.iterator();
-
-               while(var3.hasNext()) {
-                  subStatement = (YangStatement)var3.next();
-                  Deviate deviate = (Deviate)subStatement;
-                  if (DeviateType.forValue(deviate.getArgStr()) == DeviateType.NOT_SUPPORTED) {
-                     ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setBadElement(deviate);
-                     validatorRecordBuilder.setErrorPath(deviate.getElementPosition());
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DEVIATE_NOT_SUPPORT_ONLY_ONE.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     return validatorResultBuilder.build();
-                  }
-               }
-            }
-
-            var3 = matched.iterator();
-
-            while(var3.hasNext()) {
-               subStatement = (YangStatement)var3.next();
-               this.deviates.add((Deviate)subStatement);
-            }
-         }
-
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_ARG.getFieldName()));
          return validatorResultBuilder.build();
       }
+      this.description = null;
+      List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
+      if (matched.size() != 0) {
+         this.description = (Description)matched.get(0);
+      }
+      this.reference = null;
+      matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
+      if (matched.size() != 0) {
+         this.reference = (Reference)matched.get(0);
+      }
+      this.deviates.clear();
+      matched = this.getSubStatement(YangBuiltinKeyword.DEVIATE.getQName());
+      if (matched.size() != 0) {
+         Iterator iterator;
+         YangStatement subStatement;
+         if (matched.size() > 1) {
+            iterator = matched.iterator();
+
+            while(iterator.hasNext()) {
+               subStatement = (YangStatement)iterator.next();
+               Deviate deviate = (Deviate)subStatement;
+               if (DeviateType.forValue(deviate.getArgStr()) == DeviateType.NOT_SUPPORTED) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(deviate,
+                          ErrorCode.DEVIATE_NOT_SUPPORT_ONLY_ONE.getFieldName()));
+                  return validatorResultBuilder.build();
+               }
+            }
+         }
+
+         iterator = matched.iterator();
+
+         while(iterator.hasNext()) {
+            subStatement = (YangStatement)iterator.next();
+            this.deviates.add((Deviate)subStatement);
+         }
+      }
+
+      return validatorResultBuilder.build();
    }
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       ValidatorRecordBuilder validatorRecordBuilder;
       switch (phase) {
-         case GRAMMAR:
+         case GRAMMAR:{
+            this.targetPath = null;
             try {
-               SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), (SchemaNodeContainer)null, this,this.getArgStr());
+               SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), null, this,this.getArgStr());
                if (targetPath instanceof SchemaPath.Descendant) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                          ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
                   return validatorResultBuilder.build();
                }
 
                this.setTargetPath(targetPath);
                break;
-            } catch (ModelException var6) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(var6.getSeverity());
-               validatorRecordBuilder.setBadElement(var6.getElement());
-               validatorRecordBuilder.setErrorPath(var6.getElement().getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(var6.getDescription()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               return validatorResultBuilder.build();
+            } catch (ModelException e) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
+                       e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
+               break;
             }
-         case SCHEMA_MODIFIER:
+         }
+
+         case SCHEMA_MODIFIER:{
+            this.target = null;
             SchemaNode targetNode = this.targetPath.getSchemaNode(this.getContext().getSchemaContext());
             if (targetNode == null) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_TARGET.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.MISSING_TARGET.getFieldName()));
                return validatorResultBuilder.build();
             }
 
             this.setTarget(targetNode);
-            Iterator var4 = this.deviates.iterator();
+            Iterator deviateIterator = this.deviates.iterator();
 
-            while(var4.hasNext()) {
-               Deviate deviate = (Deviate)var4.next();
+            while(deviateIterator.hasNext()) {
+               Deviate deviate = (Deviate)deviateIterator.next();
                deviate.setTarget(targetNode);
             }
+            break;
+         }
+
       }
 
       return validatorResultBuilder.build();

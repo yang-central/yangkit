@@ -72,6 +72,7 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
          newLength.setContext(new YangContext(this.getContext()));
          newLength.setElementPosition(this.getContext().getSelf().getElementPosition());
          newLength.setParentStatement(this.getContext().getSelf());
+         newLength.setBound(this.getHighBound(),this.getLowBound());
          newLength.init();
          newLength.build();
          return newLength;
@@ -80,6 +81,10 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
 
    public ValidatorResult setLength(Length length) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      if(length == null){
+         this.length = null;
+         return validatorResultBuilder.build();
+      }
       if (!length.isBuilt()) {
          length.setBound(this.getHighBound(), this.getLowBound());
          validatorResultBuilder.merge(length.build(BuildPhase.GRAMMAR));
@@ -88,6 +93,7 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
       if (this.getDerived() != null) {
          Length derivedLength = ((YangString)this.getDerived().getType().getRestriction()).getEffectiveLength();
          if (derivedLength != null && !length.isSubSet(derivedLength)) {
+            length.isSubSet(derivedLength);
             validatorResultBuilder.addRecord(ModelUtil.reportError(length,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),
                     ErrorTag.BAD_ELEMENT,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
             if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {

@@ -13,6 +13,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.OrderBy;
 import org.yangcentral.yangkit.model.api.stmt.OrderedBy;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 public class OrderedByImpl extends YangBuiltInStatementImpl implements OrderedBy {
    private OrderBy orderBy;
@@ -34,13 +35,8 @@ public class OrderedByImpl extends YangBuiltInStatementImpl implements OrderedBy
       validatorResultBuilder.merge(super.initSelf());
       this.orderBy = OrderBy.getOrderBy(this.getArgStr());
       if (this.orderBy == null) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_ARG.getFieldName()));
       }
 
       return validatorResultBuilder.build();

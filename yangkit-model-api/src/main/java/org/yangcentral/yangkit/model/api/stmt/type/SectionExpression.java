@@ -14,7 +14,7 @@ public interface SectionExpression extends YangBuiltinStatement, MetaDef, ErrorR
 
    List<Section> getSections();
 
-   void setBound(Comparable var1, Comparable var2);
+   void setBound(Comparable highBound, Comparable lowBound);
 
    Comparable getMax();
 

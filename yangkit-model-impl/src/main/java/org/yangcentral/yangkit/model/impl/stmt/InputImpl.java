@@ -168,10 +168,12 @@ public class InputImpl extends SchemaNodeImpl implements Input {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      Iterator var2 = this.getSubElements().iterator();
-
-      while(var2.hasNext()) {
-         YangElement subElement = (YangElement)var2.next();
+      Iterator elementIterator = this.getSubElements().iterator();
+      this.dataDefContainer.removeDataDefs();
+      this.groupingDefContainer.removeGroupings();
+      this.typedefContainer.removeTypedefs();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
@@ -211,10 +213,11 @@ public class InputImpl extends SchemaNodeImpl implements Input {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            Iterator var3 = this.getDataDefChildren().iterator();
+            this.schemaNodeContainer.removeSchemaNodeChildren();
+            Iterator dataDefinitionIterator = this.getDataDefChildren().iterator();
 
-            while(var3.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)var3.next();
+            while(dataDefinitionIterator.hasNext()) {
+               DataDefinition dataDefinition = (DataDefinition)dataDefinitionIterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
          default:

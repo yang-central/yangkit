@@ -16,6 +16,7 @@ import org.yangcentral.yangkit.model.api.stmt.Namespace;
 import org.yangcentral.yangkit.model.api.stmt.Prefix;
 import org.yangcentral.yangkit.model.api.stmt.SubModule;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,22 +45,18 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.namespace = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.NAMESPACE.getQName());
       if (matched.size() > 0) {
          this.namespace = (Namespace)matched.get(0);
       }
-
+      this.prefix = null;
       matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() > 0) {
          this.prefix = (Prefix)matched.get(0);
          if (this.getPrefixes().containsKey(this.prefix.getArgStr())) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this.prefix);
-            validatorRecordBuilder.setErrorPath(this.prefix.getElementPosition());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(prefix,
+                    ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
             return validatorResultBuilder.build();
          }
 
@@ -98,10 +95,10 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
    public List<YangStatement> getEffectiveDefinitionStatement() {
       List<YangStatement> statements = new ArrayList();
       statements.addAll(super.getEffectiveDefinitionStatement());
-      Iterator var2 = this.getIncludes().iterator();
+      Iterator includeIterator = this.getIncludes().iterator();
 
-      while(var2.hasNext()) {
-         Include include = (Include)var2.next();
+      while(includeIterator.hasNext()) {
+         Include include = (Include)includeIterator.next();
          if (include.getInclude().isPresent()) {
             SubModule subModule = (SubModule)include.getInclude().get();
             statements.addAll(subModule.getAugments());

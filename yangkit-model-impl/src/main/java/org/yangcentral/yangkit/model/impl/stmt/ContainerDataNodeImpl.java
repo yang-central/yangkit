@@ -197,9 +197,9 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.buildSelf(phase));
-      this.schemaNodeContainer.removeSchemaNodeChildren();
       switch (phase) {
          case SCHEMA_BUILD:
+            this.schemaNodeContainer.removeSchemaNodeChildren();
             Iterator iterator = this.getDataDefChildren().iterator();
 
             while(iterator.hasNext()) {

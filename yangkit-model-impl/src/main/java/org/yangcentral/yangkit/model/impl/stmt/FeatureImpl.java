@@ -27,6 +27,16 @@ public class FeatureImpl extends EntityImpl implements Feature {
       return this.ifFeatureSupport.addIfFeature(ifFeature);
    }
 
+   @Override
+   public IfFeature getIfFeature(String exp) {
+      return ifFeatureSupport.getIfFeature(exp);
+   }
+
+   @Override
+   public IfFeature removeIfFeature(String exp) {
+      return ifFeatureSupport.removeIfFeature(exp);
+   }
+
    public void setIfFeatures(List<IfFeature> ifFeatures) {
       this.ifFeatureSupport.setIfFeatures(ifFeatures);
    }
@@ -42,11 +52,12 @@ public class FeatureImpl extends EntityImpl implements Feature {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.ifFeatureSupport.removeIfFeatures();
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
-      Iterator var3 = matched.iterator();
+      Iterator statementIterator = matched.iterator();
 
-      while(var3.hasNext()) {
-         YangStatement statement = (YangStatement)var3.next();
+      while(statementIterator.hasNext()) {
+         YangStatement statement = (YangStatement)statementIterator.next();
          IfFeature ifFeature = (IfFeature)statement;
          validatorResultBuilder.merge(this.addIfFeature(ifFeature));
       }

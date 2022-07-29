@@ -1,11 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
@@ -256,7 +251,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                validatorRecordBuilder.setErrorPath(entry.getElementPosition());
                validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
                validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in " + ((YangStatement)source.get(entry.getArgStr())).getElementPosition()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(entry,
+                       ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in "
+                               + (source.get(entry.getArgStr())).getElementPosition()));
             }
          } else {
             source.put(entry.getArgStr(), entry);
@@ -278,13 +275,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          Map.Entry<String, T> entry = iterator.next();
          if (source.containsKey(entry.getKey())) {
             if (!ignoreDuplicate) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(entry.getValue());
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath((entry.getValue()).getElementPosition());
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in " + ((YangStatement)source.get(entry.getKey())).getElementPosition()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(entry.getValue(),
+                       ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in "
+                               + (source.get(entry.getKey())).getElementPosition()));
             }
          } else {
             source.put(entry.getKey(), entry.getValue());
@@ -307,13 +300,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          T entry = iterator.next();
          if (sourceMap.containsKey(entry.getArgStr())) {
             if (!ignoreDuplicate) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(entry);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(entry.getElementPosition());
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in " + ((YangStatement)sourceMap.get(entry.getArgStr())).getElementPosition()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(entry,
+                       ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in "
+                               + (sourceMap.get(entry.getArgStr())).getElementPosition()));
             }
          } else {
             source.add(entry);
@@ -325,79 +314,77 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private ValidatorResult mergeSubModules() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var2 = this.includes.iterator();
-
-      while(true) {
-         Include include;
-         do {
-            if (!var2.hasNext()) {
-               return validatorResultBuilder.build();
-            }
-
-            include = (Include)var2.next();
-         } while(!include.getInclude().isPresent());
-
-         SubModule includeModule = (SubModule)include.getInclude().get();
+      Iterator includeIterator = this.includes.iterator();
+      while (includeIterator.hasNext()){
+         Include include = (Include) includeIterator.next();
+         if(!include.getInclude().isPresent()){
+            continue;
+         }
+         SubModule includeModule = (SubModule) include.getInclude().get();
          validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getTypedefIdentifierCache(), includeModule.getTypedefs()));
          validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getGroupingIdentifierCache(), includeModule.getGroupings()));
-         Iterator var5 = includeModule.getDataDefChildren().iterator();
+         Iterator dataDefinitionIterator = includeModule.getDataDefChildren().iterator();
 
-         while(var5.hasNext()) {
-            DataDefinition dataDefinition = (DataDefinition)var5.next();
+         while (dataDefinitionIterator.hasNext()) {
+            DataDefinition dataDefinition = (DataDefinition) dataDefinitionIterator.next();
             if (!(dataDefinition instanceof Uses)) {
                this.getContext().getSchemaNodeIdentifierCache().put(dataDefinition.getArgStr(), dataDefinition);
             }
          }
 
-         var5 = includeModule.getRpcs().iterator();
+         Iterator rpcIterator = includeModule.getRpcs().iterator();
 
-         while(var5.hasNext()) {
-            Rpc rpc = (Rpc)var5.next();
+         while (rpcIterator.hasNext()) {
+            Rpc rpc = (Rpc) rpcIterator.next();
             this.getContext().getSchemaNodeIdentifierCache().put(rpc.getArgStr(), rpc);
          }
 
-         var5 = includeModule.getNotifications().iterator();
+         Iterator notificationIterator = includeModule.getNotifications().iterator();
 
-         while(var5.hasNext()) {
-            Notification notification = (Notification)var5.next();
+         while (notificationIterator.hasNext()) {
+            Notification notification = (Notification) notificationIterator.next();
             this.getContext().getSchemaNodeIdentifierCache().put(notification.getArgStr(), notification);
          }
 
          validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getExtensionCache(), includeModule.getExtensions()));
          validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getIdentityCache(), includeModule.getIdentities()));
          validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getFeatureCache(), includeModule.getFeatures()));
+
       }
+
+      return validatorResultBuilder.build();
+
    }
 
    private ValidatorResult mergeSubModulesSchemaTree() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var2 = this.includes.iterator();
+      Iterator includeIterator = this.includes.iterator();
 
       while(true) {
          Include include;
          do {
-            if (!var2.hasNext()) {
+            if (!includeIterator.hasNext()) {
                return validatorResultBuilder.build();
             }
 
-            include = (Include)var2.next();
+            include = (Include)includeIterator.next();
          } while(!include.getInclude().isPresent());
 
          SubModule includeModule = (SubModule)include.getInclude().get();
-         Iterator var5 = includeModule.getSchemaNodeChildren().iterator();
+         Iterator schemaNodeIterator = includeModule.getSchemaNodeChildren().iterator();
 
-         while(var5.hasNext()) {
-            SchemaNode schemaNode = (SchemaNode)var5.next();
+         while(schemaNodeIterator.hasNext()) {
+            SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
             validatorResultBuilder.merge(this.addSchemaNodeChild(schemaNode));
          }
       }
    }
 
    private void updateSubModules() {
-      Iterator var1 = this.includes.iterator();
+      Iterator includeIterator = this.includes.iterator();
 
-      while(var1.hasNext()) {
-         Include include = (Include)var1.next();
+      while(includeIterator.hasNext()) {
+         Include include = (Include)includeIterator.next();
          if (include.getInclude().isPresent()) {
             SubModule includeModule = (SubModule)include.getInclude().get();
             this.mergeDefintion(includeModule.getContext().getTypedefIdentifierCache(), this.getContext().getTypedefIdentifierCache(), true);
@@ -413,10 +400,10 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private ValidatorResult validateSubModules(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.includes.iterator();
+      Iterator includeIterator = this.includes.iterator();
 
-      while(var3.hasNext()) {
-         Include include = (Include)var3.next();
+      while(includeIterator.hasNext()) {
+         Include include = (Include)includeIterator.next();
          if (include.getInclude().isPresent()) {
             SubModule includeModule = (SubModule)include.getInclude().get();
             if (!includeModule.isBuilt()) {
@@ -430,28 +417,22 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private ValidatorResult validateSubModules(BuildPhase from, BuildPhase to) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var4 = this.includes.iterator();
+      Iterator<Include> includeIterator = this.includes.iterator();
 
-      while(true) {
-         SubModule includeModule;
-         do {
-            Include include;
-            do {
-               if (!var4.hasNext()) {
-                  return validatorResultBuilder.build();
-               }
+      while (includeIterator.hasNext()){
+         Include include = includeIterator.next();
+         if(!include.getInclude().isPresent()){
+            continue;
+         }
+         SubModule includeModule = (SubModule)include.getInclude().get();
+         if(includeModule.isBuilt()){
+            continue;
+         }
+         BuildPhase[] buildPhases = BuildPhase.values();
+         int length = buildPhases.length;
 
-               include = (Include)var4.next();
-            } while(!include.getInclude().isPresent());
-
-            includeModule = (SubModule)include.getInclude().get();
-         } while(includeModule.isBuilt());
-
-         BuildPhase[] var7 = BuildPhase.values();
-         int var8 = var7.length;
-
-         for(int var9 = 0; var9 < var8; ++var9) {
-            BuildPhase buildPhase = var7[var9];
+         for(int i = 0; i < length; ++i) {
+            BuildPhase buildPhase = buildPhases[i];
             if (buildPhase.compareTo(from) < 0 || buildPhase.compareTo(to) > 0) {
                break;
             }
@@ -462,7 +443,10 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                break;
             }
          }
+
       }
+
+      return validatorResultBuilder.build();
    }
 
    private ValidatorResult validateSubModules() {
@@ -471,10 +455,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
-      Iterator var13;
       switch (phase) {
-         case GRAMMAR:
-            if (this.getEffectiveYangVersion().equals("1.1")) {
+         case GRAMMAR:{
+            if (this.getEffectiveYangVersion().equals(Yang.VERSION_11)) {
                if (this instanceof MainModule) {
                   validatorResultBuilder.merge(this.mergeSubModules());
                   this.updateSubModules();
@@ -485,64 +468,55 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                validatorResultBuilder.merge(this.validateSubModules());
             }
 
-            var13 = this.augments.iterator();
+            Iterator<Augment> augmentIterator = this.augments.iterator();
 
-            while(var13.hasNext()) {
-               Augment augment = (Augment)var13.next();
-
-               ValidatorRecordBuilder validatorRecordBuilder;
+            while(augmentIterator.hasNext()) {
+               Augment augment = augmentIterator.next();
                try {
                   SchemaPath targetPath = SchemaPathImpl.from(this, this, augment,augment.getArgStr());
                   if (targetPath instanceof SchemaPath.Descendant) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setBadElement(augment);
-                     validatorRecordBuilder.setErrorPath(augment.getElementPosition());
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
+                             ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
                   } else {
                      augment.setTargetPath(targetPath);
                   }
-               } catch (ModelException var12) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(var12.getSeverity());
-                  validatorRecordBuilder.setBadElement(var12.getElement());
-                  validatorRecordBuilder.setErrorPath(var12.getElement().getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(var12.getDescription()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               } catch (ModelException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
+                          e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
                }
             }
 
             return validatorResultBuilder.build();
-         case SCHEMA_BUILD:
-            if (this.getEffectiveYangVersion().equals("1.1") && this instanceof MainModule) {
+         }
+
+         case SCHEMA_BUILD:{
+            this.schemaNodeContainer.removeSchemaNodeChildren();
+            if (this.getEffectiveYangVersion().equals(Yang.VERSION_11) && this instanceof MainModule) {
                validatorResultBuilder.merge(this.validateSubModules(phase));
             }
 
-            var13 = this.getDataDefChildren().iterator();
+            Iterator<DataDefinition> definitionIterator = this.getDataDefChildren().iterator();
 
-            while(var13.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)var13.next();
+            while(definitionIterator.hasNext()) {
+               DataDefinition dataDefinition = (DataDefinition)definitionIterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
 
-            var13 = this.rpcs.iterator();
+            Iterator<Rpc> rpcIterator = this.rpcs.iterator();
 
-            while(var13.hasNext()) {
-               Rpc rpc = (Rpc)var13.next();
+            while(rpcIterator.hasNext()) {
+               Rpc rpc = rpcIterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(rpc));
             }
 
-            var13 = this.getNotifications().iterator();
+            Iterator<Notification> notificationIterator = this.getNotifications().iterator();
 
-            while(var13.hasNext()) {
-               Notification notification = (Notification)var13.next();
+            while(notificationIterator.hasNext()) {
+               Notification notification = (Notification)notificationIterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(notification));
             }
 
-            if (this.getEffectiveYangVersion().equals("1")) {
+            if (this.getEffectiveYangVersion().equals(Yang.VERSION_1)) {
                this.getContext().getSchemaContext().addSchemaNodeChildren(this.getSchemaNodeChildren());
                if (this instanceof MainModule) {
                   validatorResultBuilder.merge(this.mergeSubModulesSchemaTree());
@@ -552,8 +526,10 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                this.getContext().getSchemaContext().addSchemaNodeChildren(this.getSchemaNodeChildren());
             }
             break;
-         case SCHEMA_EXPAND:
-            if (this.getEffectiveYangVersion().equals("1.1") && this instanceof MainModule) {
+         }
+
+         case SCHEMA_EXPAND:{
+            if (this.getEffectiveYangVersion().equals(Yang.VERSION_11) && this instanceof MainModule) {
                validatorResultBuilder.merge(this.validateSubModules(phase));
             }
 
@@ -566,31 +542,20 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             do {
                subResultBuilder.clear();
                parsedCount = 0;
-               Iterator var7 = augmentCache.iterator();
+               Iterator<Augment> augmentCacheIt = augmentCache.iterator();
 
-               while(var7.hasNext()) {
-                  Augment augment = (Augment)var7.next();
+               while(augmentCacheIt.hasNext()) {
+                  Augment augment = augmentCacheIt.next();
                   SchemaPath targetPath = augment.getTargetPath();
                   SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
                   ValidatorRecordBuilder validatorRecordBuilder;
                   if (target == null) {
-                     targetPath.getSchemaNode(this.getContext().getSchemaContext());
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(augment.getElementPosition());
-                     validatorRecordBuilder.setBadElement(augment);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_TARGET.getFieldName()));
-                     subResultBuilder.addRecord(validatorRecordBuilder.build());
+                     subResultBuilder.addRecord(ModelUtil.reportError(augment,
+                             ErrorCode.MISSING_TARGET.getFieldName()));
                      errorCache.add(augment);
                   } else if (!(target instanceof Augmentable)) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setBadElement(augment);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(augment.getElementPosition());
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
-                     subResultBuilder.addRecord(validatorRecordBuilder.build());
+                    subResultBuilder.addRecord(ModelUtil.reportError(augment,
+                             ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
                      errorCache.add(augment);
                   } else {
                      ++parsedCount;
@@ -607,9 +572,11 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
             validatorResultBuilder.merge(subResultBuilder.build());
             break;
+         }
+
          case SCHEMA_MODIFIER:
          case SCHEMA_TREE:
-            if (this.getEffectiveYangVersion().equals("1.1") && this instanceof MainModule) {
+            if (this.getEffectiveYangVersion().equals(Yang.VERSION_11) && this instanceof MainModule) {
                validatorResultBuilder.merge(this.validateSubModules(phase));
             }
       }
@@ -651,20 +618,21 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      clear();
       ValidatorResult superValidatorResult = super.initSelf();
       validatorResultBuilder.merge(superValidatorResult);
       List<YangElement> subElements = this.getSubElements();
-      Iterator var4 = subElements.iterator();
+      Iterator elementIterator = subElements.iterator();
 
       while(true) {
          while(true) {
             YangElement subElement;
             do {
-               if (!var4.hasNext()) {
+               if (!elementIterator.hasNext()) {
                   return validatorResultBuilder.build();
                }
 
-               subElement = (YangElement)var4.next();
+               subElement = (YangElement)elementIterator.next();
             } while(!(subElement instanceof YangBuiltinStatement));
 
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;

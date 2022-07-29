@@ -22,15 +22,15 @@ public class UniqueImpl extends YangBuiltInStatementImpl implements Unique {
    }
 
    public boolean addUniqueNode(Leaf uniqueNode) {
-      Iterator var2 = this.uniqueNodes.iterator();
+      Iterator iterator = this.uniqueNodes.iterator();
 
       Leaf uni;
       do {
-         if (!var2.hasNext()) {
+         if (!iterator.hasNext()) {
             return this.uniqueNodes.add(uniqueNode);
          }
 
-         uni = (Leaf)var2.next();
+         uni = (Leaf)iterator.next();
       } while(!uni.getArgStr().equals(uniqueNode.getArgStr()));
 
       return false;

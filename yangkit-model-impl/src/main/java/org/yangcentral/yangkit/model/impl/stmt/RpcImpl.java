@@ -125,6 +125,16 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
       return this.ifFeatureSupport.addIfFeature(ifFeature);
    }
 
+   @Override
+   public IfFeature getIfFeature(String exp) {
+      return ifFeatureSupport.getIfFeature(exp);
+   }
+
+   @Override
+   public IfFeature removeIfFeature(String exp) {
+      return ifFeatureSupport.removeIfFeature(exp);
+   }
+
    public void setIfFeatures(List<IfFeature> ifFeatures) {
       this.ifFeatureSupport.setIfFeatures(ifFeatures);
    }
@@ -135,14 +145,19 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      this.groupingDefContainer.removeGroupings();
+      this.typedefContainer.removeTypedefs();
+      this.ifFeatureSupport.removeIfFeatures();
+      this.input = null;
+      this.output = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.GROUPING.getQName());
-      Iterator var3;
+      Iterator iterator;
       YangStatement statement;
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            statement = (YangStatement)iterator.next();
             Grouping grouping = (Grouping)statement;
             validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(grouping));
          }
@@ -150,10 +165,10 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
 
       matched = this.getSubStatement(YangBuiltinKeyword.TYPEDEF.getQName());
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            statement = (YangStatement)iterator.next();
             Typedef typedef = (Typedef)statement;
             validatorResultBuilder.merge(this.typedefContainer.addTypedef(typedef));
          }
@@ -161,10 +176,10 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
 
       matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            statement = (YangStatement)iterator.next();
             IfFeature ifFeature = (IfFeature)statement;
             validatorResultBuilder.merge(this.ifFeatureSupport.addIfFeature(ifFeature));
          }

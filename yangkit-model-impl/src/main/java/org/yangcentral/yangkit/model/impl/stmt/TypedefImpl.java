@@ -16,6 +16,7 @@ import org.yangcentral.yangkit.model.api.stmt.Type;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
 import org.yangcentral.yangkit.model.api.stmt.Units;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -59,33 +60,29 @@ public class TypedefImpl extends EntityImpl implements Typedef {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       if (BuiltinType.isBuiltinType(this.getArgStr())) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_TYPEDEF_NAME.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-         return validatorResultBuilder.build();
-      } else {
-         List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.TYPE.getQName());
-         if (matched.size() != 0) {
-            this.type = (Type)matched.get(0);
-         }
-
-         matched = this.getSubStatement(YangBuiltinKeyword.UNITS.getQName());
-         if (matched.size() != 0) {
-            this.units = (Units)matched.get(0);
-         }
-
-         matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
-         if (matched.size() != 0) {
-            this.aDefault = (Default)matched.get(0);
-         }
-
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_TYPEDEF_NAME.getFieldName()));
          return validatorResultBuilder.build();
       }
+      this.type = null;
+      List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.TYPE.getQName());
+      if (matched.size() != 0) {
+         this.type = (Type) matched.get(0);
+      }
+      this.units = null;
+      matched = this.getSubStatement(YangBuiltinKeyword.UNITS.getQName());
+      if (matched.size() != 0) {
+         this.units = (Units) matched.get(0);
+      }
+      this.aDefault = null;
+      matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
+      if (matched.size() != 0) {
+         this.aDefault = (Default) matched.get(0);
+      }
+
+      return validatorResultBuilder.build();
    }
+
 
    public List<YangStatement> getReferencedBy() {
       return this.referencedBys;

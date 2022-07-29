@@ -93,10 +93,10 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
 
          if (this instanceof VirtualSchemaNode || this instanceof Container) {
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)this;
-            Iterator var2 = schemaNodeContainer.getSchemaNodeChildren().iterator();
+            Iterator schemaNodeIterator = schemaNodeContainer.getSchemaNodeChildren().iterator();
 
-            while(var2.hasNext()) {
-               SchemaNode schemaNode = (SchemaNode)var2.next();
+            while(schemaNodeIterator.hasNext()) {
+               SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
                if (schemaNode.isMandatory()) {
                   return true;
                }
@@ -120,10 +120,10 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
       } else {
          if (this instanceof SchemaNodeContainer) {
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)this;
-            Iterator var2 = schemaNodeContainer.getSchemaNodeChildren().iterator();
+            Iterator schemaNodeIterator = schemaNodeContainer.getSchemaNodeChildren().iterator();
 
-            while(var2.hasNext()) {
-               SchemaNode schemaNode = (SchemaNode)var2.next();
+            while(schemaNodeIterator.hasNext()) {
+               SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
                if (schemaNode.hasDefault()) {
                   return true;
                }

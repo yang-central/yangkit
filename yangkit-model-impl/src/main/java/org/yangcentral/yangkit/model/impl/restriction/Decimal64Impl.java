@@ -111,6 +111,7 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
          newRange.setContext(new YangContext(this.getContext()));
          newRange.setElementPosition(this.getContext().getSelf().getElementPosition());
          newRange.setParentStatement(this.getContext().getSelf());
+         newRange.setBound(this.getHighBound(),this.getLowBound());
          newRange.init();
          newRange.build();
          return newRange;

@@ -22,6 +22,10 @@ public interface YangStatement extends YangElement {
 
    List<YangUnknown> getUnknowns();
 
+   List<YangUnknown> getUnknowns(QName keyword);
+
+   YangUnknown getUnknown(QName keyword, String arg);
+
    ValidatorResult build(BuildPhase buildPhase);
 
    ValidatorResult build();

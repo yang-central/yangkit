@@ -52,13 +52,8 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
             SchemaNode parent;
             if (schemaNode instanceof Action) {
                if (!(this.self instanceof SchemaNode)) {
-                  ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(schemaNode.getElementPosition());
-                  validatorRecordBuilder.setBadElement(schemaNode);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.ACTION_NOT_TOP.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(schemaNode,
+                          ErrorCode.ACTION_NOT_TOP.getFieldName()));
                   return validatorResultBuilder.build();
                }
 
@@ -66,36 +61,21 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
                SchemaNodeContainer closestAncestorNode = parent.getClosestAncestorNode();
                ValidatorRecordBuilder validatorRecordBuilder;
                if (!(this.self instanceof DataNode) && closestAncestorNode instanceof YangSchemaContext) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(schemaNode.getElementPosition());
-                  validatorRecordBuilder.setBadElement(schemaNode);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.ACTION_NOT_TOP.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(schemaNode,
+                          ErrorCode.ACTION_NOT_TOP.getFieldName()));
                   return validatorResultBuilder.build();
                }
 
                if (parent.getSchemaTreeType() == SchemaTreeType.RPCTREE || parent.getSchemaTreeType() == SchemaTreeType.NOTIFICATIONTREE) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(schemaNode.getElementPosition());
-                  validatorRecordBuilder.setBadElement(schemaNode);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.ACTION_IN_DATATREE.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(schemaNode,
+                          ErrorCode.ACTION_IN_DATATREE.getFieldName()));
                   return validatorResultBuilder.build();
                }
             } else if (schemaNode instanceof Notification && this.self instanceof SchemaNode) {
                parent = (SchemaNode)this.self;
                if (parent.getSchemaTreeType() == SchemaTreeType.RPCTREE || parent.getSchemaTreeType() == SchemaTreeType.NOTIFICATIONTREE) {
-                  ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(schemaNode.getElementPosition());
-                  validatorRecordBuilder.setBadElement(schemaNode);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.NOTIFICATION_NOT_IN_DATATREE.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(schemaNode,
+                          ErrorCode.NOTIFICATION_NOT_IN_DATATREE.getFieldName()));
                   return validatorResultBuilder.build();
                }
             }
@@ -122,10 +102,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
 
    public ValidatorResult addSchemaNodeChildren(List<SchemaNode> schemaNodes) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = schemaNodes.iterator();
+      Iterator schemaNodeIterator = schemaNodes.iterator();
 
-      while(var3.hasNext()) {
-         SchemaNode node = (SchemaNode)var3.next();
+      while(schemaNodeIterator.hasNext()) {
+         SchemaNode node = (SchemaNode)schemaNodeIterator.next();
          ValidatorResult result = this.addSchemaNodeChild(node);
          validatorResultBuilder.merge(result);
       }
@@ -135,10 +115,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
 
    public SchemaNode getSchemaNodeChild(QName identifier) {
       try {
-         Iterator var2 = this.schemaNodes.iterator();
+         Iterator schemaNodeIterator = this.schemaNodes.iterator();
 
-         while(var2.hasNext()) {
-            SchemaNode schemaNode = (SchemaNode)var2.next();
+         while(schemaNodeIterator.hasNext()) {
+            SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
             if (schemaNode instanceof VirtualSchemaNode) {
                VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)schemaNode;
                SchemaNode node = virtualSchemaNode.getSchemaNodeChild(identifier);
@@ -149,63 +129,53 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
                return schemaNode;
             }
          }
-      } catch (RuntimeException var6) {
-         var6.printStackTrace();
+      } catch (RuntimeException e) {
+         e.printStackTrace();
       }
 
       return null;
    }
 
    public DataNode getDataNodeChild(QName identifier) {
-      Iterator var2 = this.schemaNodes.iterator();
-
-      SchemaNode schemaNode;
-      label35:
-      do {
-         DataNode node;
-         do {
-            if (!var2.hasNext()) {
+      Iterator<SchemaNode> schemaNodeIterator = this.schemaNodes.iterator();
+      while (schemaNodeIterator.hasNext()){
+         SchemaNode schemaNode = schemaNodeIterator.next();
+         if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
+            if (schemaNode.getIdentifier().equals(identifier)) {
+               if(schemaNode instanceof DataNode){
+                  return (DataNode) schemaNode;
+               }
                return null;
             }
-
-            schemaNode = (SchemaNode)var2.next();
-            if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
-               continue label35;
-            }
-
+         } else {
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)schemaNode;
-            node = schemaNodeContainer.getDataNodeChild(identifier);
-         } while(node == null);
-
-         return node;
-      } while(!schemaNode.getIdentifier().equals(identifier));
-
-      if (schemaNode instanceof DataNode) {
-         return (DataNode)schemaNode;
-      } else {
-         return null;
+            DataNode node = schemaNodeContainer.getDataNodeChild(identifier);
+            if(node !=null){
+               return node;
+            }
+         }
       }
+
+      return null;
    }
 
    public List<DataNode> getDataNodeChildren() {
       List<DataNode> dataNodeChildren = new ArrayList();
-      Iterator var2 = this.schemaNodes.iterator();
-
-      while(true) {
-         while(var2.hasNext()) {
-            SchemaNode schemaNode = (SchemaNode)var2.next();
-            if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
-               if (schemaNode instanceof DataNode) {
-                  dataNodeChildren.add((DataNode)schemaNode);
-               }
-            } else {
-               SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)schemaNode;
-               dataNodeChildren.addAll(schemaNodeContainer.getDataNodeChildren());
+      Iterator<SchemaNode> schemaNodeIterator = this.schemaNodes.iterator();
+      while (schemaNodeIterator.hasNext()){
+         SchemaNode schemaNode = schemaNodeIterator.next();
+         if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
+            if (schemaNode instanceof DataNode) {
+               dataNodeChildren.add((DataNode)schemaNode);
             }
+         } else {
+            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)schemaNode;
+            dataNodeChildren.addAll(schemaNodeContainer.getDataNodeChildren());
          }
-
-         return dataNodeChildren;
       }
+
+      return dataNodeChildren;
+
    }
 
    public void removeSchemaNodeChild(QName identifier) {
@@ -250,35 +220,32 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
    }
 
    public SchemaNode getMandatoryDescendant() {
-      Iterator var1 = this.schemaNodes.iterator();
-
-      while(true) {
-         while(var1.hasNext()) {
-            SchemaNode child = (SchemaNode)var1.next();
-            if (!(child instanceof MandatorySupport) && !(child instanceof MultiInstancesDataNode)) {
-               SchemaNode schemaNode;
-               if (child instanceof Container) {
-                  Container container = (Container)child;
-                  if (container.getPresence() == null) {
-                     schemaNode = container.getMandatoryDescendant();
-                     if (schemaNode != null) {
-                        return schemaNode;
-                     }
-                  }
-               } else if (child instanceof SchemaNodeContainer) {
-                  SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)child;
-                  schemaNode = schemaNodeContainer.getMandatoryDescendant();
+      Iterator<SchemaNode> schemaNodeIterator = this.schemaNodes.iterator();
+      while(schemaNodeIterator.hasNext()) {
+         SchemaNode child = schemaNodeIterator.next();
+         if (!(child instanceof MandatorySupport) && !(child instanceof MultiInstancesDataNode)) {
+            SchemaNode schemaNode;
+            if (child instanceof Container) {
+               Container container = (Container)child;
+               if (container.getPresence() == null) {
+                  schemaNode = container.getMandatoryDescendant();
                   if (schemaNode != null) {
                      return schemaNode;
                   }
                }
-            } else if (child.isMandatory()) {
-               return child;
+            } else if (child instanceof SchemaNodeContainer) {
+               SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)child;
+               schemaNode = schemaNodeContainer.getMandatoryDescendant();
+               if (schemaNode != null) {
+                  return schemaNode;
+               }
             }
+         } else if (child.isMandatory()) {
+            return child;
          }
-
-         return null;
       }
+
+     return null;
    }
    @Override
    public int hashCode() {

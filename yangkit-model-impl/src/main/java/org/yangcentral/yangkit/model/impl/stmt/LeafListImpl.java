@@ -57,15 +57,15 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
    }
 
    public Default getDefault(String value) {
-      Iterator var2 = this.defaults.iterator();
+      Iterator defaultIterator = this.defaults.iterator();
 
       Default defl;
       do {
-         if (!var2.hasNext()) {
+         if (!defaultIterator.hasNext()) {
             return null;
          }
 
-         defl = (Default)var2.next();
+         defl = (Default)defaultIterator.next();
       } while(!defl.getArgStr().equals(value));
 
       return defl;
@@ -159,54 +159,45 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.minElements = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MINELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.minElements = (MinElements)matched.get(0);
       }
-
+      this.maxElements = null;
       matched = this.getSubStatement(YangBuiltinKeyword.MAXELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.maxElements = (MaxElements)matched.get(0);
       }
-
+      this.orderedBy = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ORDEREDBY.getQName());
       if (null != matched && matched.size() > 0) {
          this.orderedBy = (OrderedBy)matched.get(0);
       }
-
+      this.defaults.clear();
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() > 0) {
          ValidatorRecordBuilder validatorRecordBuilder;
          if (this.minElements != null) {
             validatorResultBuilder.merge(this.minElements.init());
             if (this.minElements.getValue() > 0) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MANDATORY_HASDEFAULT.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.MANDATORY_HASDEFAULT.getFieldName()));
             }
          }
 
          if (this.maxElements != null) {
             validatorResultBuilder.merge(this.maxElements.init());
             if (matched.size() > this.maxElements.getValue()) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DEFAULT_EXCEED.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.DEFAULT_EXCEED.getFieldName()));
             }
          }
 
-         Iterator var5 = matched.iterator();
+         Iterator statementIterator = matched.iterator();
 
-         while(var5.hasNext()) {
-            YangStatement subStatement = (YangStatement)var5.next();
+         while(statementIterator.hasNext()) {
+            YangStatement subStatement = (YangStatement)statementIterator.next();
             this.defaults.add((Default)subStatement);
          }
       }
@@ -217,10 +208,10 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
    protected ValidatorResult validateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
       List<Default> effectiveDefaults = this.getEffectiveDefaults();
-      Iterator var3 = effectiveDefaults.iterator();
+      Iterator defaultIterator = effectiveDefaults.iterator();
 
-      while(var3.hasNext()) {
-         Default deflt = (Default)var3.next();
+      while(defaultIterator.hasNext()) {
+         Default deflt = (Default)defaultIterator.next();
          validatorResultBuilder.merge(this.validateDefault(deflt));
       }
 

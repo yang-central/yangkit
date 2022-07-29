@@ -15,6 +15,7 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaDataNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.config = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.CONFIG.getQName());
       if (matched.size() != 0) {
          this.config = (Config)matched.get(0);
@@ -64,13 +66,8 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
          if (parent instanceof SchemaNode) {
             SchemaNode parSchemaNode = this.getRealSchemaNode((SchemaNode)parent);
             if (parSchemaNode != null && !parSchemaNode.isConfig()) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.config.getElementPosition());
-               validatorRecordBuilder.setBadElement(this.config);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.CONFIG_CONFILICT.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(config,
+                       ErrorCode.CONFIG_CONFILICT.getFieldName()));
             }
          }
       }

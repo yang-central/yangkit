@@ -26,6 +26,7 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -82,15 +83,15 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    }
 
    public Unique getUnique(String arg) {
-      Iterator var2 = this.uniques.iterator();
+      Iterator uniqueIterator = this.uniques.iterator();
 
       Unique unique;
       do {
-         if (!var2.hasNext()) {
+         if (!uniqueIterator.hasNext()) {
             return null;
          }
 
-         unique = (Unique)var2.next();
+         unique = (Unique)uniqueIterator.next();
       } while(!unique.getArgStr().equals(arg));
 
       return unique;
@@ -153,7 +154,6 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          String uniStr = uniStrs[i];
          uniStr = uniStr.trim();
          if (uniStr.length() != 0) {
-            ValidatorRecordBuilder validatorRecordBuilder;
             try {
                SchemaPath path = SchemaPathImpl.from(this.getContext().getCurModule(), this, unique,uniStr);
                if (!(path instanceof SchemaPath.Descendant)) {
@@ -164,32 +164,17 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
                   if (null != schemaNode && schemaNode instanceof Leaf) {
                      boolean bool = unique.addUniqueNode((Leaf)schemaNode);
                      if (!bool) {
-                        validatorRecordBuilder = new ValidatorRecordBuilder();
-                        validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                        validatorRecordBuilder.setSeverity(Severity.ERROR);
-                        validatorRecordBuilder.setErrorPath(unique.getElementPosition());
-                        validatorRecordBuilder.setBadElement(unique);
-                        validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                        validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                        validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
+                                ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                      }
                   } else {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(unique.getElementPosition());
-                     validatorRecordBuilder.setBadElement(unique);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNIQUE_NODE_NOT_FOUND.toString(new String[]{"name=" + uniStr})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
+                             ErrorCode.UNIQUE_NODE_NOT_FOUND.toString(new String[]{"name=" + uniStr})));
                   }
                }
-            } catch (ModelException var13) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            } catch (ModelException e) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
             }
          }
       }
@@ -200,35 +185,24 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    private ValidatorResult validateKey(Key key) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       String[] keys = key.getArgStr().split(" ");
-      String[] var4 = keys;
-      int var5 = keys.length;
+      int length = keys.length;
 
-      for(int var6 = 0; var6 < var5; ++var6) {
-         String keyStr = var4[var6];
+      for(int i = 0; i < length; ++i) {
+         String keyStr = keys[i];
          keyStr = keyStr.trim();
          if (keyStr.length() != 0) {
             SchemaNode child = this.getSchemaNodeChild(new QName(this.getContext().getNamespace(), keyStr));
             if (null != child && child instanceof Leaf) {
                boolean bool = this.getKey().addKeyNode((Leaf)child);
                if (!bool) {
-                  ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.getKey().getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.getKey());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.getKey(),
+                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                } else {
                   ((Leaf)child).setKey(true);
                }
             } else {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.getKey().getElementPosition());
-               validatorRecordBuilder.setBadElement(this.getKey());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.KEY_NODE_NOT_FOUND.toString(new String[]{"name=" + keyStr})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this.getKey(),
+                       ErrorCode.KEY_NODE_NOT_FOUND.toString(new String[]{"name=" + keyStr})));
             }
          }
       }
@@ -243,29 +217,30 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.uniques.clear();
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.UNIQUE.getQName());
-      Iterator var3 = matched.iterator();
+      Iterator statementIterator = matched.iterator();
 
-      while(var3.hasNext()) {
-         YangStatement subStatement = (YangStatement)var3.next();
+      while(statementIterator.hasNext()) {
+         YangStatement subStatement = (YangStatement)statementIterator.next();
          this.uniques.add((Unique)subStatement);
       }
-
+      this.key = null;
       matched = this.getSubStatement(YangBuiltinKeyword.KEY.getQName());
       if (null != matched && matched.size() > 0) {
          this.key = (Key)matched.get(0);
       }
-
+      this.minElements = null;
       matched = this.getSubStatement(YangBuiltinKeyword.MINELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.minElements = (MinElements)matched.get(0);
       }
-
+      this.maxElements = null;
       matched = this.getSubStatement(YangBuiltinKeyword.MAXELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.maxElements = (MaxElements)matched.get(0);
       }
-
+      this.orderedBy = null;
       matched = this.getSubStatement(YangBuiltinKeyword.ORDEREDBY.getQName());
       if (null != matched && matched.size() > 0) {
          this.orderedBy = (OrderedBy)matched.get(0);
@@ -278,72 +253,45 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.validateSelf());
       if (this.isConfig() && this.key == null) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.LIST_NO_KEY.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.LIST_NO_KEY.getFieldName()));
       }
 
       if (this.getKey() != null) {
          List<Leaf> keyNodes = this.getKey().getkeyNodes();
-         Iterator var3 = keyNodes.iterator();
+         Iterator iterator = keyNodes.iterator();
 
-         while(var3.hasNext()) {
-            Leaf keyNode = (Leaf)var3.next();
-            ValidatorRecordBuilder validatorRecordBuilder;
+         while(iterator.hasNext()) {
+            Leaf keyNode = (Leaf)iterator.next();
             if (this.isConfig() != keyNode.isConfig()) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setBadElement(keyNode);
-               validatorRecordBuilder.setErrorPath(keyNode.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.KEY_CONFIG_ATTRIBUTE_DIFF_WITH_LIST.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(keyNode,
+                       ErrorCode.KEY_CONFIG_ATTRIBUTE_DIFF_WITH_LIST.getFieldName()));
             } else if (this.isActive() && !keyNode.isActive()) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setBadElement(keyNode);
-               validatorRecordBuilder.setErrorPath(keyNode.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.KEY_NODE_INACTIVE.toString(new String[]{"name=" + keyNode.getArgStr()})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(keyNode,
+                       ErrorCode.KEY_NODE_INACTIVE.toString(new String[]{"name=" + keyNode.getArgStr()})));
             }
          }
       }
 
-      Iterator var10 = this.uniques.iterator();
+      Iterator uniqueIterator = this.uniques.iterator();
 
-      while(var10.hasNext()) {
-         Unique unique = (Unique)var10.next();
+      while(uniqueIterator.hasNext()) {
+         Unique unique = (Unique)uniqueIterator.next();
          List<Leaf> uniqueNodes = unique.getUniqueNodes();
          Boolean config = null;
-         Iterator var6 = uniqueNodes.iterator();
+         Iterator uniqueNodeIt = uniqueNodes.iterator();
 
-         while(var6.hasNext()) {
-            Leaf uniqueNode = (Leaf)var6.next();
+         while(uniqueNodeIt.hasNext()) {
+            Leaf uniqueNode = (Leaf)uniqueNodeIt.next();
             if (config == null) {
                config = uniqueNode.isConfig();
             } else {
-               ValidatorRecordBuilder validatorRecordBuilder;
                if (config != uniqueNode.isConfig()) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setBadElement(uniqueNode);
-                  validatorRecordBuilder.setErrorPath(uniqueNode.getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNIQUE_NODE_CONFIG_ATTRI_DIFF.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(uniqueNode,
+                          ErrorCode.UNIQUE_NODE_CONFIG_ATTRI_DIFF.getFieldName()));
                } else if (this.isActive() && !uniqueNode.isActive()) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setBadElement(uniqueNode);
-                  validatorRecordBuilder.setErrorPath(uniqueNode.getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNIQUE_NODE_INACTIVE.toString(new String[]{"name=" + uniqueNode.getArgStr()})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(uniqueNode,
+                          ErrorCode.UNIQUE_NODE_INACTIVE.toString(new String[]{"name=" + uniqueNode.getArgStr()})));
                }
             }
          }
@@ -356,21 +304,30 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.buildSelf(phase));
       switch (phase) {
-         case SCHEMA_TREE:
+         case SCHEMA_TREE:{
+            List<YangStatement> leafs = this.getSubStatement(YangBuiltinKeyword.LEAF.getQName());
+            for(YangStatement statement:leafs){
+               Leaf leaf = (Leaf) statement;
+               leaf.setKey(false);
+            }
             if (this.getKey() != null) {
                validatorResultBuilder.merge(this.validateKey(this.getKey()));
             }
 
-            Iterator var3 = this.getUniques().iterator();
+            Iterator uniqueIterator = this.getUniques().iterator();
 
-            while(var3.hasNext()) {
-               Unique unique = (Unique)var3.next();
+            while(uniqueIterator.hasNext()) {
+               Unique unique = (Unique)uniqueIterator.next();
                validatorResultBuilder.merge(this.validateUnique(unique));
             }
+            break;
+         }
+
          default:
             ValidatorResult result = validatorResultBuilder.build();
             return result;
       }
+      return validatorResultBuilder.build();
    }
 
    public List<YangStatement> getEffectiveSubStatements() {

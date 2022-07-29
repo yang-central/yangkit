@@ -12,6 +12,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.MaxElements;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 public class MaxElementsImpl extends YangBuiltInStatementImpl implements MaxElements {
    private boolean unbounded = true;
@@ -44,22 +45,12 @@ public class MaxElementsImpl extends YangBuiltInStatementImpl implements MaxElem
          try {
             this.value = Integer.valueOf(this.getArgStr());
             if (this.value <= 0) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.INVALID_ARG.getFieldName()));
             }
-         } catch (RuntimeException var4) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         } catch (RuntimeException e) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.INVALID_ARG.getFieldName()));
          }
       }
 

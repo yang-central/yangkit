@@ -12,6 +12,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 
 import java.net.URI;
 import java.util.List;
@@ -294,6 +295,12 @@ public class ModelUtil {
       while(parentStatement != null){
          statement = parentStatement;
          parentStatement = statement.getParentStatement();
+         if(parentStatement == null){
+            if(statement instanceof SchemaNode){
+               SchemaNode schemaNode = (SchemaNode) statement;
+               parentStatement = (YangStatement) schemaNode.getParentSchemaNode();
+            }
+         }
       }
       return statement;
 

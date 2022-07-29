@@ -74,6 +74,16 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       return this.ifFeatureSupport.addIfFeature(ifFeature);
    }
 
+   @Override
+   public IfFeature getIfFeature(String exp) {
+      return ifFeatureSupport.getIfFeature(exp);
+   }
+
+   @Override
+   public IfFeature removeIfFeature(String exp) {
+      return ifFeatureSupport.removeIfFeature(exp);
+   }
+
    public void setIfFeatures(List<IfFeature> ifFeatures) {
       this.ifFeatureSupport.setIfFeatures(ifFeatures);
    }
@@ -138,19 +148,25 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator var3 = subElements.iterator();
-
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      Iterator elementIterator = subElements.iterator();
+      this.typedefContainer.removeTypedefs();
+      this.groupingDefContainer.removeGroupings();
+      this.dataDefContainer.removeDataDefs();
+      this.ifFeatureSupport.removeIfFeatures();
+      this.mustSupport.removeMusts();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
             switch (builtinKeyword) {
                case TYPEDEF:
+
                   Typedef newTypedef = (Typedef)builtinStatement;
                   validatorResultBuilder.merge(this.typedefContainer.addTypedef(newTypedef));
                   break;
                case GROUPING:
+
                   Grouping newGrouping = (Grouping)builtinStatement;
                   validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(newGrouping));
                   break;
@@ -221,10 +237,10 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            Iterator var3 = this.getDataDefChildren().iterator();
+            Iterator dataDefinitionIterator = this.getDataDefChildren().iterator();
 
-            while(var3.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)var3.next();
+            while(dataDefinitionIterator.hasNext()) {
+               DataDefinition dataDefinition = (DataDefinition)dataDefinitionIterator.next();
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
          default:

@@ -12,6 +12,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Mandatory;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 public class MandatoryImpl extends YangSimpleStatementImpl implements Mandatory {
    public MandatoryImpl(String argStr) {
@@ -30,13 +31,8 @@ public class MandatoryImpl extends YangSimpleStatementImpl implements Mandatory 
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       if (!this.getArgStr().equals("true") && !this.getArgStr().equals("false")) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_ARG.getFieldName()));
       }
 
       ValidatorResult result = validatorResultBuilder.build();

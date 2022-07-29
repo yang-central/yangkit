@@ -12,6 +12,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YinElement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 public class YinElementImpl extends YangSimpleStatementImpl implements YinElement {
    private boolean value;
@@ -30,14 +31,10 @@ public class YinElementImpl extends YangSimpleStatementImpl implements YinElemen
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      this.value = false;
       if (!this.getArgStr().equals("true") && !this.getArgStr().equals("false")) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_ARG.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          this.value = Boolean.getBoolean(this.getArgStr());

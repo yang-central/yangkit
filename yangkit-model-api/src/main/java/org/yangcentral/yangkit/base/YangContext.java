@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.base;
 import org.yangcentral.yangkit.common.api.Namespace;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 
 import java.util.ArrayList;
 import java.util.Iterator;

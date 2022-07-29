@@ -22,30 +22,30 @@ public class KeyImpl extends YangBuiltInStatementImpl implements Key {
    }
 
    public boolean addKeyNode(Leaf keyNode) {
-      Iterator var2 = this.keyNodes.iterator();
+      Iterator leafIterator = this.keyNodes.iterator();
 
       Leaf key;
       do {
-         if (!var2.hasNext()) {
+         if (!leafIterator.hasNext()) {
             return this.keyNodes.add(keyNode);
          }
 
-         key = (Leaf)var2.next();
+         key = (Leaf)leafIterator.next();
       } while(!key.getArgStr().equals(keyNode.getArgStr()));
 
       return false;
    }
 
    public Leaf getKeyNode(QName identifier) {
-      Iterator var2 = this.keyNodes.iterator();
+      Iterator leafIterator = this.keyNodes.iterator();
 
       Leaf key;
       do {
-         if (!var2.hasNext()) {
+         if (!leafIterator.hasNext()) {
             return null;
          }
 
-         key = (Leaf)var2.next();
+         key = (Leaf)leafIterator.next();
       } while(!key.getIdentifier().equals(identifier));
 
       return key;

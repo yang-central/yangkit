@@ -20,6 +20,7 @@ import org.yangcentral.yangkit.model.api.stmt.Notification;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
 import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -105,10 +106,14 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator var3 = subElements.iterator();
-
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      Iterator elementIterator = subElements.iterator();
+      this.typedefContainer.removeTypedefs();
+      this.groupingDefContainer.removeGroupings();
+      this.dataDefContainer.removeDataDefs();
+      this.actionContainer.removeActions();
+      this.notificationContainer.removeNotifications();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
@@ -153,13 +158,8 @@ public class GroupingImpl extends EntityImpl implements Grouping {
    public synchronized ValidatorResult build(BuildPhase buildPhase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (this.isBuilding) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.CIRCLE_REFERNCE.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.CIRCLE_REFERNCE.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          this.isBuilding = true;

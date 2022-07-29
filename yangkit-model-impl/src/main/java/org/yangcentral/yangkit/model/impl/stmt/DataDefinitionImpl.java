@@ -42,6 +42,16 @@ public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataD
       return this.ifFeatureSupport.addIfFeature(ifFeature);
    }
 
+   @Override
+   public IfFeature getIfFeature(String exp) {
+      return ifFeatureSupport.getIfFeature(exp);
+   }
+
+   @Override
+   public IfFeature removeIfFeature(String exp) {
+      return ifFeatureSupport.removeIfFeature(exp);
+   }
+
    public void setIfFeatures(List<IfFeature> ifFeatures) {
       this.ifFeatureSupport.setIfFeatures(ifFeatures);
    }

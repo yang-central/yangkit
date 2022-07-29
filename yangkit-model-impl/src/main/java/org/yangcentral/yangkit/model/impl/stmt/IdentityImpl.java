@@ -28,15 +28,15 @@ public class IdentityImpl extends EntityImpl implements Identity {
    }
 
    public Base getBase(String name) {
-      Iterator var2 = this.bases.iterator();
+      Iterator baseIterator = this.bases.iterator();
 
       Base base;
       do {
-         if (!var2.hasNext()) {
+         if (!baseIterator.hasNext()) {
             return null;
          }
 
-         base = (Base)var2.next();
+         base = (Base)baseIterator.next();
       } while(!base.getArgStr().equals(name));
 
       return base;
@@ -46,15 +46,15 @@ public class IdentityImpl extends EntityImpl implements Identity {
       if (this.bases.size() == 0) {
          return false;
       } else {
-         Iterator var2 = this.bases.iterator();
+         Iterator baseIterator = this.bases.iterator();
 
          Base base;
          do {
-            if (!var2.hasNext()) {
+            if (!baseIterator.hasNext()) {
                return false;
             }
 
-            base = (Base)var2.next();
+            base = (Base)baseIterator.next();
          } while(!base.getIdentity().isDerivedOrSelf(other));
 
          return true;
@@ -67,15 +67,15 @@ public class IdentityImpl extends EntityImpl implements Identity {
       } else if (this.bases.size() == 0) {
          return false;
       } else {
-         Iterator var2 = this.bases.iterator();
+         Iterator baseIterator = this.bases.iterator();
 
          Base base;
          do {
-            if (!var2.hasNext()) {
+            if (!baseIterator.hasNext()) {
                return false;
             }
 
-            base = (Base)var2.next();
+            base = (Base)baseIterator.next();
          } while(!base.getIdentity().isDerivedOrSelf(other));
 
          return true;
@@ -88,6 +88,16 @@ public class IdentityImpl extends EntityImpl implements Identity {
 
    public ValidatorResult addIfFeature(IfFeature ifFeature) {
       return this.ifFeatureSupport.addIfFeature(ifFeature);
+   }
+
+   @Override
+   public IfFeature getIfFeature(String exp) {
+      return ifFeatureSupport.removeIfFeature(exp);
+   }
+
+   @Override
+   public IfFeature removeIfFeature(String exp) {
+      return ifFeatureSupport.removeIfFeature(exp);
    }
 
    public void setIfFeatures(List<IfFeature> ifFeatures) {
@@ -104,14 +114,15 @@ public class IdentityImpl extends EntityImpl implements Identity {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      this.bases.clear();
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.BASE.getQName());
-      Iterator var3;
+      Iterator iterator;
       YangStatement statement;
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            statement = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            statement = (YangStatement)iterator.next();
             Base base = (Base)statement;
             Base orig = this.getBase(base.getArgStr());
             if (orig != null) {
@@ -122,12 +133,12 @@ public class IdentityImpl extends EntityImpl implements Identity {
             }
          }
       }
-
+      this.ifFeatureSupport.removeIfFeatures();
       matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
-      var3 = matched.iterator();
+      iterator = matched.iterator();
 
-      while(var3.hasNext()) {
-         statement = (YangStatement)var3.next();
+      while(iterator.hasNext()) {
+         statement = (YangStatement)iterator.next();
          IfFeature ifFeature = (IfFeature)statement;
          validatorResultBuilder.merge(this.addIfFeature(ifFeature));
       }

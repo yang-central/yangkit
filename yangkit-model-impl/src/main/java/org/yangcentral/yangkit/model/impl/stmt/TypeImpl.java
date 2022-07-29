@@ -1,10 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
@@ -78,7 +74,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    }
 
    public Type getBuiltinType() {
-      return (Type)(this.isDerivedType() ? this.derived.getType().getBuiltinType() : this);
+      return (this.isDerivedType() ? this.derived.getType().getBuiltinType() : this);
    }
 
    public Type getBaseType() {
@@ -96,134 +92,82 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    private ValidatorResult buildBits(BitsImpl bits) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator var4 = this.getSubElements().iterator();
+      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
+      while (elementIterator.hasNext()){
+         YangElement subElement = elementIterator.next();
+         if(!(subElement instanceof YangBuiltinStatement)){
+            continue;
+         }
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.BIT.getQName())) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+            continue;
+         }
+         Bit bit = (Bit) builtinStatement;
+         find = true;
+         if(isDerivedType()){
+            String yangVersion = this.getContext().getCurModule().getEffectiveYangVersion();
+            if (!yangVersion.equals(Yang.VERSION_11)) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived bits can not be restricted."));
+               continue;
+            }
+            Bits base = (Bits)this.getBaseType();
+            Map<String, Bit> baseBitMap = (Map)base.getBits().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
+            if (!baseBitMap.containsKey(bit.getArgStr())) {
+              validatorResultBuilder.addRecord(ModelUtil.reportError(bit,
+                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's bit set." ));
+               continue;
+            }
 
-      while(true) {
-         while(true) {
-            YangElement subElement;
-            do {
-               if (!var4.hasNext()) {
-                  if (!find && !this.isDerivedType()) {
-                     ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                     validatorRecordBuilder.setBadElement(this);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=bit"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     return validatorResultBuilder.build();
-                  }
-
-                  return validatorResultBuilder.build();
-               }
-
-               subElement = (YangElement)var4.next();
-            } while(!(subElement instanceof YangBuiltinStatement));
-
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.BIT.getQName())) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            } else {
-               Bit bit = (Bit)builtinStatement;
-               find = true;
-               ValidatorRecordBuilder validatorRecordBuilder;
-               if (this.isDerivedType()) {
-                  String yangVersion = this.getContext().getCurModule().getEffectiveYangVersion();
-                  if (!yangVersion.equals("1.1")) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived bits can not be restricted."));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     continue;
-                  }
-
-                  Bits base = (Bits)this.getBaseType();
-                  Map<String, Bit> baseBitMap = (Map)base.getBits().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
-                  if (!baseBitMap.containsKey(bit.getArgStr())) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(bit.getElementPosition());
-                     validatorRecordBuilder.setBadElement(bit);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's bit set."));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     continue;
-                  }
-
-                  if (bit.getPosition() != null) {
-                     Long baseActualPosition = base.getBitActualPosition(bit.getArgStr());
-                     if (bit.getPosition().getValue() != baseActualPosition) {
-                        validatorRecordBuilder = new ValidatorRecordBuilder();
-                        validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                        validatorRecordBuilder.setSeverity(Severity.ERROR);
-                        validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                        validatorRecordBuilder.setBadElement(builtinStatement);
-                        validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The bit's position MUST not be changed."));
-                        validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                        continue;
-                     }
-                  }
-               } else if (bits.getBits().size() > 0 && bits.getMaxPosition() == 4294967295L && bit.getPosition() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.BIT_NO_POSITION.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            if (bit.getPosition() != null) {
+               Long baseActualPosition = base.getBitActualPosition(bit.getArgStr());
+               if (bit.getPosition().getValue() != baseActualPosition) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The bit's position MUST not be changed." ));
                   continue;
                }
-
-               boolean bool = bits.addBit((Bit)builtinStatement);
-               if (!bool) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               }
+            }
+         } else {
+            if (bits.getBits().size() > 0 && bits.getMaxPosition() == Bits.MAX_POSITION && bit.getPosition() == null) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.BIT_NO_POSITION.getFieldName() ));
+               continue;
             }
          }
+         boolean bool = bits.addBit((Bit)builtinStatement);
+         if (!bool) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+            continue;
+         }
+
       }
+      if (!find && !this.isDerivedType()) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=bit"})));
+         return validatorResultBuilder.build();
+      }
+
+      return validatorResultBuilder.build();
    }
 
    private ValidatorResult buildBinary(BinaryImpl binary) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator var4 = this.getSubElements().iterator();
-
-      while(var4.hasNext()) {
-         YangElement subElement = (YangElement)var4.next();
+      Iterator elementIterator = this.getSubElements().iterator();
+      binary.setLength(null);
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            ValidatorRecordBuilder validatorRecordBuilder;
             if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.LENGTH.getQName())) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             } else if (find) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
             } else {
                find = true;
                binary.setLength((Length)builtinStatement);
@@ -236,19 +180,14 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildBoolean(YangBooleanImpl aBoolean) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.getSubElements().iterator();
+      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-            validatorRecordBuilder.setBadElement(builtinStatement);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
          }
       }
 
@@ -259,57 +198,41 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean findfractionDigits = false;
       boolean findRange = false;
-      Iterator var5 = this.getSubElements().iterator();
+      Iterator elementIterator = this.getSubElements().iterator();
+      decimal64.setFractionDigits(null);
+      decimal64.setRange(null);
 
-      while(var5.hasNext()) {
-         YangElement subElement = (YangElement)var5.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             ValidatorRecordBuilder validatorRecordBuilder;
             if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.FRACTIONDIGITS.getQName())) {
                if (findfractionDigits) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                } else {
                   findfractionDigits = true;
                   decimal64.setFractionDigits((FractionDigits)builtinStatement);
                }
             } else if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.RANGE.getQName())) {
                if (findRange) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                } else {
                   findRange = true;
                   decimal64.setRange((Range)builtinStatement);
                }
             } else {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             }
          }
       }
 
       if (!this.isDerivedType() && decimal64.getFractionDigits() == null) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=fraction-digits"})));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=fraction-digits"})));
          return validatorResultBuilder.build();
       } else {
          validatorResultBuilder.merge(decimal64.validate());
@@ -319,19 +242,14 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildEmpty(EmptyImpl empty) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.getSubElements().iterator();
+      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-            validatorRecordBuilder.setBadElement(builtinStatement);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
          }
       }
 
@@ -341,245 +259,161 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    private ValidatorResult buildEnumeration(EnumerationImpl enumeration) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator var4 = this.getSubElements().iterator();
+      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
 
-      while(true) {
-         while(true) {
-            YangElement subElement;
-            do {
-               if (!var4.hasNext()) {
-                  if (!find && !this.isDerivedType()) {
-                     ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                     validatorRecordBuilder.setBadElement(this);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=enum"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     return validatorResultBuilder.build();
-                  }
+      while (elementIterator.hasNext()){
+         YangElement subElement = elementIterator.next();
+         if(!(subElement instanceof YangBuiltinStatement)){
+            continue;
+         }
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.ENUM.getQName())) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+            continue;
+         }
 
-                  return validatorResultBuilder.build();
-               }
+         YangEnum yangEnum = (YangEnum)builtinStatement;
+         find = true;
+         ValidatorRecordBuilder validatorRecordBuilder;
+         if (this.isDerivedType()) {
+            String yangVersion = this.getContext().getCurModule().getEffectiveYangVersion();
+            if (!yangVersion.equals(Yang.VERSION_11)) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived enumeration can not be restricted."));
+               continue;
+            }
 
-               subElement = (YangElement)var4.next();
-            } while(!(subElement instanceof YangBuiltinStatement));
+            Enumeration base = (Enumeration)this.getBaseType();
+            Map<String, YangEnum> baseYangEnumMap = (Map)base.getEnums().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
+            if (!baseYangEnumMap.containsKey(builtinStatement.getArgStr())) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's enum set."));
+               continue;
+            }
 
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.ENUM.getQName())) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            } else {
-               YangEnum yangEnum = (YangEnum)builtinStatement;
-               find = true;
-               ValidatorRecordBuilder validatorRecordBuilder;
-               if (this.isDerivedType()) {
-                  String yangVersion = this.getContext().getCurModule().getEffectiveYangVersion();
-                  if (!yangVersion.equals("1.1")) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived enumeration can not be restricted."));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     continue;
-                  }
-
-                  Enumeration base = (Enumeration)this.getBaseType();
-                  Map<String, YangEnum> baseYangEnumMap = (Map)base.getEnums().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
-                  if (!baseYangEnumMap.containsKey(builtinStatement.getArgStr())) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's enum set."));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     continue;
-                  }
-
-                  if (yangEnum.getValue() != null) {
-                     Integer baseActualValue = base.getEnumActualValue(yangEnum.getArgStr());
-                     if (yangEnum.getValue().getValue() != baseActualValue) {
-                        validatorRecordBuilder = new ValidatorRecordBuilder();
-                        validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                        validatorRecordBuilder.setSeverity(Severity.ERROR);
-                        validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                        validatorRecordBuilder.setBadElement(builtinStatement);
-                        validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The enum's value MUST not be changed."));
-                        validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                        continue;
-                     }
-                  }
-               } else if (enumeration.getEnums().size() > 0 && enumeration.getHighestValue() == Integer.MAX_VALUE && yangEnum.getValue() == null) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.ENUM_NO_VALUE.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            if (yangEnum.getValue() != null) {
+               Integer baseActualValue = base.getEnumActualValue(yangEnum.getArgStr());
+               if (yangEnum.getValue().getValue() != baseActualValue) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The enum's value MUST not be changed." ));
                   continue;
                }
-
-               boolean bool = enumeration.addEnum((YangEnum)builtinStatement);
-               if (!bool) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               }
             }
+         } else if (enumeration.getEnums().size() > 0 && enumeration.getHighestValue() == Enumeration.MAX_VALUE && yangEnum.getValue() == null) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.ENUM_NO_VALUE.getFieldName()));
+            continue;
          }
+
+         boolean bool = enumeration.addEnum((YangEnum)builtinStatement);
+         if (!bool) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+            continue;
+         }
+
       }
+      if (!find && !this.isDerivedType()) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=enum"})));
+         return validatorResultBuilder.build();
+      }
+      return validatorResultBuilder.build();
+
    }
 
    private ValidatorResult buildIdentityRef(IdentityRefImpl identityRef) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator var4 = this.getSubElements().iterator();
+      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
+      while (elementIterator.hasNext()){
+         YangElement subElement = elementIterator.next();
+         if(!(subElement instanceof YangBuiltinStatement)){
+            continue;
+         }
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         ValidatorRecordBuilder validatorRecordBuilder;
+         if (this.isDerivedType()) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.IDENTITYREF_CANNOT_RESTRICTED.getFieldName()));
+            continue;
+         }
 
-      while(true) {
-         while(true) {
-            YangElement subElement;
-            do {
-               if (!var4.hasNext()) {
-                  if (!find && !this.isDerivedType()) {
-                     ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                     validatorRecordBuilder.setBadElement(this);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=base"})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     return validatorResultBuilder.build();
-                  }
+         if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.BASE.getQName())) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+            continue;
+         }
+         find = true;
+         Base newBase = (Base)builtinStatement;
+         if (identityRef.getBases().size() > 0 && this.getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.CARDINALITY_BROKEN.getFieldName()));
+            continue;
+         }
 
-                  return validatorResultBuilder.build();
-               }
-
-               subElement = (YangElement)var4.next();
-            } while(!(subElement instanceof YangBuiltinStatement));
-
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            ValidatorRecordBuilder validatorRecordBuilder;
-            if (this.isDerivedType()) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.IDENTITYREF_CANNOT_RESTRICTED.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            } else if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.BASE.getQName())) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            } else {
-               find = true;
-               Base newBase = (Base)builtinStatement;
-               if (identityRef.getBases().size() > 0 && this.getContext().getCurModule().getEffectiveYangVersion().equals("1")) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.CARDINALITY_BROKEN.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               } else {
-                  boolean bool = identityRef.addBase(newBase);
-                  if (!bool) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                  }
-               }
-            }
+         boolean bool = identityRef.addBase(newBase);
+         if (!bool) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+            continue;
          }
       }
+      if (!find && !this.isDerivedType()) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.MANDATORY_MISSING.toString(new String[]{"name=base"})));
+         return validatorResultBuilder.build();
+      }
+
+      return validatorResultBuilder.build();
    }
 
    private ValidatorResult buildInstanceIdentifier(InstanceIdentifierImpl instanceIdentifier) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.getSubElements().iterator();
-
-      while(true) {
-         while(true) {
-            YangElement subElement;
-            do {
-               if (!var3.hasNext()) {
-                  return validatorResultBuilder.build();
+      instanceIdentifier.setRequireInstance(null);
+      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
+      while (elementIterator.hasNext()){
+         YangElement subElement = elementIterator.next();
+         if(!(subElement instanceof YangBuiltinStatement)){
+            continue;
+         }
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.REQUIREINSTANCE.getQName())) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+            continue;
+         }
+         RequireInstance newRequireInstance = (RequireInstance)builtinStatement;
+         if (this.isDerivedType()) {
+            InstanceIdentifier baseInstanceIdentifier = (InstanceIdentifier)this.getBaseType().getRestriction();
+            if (baseInstanceIdentifier.isRequireInstance() && !newRequireInstance.value()) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),ErrorTag.BAD_ELEMENT,
+                       ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
+               if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {
+                  continue;
                }
-
-               subElement = (YangElement)var3.next();
-            } while(!(subElement instanceof YangBuiltinStatement));
-
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.REQUIREINSTANCE.getQName())) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            } else {
-               RequireInstance newRequireInstance = (RequireInstance)builtinStatement;
-               if (this.isDerivedType()) {
-                  InstanceIdentifier baseInstanceIdentifier = (InstanceIdentifier)this.getBaseType().getRestriction();
-                  if (baseInstanceIdentifier.isRequireInstance() && !newRequireInstance.value()) {
-                     ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                     if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {
-                        continue;
-                     }
-                  }
-               }
-
-               instanceIdentifier.setRequireInstance(newRequireInstance);
             }
          }
+
+         instanceIdentifier.setRequireInstance(newRequireInstance);
       }
+      return validatorResultBuilder.build();
+
    }
 
    private ValidatorResult buildYangInteger(YangIntegerImpl integer) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.getSubElements().iterator();
-
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      Iterator elementIterator = this.getSubElements().iterator();
+      integer.setRange(null);
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.RANGE.getQName())) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             } else {
                Range newRange = (Range)builtinStatement;
                validatorResultBuilder.merge(integer.setRange(newRange));
@@ -592,96 +426,76 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildLeafRef(LeafRefImpl leafRef) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.getSubElements().iterator();
+      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
+      while (elementIterator.hasNext()){
+         YangElement subElement = elementIterator.next();
+         if(!(subElement instanceof YangBuiltinStatement)){
+            continue;
+         }
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         ValidatorRecordBuilder validatorRecordBuilder;
+         if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.REQUIREINSTANCE.getQName())) {
+            if (this.getContext().getCurModule().getYangVersion().equals(Yang.VERSION_1)) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+               continue;
+            }
 
-      while(true) {
-         while(true) {
-            while(true) {
-               YangElement subElement;
-               do {
-                  if (!var3.hasNext()) {
-                     return validatorResultBuilder.build();
+            RequireInstance newRequireInstance = (RequireInstance) builtinStatement;
+            if (this.isDerivedType()) {
+               LeafRef baseLeafref = (LeafRef) this.getBaseType().getRestriction();
+               if (baseLeafref.isRequireInstance() && !newRequireInstance.value()) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),ErrorTag.BAD_ELEMENT,
+                          ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
+                  if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {
+                     continue;
                   }
-
-                  subElement = (YangElement)var3.next();
-               } while(!(subElement instanceof YangBuiltinStatement));
-
-               YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-               ValidatorRecordBuilder validatorRecordBuilder;
-               if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.REQUIREINSTANCE.getQName())) {
-                  if (this.getContext().getCurModule().getYangVersion().equals("1")) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                  } else {
-                     RequireInstance newRequireInstance = (RequireInstance)builtinStatement;
-                     if (this.isDerivedType()) {
-                        LeafRef baseLeafref = (LeafRef)this.getBaseType().getRestriction();
-                        if (baseLeafref.isRequireInstance() && !newRequireInstance.value()) {
-                           validatorRecordBuilder = new ValidatorRecordBuilder();
-                           validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                           validatorRecordBuilder.setSeverity(ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity());
-                           validatorRecordBuilder.setBadElement(builtinStatement);
-                           validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                           validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
-                           validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                           if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {
-                              continue;
-                           }
-                        }
-                     }
-
-                     leafRef.setRequireInstance(newRequireInstance);
-                  }
-               } else if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.PATH.getQName())) {
-                  Path newPath = (Path)builtinStatement;
-                  if (this.isDerivedType()) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.LEAFREF_CANNOT_RESTRICTED_BY_PATH.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                  } else {
-                     leafRef.setPath(newPath);
-                  }
-               } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                }
             }
+            leafRef.setRequireInstance(newRequireInstance);
+         } else if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.PATH.getQName())) {
+            Path newPath = (Path)builtinStatement;
+            if (this.isDerivedType()) {
+               validatorRecordBuilder = new ValidatorRecordBuilder();
+               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+               validatorRecordBuilder.setSeverity(Severity.ERROR);
+               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
+               validatorRecordBuilder.setBadElement(builtinStatement);
+               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.LEAFREF_CANNOT_RESTRICTED_BY_PATH.getFieldName()));
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.LEAFREF_CANNOT_RESTRICTED_BY_PATH.getFieldName()));
+               continue;
+            }
+            leafRef.setPath(newPath);
+         } else {
+            validatorRecordBuilder = new ValidatorRecordBuilder();
+            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+            validatorRecordBuilder.setSeverity(Severity.ERROR);
+            validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
+            validatorRecordBuilder.setBadElement(builtinStatement);
+            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+            validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+            continue;
          }
       }
+      return validatorResultBuilder.build();
    }
 
    private ValidatorResult buildYangString(YangStringImpl string) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.getSubElements().iterator();
+      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.LENGTH.getQName())) {
                Length newLength = (Length)builtinStatement;
                if (string.getLength() != null) {
-                  ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.CARDINALITY_BROKEN.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.CARDINALITY_BROKEN.getFieldName()));
                } else {
                   validatorResultBuilder.merge(string.setLength(newLength));
                }
@@ -689,22 +503,12 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                Pattern pattern = (Pattern)builtinStatement;
                boolean bool = string.addPattern(pattern);
                if (!bool) {
-                  ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                }
             } else {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName() ));
             }
          }
       }
@@ -714,43 +518,25 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildUnion(UnionImpl union) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var3 = this.getSubElements().iterator();
+      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(var3.hasNext()) {
-         YangElement subElement = (YangElement)var3.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement;
-            ValidatorRecordBuilder validatorRecordBuilder;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             if (this.isDerivedType()) {
-               builtinStatement = (YangBuiltinStatement)subElement;
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNION_CANNOT_RESTRICTED.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.UNION_CANNOT_RESTRICTED.getFieldName()));
             } else {
-               builtinStatement = (YangBuiltinStatement)subElement;
                if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.TYPE.getQName())) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                  validatorRecordBuilder.setBadElement(builtinStatement);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                          ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
                } else {
                   Type newType = (Type)builtinStatement;
                   boolean bool = union.addType(newType);
                   if (!bool) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                             ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                   }
                }
             }
@@ -777,14 +563,9 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
       } else {
          try {
             dependModule = ModelUtil.findModuleByPrefix(this.getContext(), prefix);
-         } catch (ModelException var9) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorPath(var9.getElement().getElementPosition());
-            validatorRecordBuilder.setBadElement(var9.getElement());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(var9.getDescription()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         } catch (ModelException e) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
+                    e.getDescription()));
             return validatorResultBuilder.build();
          }
       }
@@ -804,7 +585,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
          validatorRecordBuilder.setErrorPath(this.getElementPosition());
          validatorRecordBuilder.setBadElement(this);
          validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_TYPE.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.UNRECOGNIZED_TYPE.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          ValidatorResult derivedResult = this.derived.build(phase);

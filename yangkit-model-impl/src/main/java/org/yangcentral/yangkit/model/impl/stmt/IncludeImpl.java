@@ -21,6 +21,7 @@ import org.yangcentral.yangkit.model.api.stmt.Reference;
 import org.yangcentral.yangkit.model.api.stmt.RevisionDate;
 import org.yangcentral.yangkit.model.api.stmt.SubModule;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +76,7 @@ public class IncludeImpl extends YangStatementImpl implements Include {
       boolean wrongType = false;
       boolean incompatiableVersion = false;
       ValidatorRecordBuilder validatorRecordBuilder;
+      this.includeModule = null;
       if (this.revisionDate == null) {
          List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
          if (null != moduleList && moduleList.size() != 0) {
@@ -109,13 +111,8 @@ public class IncludeImpl extends YangStatementImpl implements Include {
       }
 
       if (notFound) {
-         validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + this.getArgStr()})));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + this.getArgStr()})));
          return validatorResultBuilder.build();
       } else if (wrongType) {
          validatorRecordBuilder = new ValidatorRecordBuilder();

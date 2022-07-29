@@ -13,6 +13,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Status;
 import org.yangcentral.yangkit.model.api.stmt.StatusStmt;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 public class StatusImpl extends YangSimpleStatementImpl implements StatusStmt {
    private Status status;
@@ -35,13 +36,8 @@ public class StatusImpl extends YangSimpleStatementImpl implements StatusStmt {
       validatorResultBuilder.merge(super.initSelf());
       Status status = Status.getStatus(this.getArgStr());
       if (status == null) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_ARG.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          this.status = status;

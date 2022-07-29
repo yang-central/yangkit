@@ -1,5 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.base.Position;
@@ -74,14 +75,16 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.augments.clear();
+      this.refines.clear();
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.AUGMENT.getQName());
-      Iterator var3;
+      Iterator iterator;
       YangStatement child;
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            child = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            child = (YangStatement)iterator.next();
             Augment augment = (Augment)child;
             this.augments.add(augment);
          }
@@ -89,10 +92,10 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
 
       matched = this.getSubStatement(YangBuiltinKeyword.REFINE.getQName());
       if (matched.size() > 0) {
-         var3 = matched.iterator();
+         iterator = matched.iterator();
 
-         while(var3.hasNext()) {
-            child = (YangStatement)var3.next();
+         while(iterator.hasNext()) {
+            child = (YangStatement)iterator.next();
             Refine refine = (Refine)child;
             this.refines.add(refine);
          }
@@ -106,41 +109,31 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
       if (fName.getPrefix() != null && !this.getContext().getCurModule().isSelfPrefix(fName.getPrefix())) {
          Optional<ModuleId> moduleIdOp = this.getContext().getCurModule().findModuleByPrefix(fName.getPrefix());
          if (!moduleIdOp.isPresent()) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + fName.getPrefix()})));
+            return null;
+         }
+
+         Optional<Module> moduleOptional = this.getContext().getSchemaContext().getModule(moduleIdOp.get());
+         if (!moduleOptional.isPresent()) {
             ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
             validatorRecordBuilder.setBadElement(this);
             validatorRecordBuilder.setSeverity(Severity.ERROR);
             validatorRecordBuilder.setErrorPath(this.getElementPosition());
             validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + fName.getPrefix()})));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + ((ModuleId) moduleIdOp.get()).getModuleName()})));
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + ((ModuleId) moduleIdOp.get()).getModuleName()}) ));
             return null;
-         } else {
-            Optional<org.yangcentral.yangkit.model.api.stmt.Module> moduleOptional = this.getContext().getSchemaContext().getModule((ModuleId)moduleIdOp.get());
-            if (!moduleOptional.isPresent()) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + ((ModuleId)moduleIdOp.get()).getModuleName()})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               return null;
-            } else {
-               org.yangcentral.yangkit.model.api.stmt.Module targetModule = (Module)moduleOptional.get();
-               if (targetModule.getContext().getGrouping(fName.getLocalName()) == null) {
-                  ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_GROUPING.toString(new String[]{"name=" + fName.getLocalName()}) + "in module:" + targetModule.getArgStr()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                  return null;
-               } else {
-                  return targetModule.getContext().getGrouping(fName.getLocalName());
-               }
-            }
          }
+         Module targetModule = moduleOptional.get();
+         if (targetModule.getContext().getGrouping(fName.getLocalName()) == null) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.MISSING_GROUPING.toString(new String[]{"name=" + fName.getLocalName()})
+                            + "in module:" + targetModule.getArgStr()));
+            return null;
+         } return targetModule.getContext().getGrouping(fName.getLocalName());
+
       } else if (this.getContext().getGrouping(fName.getLocalName()) == null) {
          ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
          validatorRecordBuilder.setBadElement(this);
@@ -148,81 +141,82 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
          validatorRecordBuilder.setErrorPath(this.getElementPosition());
          validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
          validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_GROUPING.toString(new String[]{"name=" + fName.getLocalName()})));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.MISSING_GROUPING.toString(new String[]{"name=" + fName.getLocalName()}) ));
          return null;
-      } else {
-         return this.getContext().getGrouping(fName.getLocalName());
       }
+      return this.getContext().getGrouping(fName.getLocalName());
    }
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.buildSelf(phase));
-      Iterator iterator;
-      Augment augment;
-      Refine refine;
-      SchemaPath targetPath;
       switch (phase) {
-         case GRAMMAR:
+         case GRAMMAR:{
             FName fName = new FName(this.getArgStr());
             if (fName.getPrefix() != null) {
                String prefix = fName.getPrefix();
                Import im = this.getContext().getCurModule().getImportByPrefix(prefix);
                if (im != null) {
-                  im.addReference(this);
+                  if(!im.isReferencedBy(this)){
+                     im.addReference(this);
+                  }
+
                }
             }
-
+            //build ref grouping
             this.refGrouping = this.buildRefGrouping(validatorResultBuilder);
-            this.refGrouping.addReference(this);
-            iterator = this.augments.iterator();
-
-            ValidatorRecordBuilder validatorRecordBuilder;
-            while(iterator.hasNext()) {
-               augment = (Augment)iterator.next();
-
+            if(!this.refGrouping.isReferencedBy(this)){
+               this.refGrouping.addReference(this);
+            }
+            //build augments
+            Iterator<Augment> augmentIterator = this.augments.iterator();
+            while(augmentIterator.hasNext()) {
+               Augment augment = augmentIterator.next();
+               augment.setTargetPath(null);
                try {
-                  targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, augment,augment.getArgStr());
+                  SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(),
+                          this, augment,augment.getArgStr());
                   augment.setTargetPath(targetPath);
                } catch (ModelException e) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getSeverity(),
                           ErrorTag.BAD_ELEMENT,e.getDescription()));
+                  continue;
                }
             }
 
-            iterator = this.refines.iterator();
+            Iterator<Refine> refineIterator = this.refines.iterator();
 
-            while(iterator.hasNext()) {
-               refine = (Refine)iterator.next();
-
+            while(refineIterator.hasNext()) {
+               Refine refine = refineIterator.next();
+               refine.setTargetPath(null);
                try {
-                  targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, refine,refine.getArgStr());
+                  SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, refine,refine.getArgStr());
                   refine.setTargetPath(targetPath);
                } catch (ModelException e) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getSeverity(),
                           ErrorTag.BAD_ELEMENT,e.getDescription()));
+                  continue;
                }
             }
 
-            return validatorResultBuilder.build();
-         case SCHEMA_BUILD:
-            List<DataDefinition> dataDefChildren = this.refGrouping.getDataDefChildren();
-            iterator = dataDefChildren.iterator();
+            break;
+         }
 
-            int var9;
-            while(iterator.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)iterator.next();
+         case SCHEMA_BUILD:{
+            this.schemaNodeContainer.removeSchemaNodeChildren();
+            //build datadef
+            List<DataDefinition> dataDefChildren = this.refGrouping.getDataDefChildren();
+            Iterator<DataDefinition> dataDefinitionIterator = dataDefChildren.iterator();
+            while(dataDefinitionIterator.hasNext()) {
+               DataDefinition dataDefinition = dataDefinitionIterator.next();
                DataDefinition clonedDataDefiniton = (DataDefinition)dataDefinition.clone();
                YangContext newYangContext = new YangContext(dataDefinition.getContext());
                newYangContext.setCurGrouping(this.getContext().getCurGrouping());
                clonedDataDefiniton.setContext(newYangContext);
                clonedDataDefiniton.getContext().setNamespace(this.getContext().getNamespace());
                clonedDataDefiniton.init();
-               BuildPhase[] var8 = BuildPhase.values();
-               var9 = var8.length;
-
-               for(int var10 = 0; var10 < var9; ++var10) {
-                  BuildPhase buildPhase = var8[var10];
+               for(BuildPhase buildPhase:BuildPhase.values()) {
                   if (buildPhase.compareTo(phase) < 0) {
                      clonedDataDefiniton.build(buildPhase);
                   }
@@ -231,23 +225,17 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(clonedDataDefiniton.build(phase));
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedDataDefiniton));
             }
-
-            iterator = this.refGrouping.getActions().iterator();
-
-            BuildPhase[] var26;
-            int var28;
-            BuildPhase buildPhase;
-            while(iterator.hasNext()) {
-               Action action = (Action)iterator.next();
+            //build action
+            Iterator<Action> actionIterator = this.refGrouping.getActions().iterator();
+            while(actionIterator.hasNext()) {
+               Action action = actionIterator.next();
                Action clonedAction = (Action)action.clone();
                clonedAction.setContext(new YangContext(action.getContext()));
                clonedAction.getContext().setNamespace(this.getContext().getNamespace());
                clonedAction.init();
-               var26 = BuildPhase.values();
-               var28 = var26.length;
 
-               for(var9 = 0; var9 < var28; ++var9) {
-                  buildPhase = var26[var9];
+
+               for(BuildPhase buildPhase:BuildPhase.values()) {
                   if (buildPhase.compareTo(phase) < 0) {
                      clonedAction.build(buildPhase);
                   }
@@ -257,19 +245,15 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedAction));
             }
 
-            iterator = this.refGrouping.getNotifications().iterator();
+            Iterator<Notification> notificationIterator = this.refGrouping.getNotifications().iterator();
 
-            while(iterator.hasNext()) {
-               Notification notification = (Notification)iterator.next();
+            while(notificationIterator.hasNext()) {
+               Notification notification = notificationIterator.next();
                Notification clonedNotification = (Notification)notification.clone();
                clonedNotification.setContext(new YangContext(notification.getContext()));
                clonedNotification.getContext().setNamespace(this.getContext().getNamespace());
                clonedNotification.init();
-               var26 = BuildPhase.values();
-               var28 = var26.length;
-
-               for(var9 = 0; var9 < var28; ++var9) {
-                  buildPhase = var26[var9];
+               for(BuildPhase buildPhase:BuildPhase.values()) {
                   if (buildPhase.compareTo(phase) < 0) {
                      clonedNotification.build(buildPhase);
                   }
@@ -279,45 +263,43 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedNotification));
             }
 
-            iterator = this.augments.iterator();
-
-            SchemaNode target;
-            while(iterator.hasNext()) {
-               augment = (Augment)iterator.next();
-               targetPath = augment.getTargetPath();
-               target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
+            Iterator<Augment> augmentIterator = this.augments.iterator();
+            while(augmentIterator.hasNext()) {
+               Augment augment = augmentIterator.next();
+               SchemaPath targetPath = augment.getTargetPath();
+               SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
                if (!(target instanceof Augmentable)) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setBadElement(augment);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(augment.getElementPosition());
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               } else {
-                  augment.setTarget(target);
-                  SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)target;
-                  validatorResultBuilder.merge(schemaNodeContainer.addSchemaNodeChild(augment));
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
+                          ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
+                  continue;
                }
+               augment.setTarget(target);
+               SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)target;
+               validatorResultBuilder.merge(schemaNodeContainer.addSchemaNodeChild(augment));
             }
 
-            iterator = this.refines.iterator();
+            Iterator<Refine> refineIterator = this.refines.iterator();
 
-            while(iterator.hasNext()) {
-               refine = (Refine)iterator.next();
-               targetPath = refine.getTargetPath();
-               target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
+            while(refineIterator.hasNext()) {
+               Refine refine = refineIterator.next();
+               SchemaPath targetPath = refine.getTargetPath();
+               SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
                refine.setTarget(target);
             }
 
-            return validatorResultBuilder.build();
-         case SCHEMA_TREE:
-            Iterator var3 = this.getSchemaNodeChildren().iterator();
+            break;
+         }
 
-            while(var3.hasNext()) {
-               SchemaNode child = (SchemaNode)var3.next();
+         case SCHEMA_TREE:{
+            Iterator schemaNodeIterator = this.getSchemaNodeChildren().iterator();
+
+            while(schemaNodeIterator.hasNext()) {
+               SchemaNode child = (SchemaNode)schemaNodeIterator.next();
                validatorResultBuilder.merge(child.build(phase));
             }
+            break;
+         }
+
       }
 
       return validatorResultBuilder.build();
@@ -338,10 +320,10 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
 
    protected ValidatorResult validateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
-      Iterator var2 = this.getSchemaNodeChildren().iterator();
+      Iterator schemaNodeIterator = this.getSchemaNodeChildren().iterator();
 
-      while(var2.hasNext()) {
-         SchemaNode child = (SchemaNode)var2.next();
+      while(schemaNodeIterator.hasNext()) {
+         SchemaNode child = (SchemaNode)schemaNodeIterator.next();
          validatorResultBuilder.merge(child.validate());
       }
 

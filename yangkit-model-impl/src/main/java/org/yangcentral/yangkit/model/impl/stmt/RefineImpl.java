@@ -1,11 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
@@ -14,32 +9,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
-import org.yangcentral.yangkit.model.api.stmt.Case;
-import org.yangcentral.yangkit.model.api.stmt.Choice;
-import org.yangcentral.yangkit.model.api.stmt.Config;
-import org.yangcentral.yangkit.model.api.stmt.ConfigSupport;
-import org.yangcentral.yangkit.model.api.stmt.Container;
-import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
-import org.yangcentral.yangkit.model.api.stmt.Default;
-import org.yangcentral.yangkit.model.api.stmt.Description;
-import org.yangcentral.yangkit.model.api.stmt.IfFeature;
-import org.yangcentral.yangkit.model.api.stmt.Leaf;
-import org.yangcentral.yangkit.model.api.stmt.LeafList;
-import org.yangcentral.yangkit.model.api.stmt.Mandatory;
-import org.yangcentral.yangkit.model.api.stmt.MandatorySupport;
-import org.yangcentral.yangkit.model.api.stmt.MaxElements;
-import org.yangcentral.yangkit.model.api.stmt.MetaDef;
-import org.yangcentral.yangkit.model.api.stmt.MinElements;
-import org.yangcentral.yangkit.model.api.stmt.MultiInstancesDataNode;
-import org.yangcentral.yangkit.model.api.stmt.Must;
-import org.yangcentral.yangkit.model.api.stmt.MustSupport;
-import org.yangcentral.yangkit.model.api.stmt.Presence;
-import org.yangcentral.yangkit.model.api.stmt.Reference;
-import org.yangcentral.yangkit.model.api.stmt.Refine;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import java.util.ArrayList;
@@ -92,6 +62,16 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
 
    public ValidatorResult addIfFeature(IfFeature ifFeature) {
       return this.ifFeatureSupport.addIfFeature(ifFeature);
+   }
+
+   @Override
+   public IfFeature getIfFeature(String exp) {
+      return ifFeatureSupport.getIfFeature(exp);
+   }
+
+   @Override
+   public IfFeature removeIfFeature(String exp) {
+      return ifFeatureSupport.removeIfFeature(exp);
    }
 
    public void setIfFeatures(List<IfFeature> ifFeatures) {
@@ -198,32 +178,25 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                   ConfigSupport configSupport = (ConfigSupport)this.targetNode;
                   configSupport.setConfig(this.config);
                } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.NOT_SUPPORT_CONFIG.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                          ErrorCode.NOT_SUPPORT_CONFIG.getFieldName()));
                }
             }
 
-            Iterator var5;
+            Iterator iterator;
             if (this.getIfFeatures().size() > 0) {
                if (!(this.targetNode instanceof DataNode) && !(this.targetNode instanceof Choice) && !(this.targetNode instanceof Case)) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.NOT_SUPPORT_IFFEATURE.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                          ErrorCode.NOT_SUPPORT_IFFEATURE.getFieldName()));
                } else {
                   DataDefinition dataDefinition = (DataDefinition)this.targetNode;
-                  var5 = this.getIfFeatures().iterator();
+                  iterator = this.getIfFeatures().iterator();
 
-                  while(var5.hasNext()) {
-                     IfFeature ifFeature = (IfFeature)var5.next();
+                  while(iterator.hasNext()) {
+                     IfFeature ifFeature = (IfFeature)iterator.next();
+                     if(dataDefinition.getIfFeature(ifFeature.getArgStr()) != null){
+                        dataDefinition.removeIfFeature(ifFeature.getArgStr());
+                     }
                      validatorResultBuilder.merge(dataDefinition.addIfFeature(ifFeature));
                   }
                }
@@ -232,20 +205,16 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
             if (this.getMusts().size() > 0) {
                if (this.targetNode instanceof MustSupport) {
                   MustSupport mustSupport = (MustSupport)this.targetNode;
-                  var5 = this.getMusts().iterator();
+                  iterator = this.getMusts().iterator();
 
-                  while(var5.hasNext()) {
-                     Must must = (Must)var5.next();
+                  while(iterator.hasNext()) {
+                     Must must = (Must)iterator.next();
+                     mustSupport.removeMust(must.getArgStr());
                      validatorResultBuilder.merge(mustSupport.addMust(must));
                   }
                } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.NOT_SUPPORT_MUST.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                          ErrorCode.NOT_SUPPORT_MUST.getFieldName()));
                }
             }
 
@@ -259,55 +228,37 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                      validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(1)).getElementPosition());
                      validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(1));
                      validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(1),
+                             ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                   }
 
                   leaf.setDefault((Default)this.defaults.get(0));
                } else if (this.targetNode instanceof Choice) {
                   Choice choice = (Choice)this.targetNode;
                   if (this.defaults.size() > 1) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(1)).getElementPosition());
-                     validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(1));
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(1),
+                             ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                   }
 
                   boolean bool = choice.setDefault(this.defaults.get(0));
                   if (!bool) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setBadElement(this.defaults.get(0));
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath((this.defaults.get(0)).getElementPosition());
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_CASE.toString(new String[]{"name=" + ((Default)this.defaults.get(0)).getArgStr()})));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                             ErrorCode.MISSING_CASE.toString(new String[]{"name="
+                                     + ((Default)this.defaults.get(0)).getArgStr()})));
                   }
                } else if (this.targetNode instanceof LeafList) {
                   LeafList leafList = (LeafList)this.targetNode;
                   leafList.setDefaults(this.defaults);
                } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(0)).getElementPosition());
-                  validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(0));
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                }
             }
 
             if (this.mandatory != null) {
                if (!(this.targetNode instanceof MandatorySupport)) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.mandatory.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.mandatory);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(mandatory,
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                } else {
                   MandatorySupport mandatorySupport = (MandatorySupport)this.targetNode;
                   mandatorySupport.setMandatory(this.mandatory);
@@ -319,13 +270,8 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                   Container container = (Container)this.targetNode;
                   container.setPresence(this.presence);
                } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.presence.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.presence);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(presence,
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                }
             }
 
@@ -335,13 +281,8 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                   multiInstancesDataNode = (MultiInstancesDataNode)this.targetNode;
                   multiInstancesDataNode.setMaxElements(this.maxElements);
                } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.maxElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.maxElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(maxElements,
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                }
             }
 
@@ -350,18 +291,38 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                   multiInstancesDataNode = (MultiInstancesDataNode)this.targetNode;
                   multiInstancesDataNode.setMinElements(this.minElements);
                } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorPath(this.minElements.getElementPosition());
-                  validatorRecordBuilder.setBadElement(this.minElements);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(minElements,
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                }
             }
 
             if (this.getUnknowns().size() > 0) {
-               this.targetNode.getUnknowns().addAll(this.getUnknowns());
+               YangSpecification yangSpecification = this.targetNode.getContext().getYangSpecification();
+               YangStatementDef yangStatementDef = yangSpecification.getStatementDef(this.targetNode.getYangKeyword());
+               for(YangUnknown unknown:this.getUnknowns()){
+                  boolean isMultiInstance = true;
+                  Cardinality cardinality = yangStatementDef.getSubStatementCardinality(unknown.getYangKeyword());
+                  if(cardinality != null){
+                     if(cardinality.getMaxElements() <=1){
+                        isMultiInstance = false;
+                     }
+                  }
+                  if(isMultiInstance){
+                     YangUnknown orig = this.targetNode.getUnknown(unknown.getYangKeyword(),unknown.getArgStr());
+                     if(orig != null){
+                        this.targetNode.getUnknowns().remove(orig);
+
+                     }
+                  } else {
+                     List<YangUnknown> origs = this.targetNode.getUnknowns(unknown.getYangKeyword());
+                     if(!origs.isEmpty()){
+                        this.targetNode.getUnknowns().remove(origs.get(0));
+                     }
+                  }
+                  this.targetNode.getUnknowns().add(unknown);
+
+               }
+
             }
          default:
             return validatorResultBuilder.build();
@@ -371,19 +332,23 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       if (!ModelUtil.isDescendantSchemaNodeIdentifier(this.getArgStr())) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_ARG.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_ARG.getFieldName() ));
       }
 
-      Iterator var6 = this.getSubElements().iterator();
-
-      while(var6.hasNext()) {
-         YangElement subElement = (YangElement)var6.next();
+      Iterator elementIterator = this.getSubElements().iterator();
+      this.config = null;
+      this.ifFeatureSupport.removeIfFeatures();
+      this.description = null;
+      this.reference = null;
+      this.mustSupport.removeMusts();
+      this.defaults.clear();
+      this.mandatory = null;
+      this.reference = null;
+      this.maxElements = null;
+      this.minElements = null;
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(((YangBuiltinStatement)subElement).getYangKeyword());
             switch (builtinKeyword) {

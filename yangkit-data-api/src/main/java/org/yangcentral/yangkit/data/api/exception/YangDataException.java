@@ -7,6 +7,8 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.data.api.model.YangData;
 
+import java.util.Objects;
+
 public class YangDataException extends Exception implements ValidatorRecord<AbsolutePath, YangData> {
    private static final long serialVersionUID = -4815971601385477372L;
    private ErrorTag errorTag;
@@ -51,5 +53,23 @@ public class YangDataException extends Exception implements ValidatorRecord<Abso
 
    public ErrorMessage getErrorMsg() {
       return this.errorMessage;
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      YangDataException that = (YangDataException) o;
+      return errorTag == that.errorTag && Objects.equals(errorAppTag, that.errorAppTag) && errorPath.equals(that.errorPath) && badElement.equals(that.badElement) && errorMessage.equals(that.errorMessage);
+   }
+
+   @Override
+   public int hashCode() {
+      return Objects.hash(errorTag, errorAppTag, errorPath, badElement, errorMessage);
+   }
+
+   @Override
+   public int compareTo(ValidatorRecord o) {
+      return this.hashCode() - o.hashCode();
    }
 }

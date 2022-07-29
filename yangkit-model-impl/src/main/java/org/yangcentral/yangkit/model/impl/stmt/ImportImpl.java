@@ -115,8 +115,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
       YangSchemaContext schemaContext = context.getSchemaContext();
       boolean notFound = false;
       boolean wrongType = false;
-      boolean inComaptiableVersion = false;
-      ValidatorRecordBuilder validatorRecordBuilder;
+      this.importedModule = null;
       if (this.revisionDate == null) {
          List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
          if (null != moduleList && moduleList.size() != 0) {
@@ -146,32 +145,17 @@ public class ImportImpl extends YangStatementImpl implements Import {
       }
 
       if (notFound) {
-         validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + this.getArgStr()})));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + this.getArgStr()})));
          return validatorResultBuilder.build();
       } else if (wrongType) {
-         validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.WRONG_TYPE_DEPENDECE_MODULE.getFieldName() + " It should be a module, but get a submodule."));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.WRONG_TYPE_DEPENDECE_MODULE.getFieldName() + " It should be a module, but get a submodule."));
          return validatorResultBuilder.build();
       } else {
          if (this.importedModule.getEffectiveYangVersion().equals("1.1") && this.getContext().getCurModule().getEffectiveYangVersion().equals("1")) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setSeverity(Severity.WARNING);
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.WARNING,
+                    ErrorTag.BAD_ELEMENT,ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
          }
 
          ValidatorResult importModuleResult;
@@ -189,13 +173,8 @@ public class ImportImpl extends YangStatementImpl implements Import {
                if (schemaContext.isImportOnly(this.importedModule)) {
                   validatorResultBuilder.merge(importModuleResult);
                } else {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.IMPORT_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                          ErrorCode.IMPORT_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()})));
                }
             }
          }
@@ -207,21 +186,23 @@ public class ImportImpl extends YangStatementImpl implements Import {
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.description = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() != 0) {
          this.description = (Description)matched.get(0);
       }
 
+      this.reference = null;
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() != 0) {
          this.reference = (Reference)matched.get(0);
       }
-
+      this.revisionDate = null;
       matched = this.getSubStatement(YangBuiltinKeyword.REVISIONDATE.getQName());
       if (matched.size() != 0) {
          this.revisionDate = (RevisionDate)matched.get(0);
       }
-
+      this.prefix = null;
       matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() != 0) {
          this.prefix = (Prefix)matched.get(0);
@@ -230,16 +211,12 @@ public class ImportImpl extends YangStatementImpl implements Import {
       Module curModule = this.getContext().getCurModule();
       Map<String, ModuleId> prefixes = curModule.getPrefixes();
       if (prefixes.containsKey(this.prefix.getArgStr())) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this.prefix);
-         validatorRecordBuilder.setErrorPath(this.prefix.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this.prefix,
+                 ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
          return validatorResultBuilder.build();
       } else {
-         prefixes.put(this.prefix.getArgStr(), new ModuleId(this.getArgStr(), this.revisionDate == null ? null : this.revisionDate.getArgStr()));
+         prefixes.put(this.prefix.getArgStr(), new ModuleId(this.getArgStr(),
+                 this.revisionDate == null ? null : this.revisionDate.getArgStr()));
          return validatorResultBuilder.build();
       }
    }

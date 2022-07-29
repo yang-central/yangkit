@@ -22,6 +22,7 @@ import org.yangcentral.yangkit.model.api.stmt.Units;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.type.Path;
 import org.yangcentral.yangkit.model.impl.codec.StringValueCodecFactory;
+import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.impl.YangLocationPathImpl;
 import org.yangcentral.yangkit.xpath.impl.YangXPathContext;
 import org.yangcentral.yangkit.xpath.impl.YangXPathValidator;
@@ -58,26 +59,19 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Restriction restriction = this.getType().getRestriction();
       if (restriction instanceof LeafRef) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.WARNING);
-         validatorRecordBuilder.setErrorPath(deflt.getElementPosition());
-         validatorRecordBuilder.setBadElement(deflt);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.LEAFREF_SHOULD_NO_DEFAULT.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(deflt,
+                 ErrorCode.LEAFREF_SHOULD_NO_DEFAULT.getSeverity(),
+                 ErrorTag.BAD_ELEMENT,
+                 ErrorCode.LEAFREF_SHOULD_NO_DEFAULT.getFieldName()));
       }
 
       try {
-         Object value = StringValueCodecFactory.getInstance().getStringValueCodec((TypedDataNode)this).deserialize(restriction, deflt.getArgStr());
+         Object value = StringValueCodecFactory.getInstance().getStringValueCodec(this)
+                 .deserialize(restriction, deflt.getArgStr());
          deflt.setValue(value);
-      } catch (Exception var6) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(deflt.getElementPosition());
-         validatorRecordBuilder.setBadElement(deflt);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_DEFAULTVALUE.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+      } catch (Exception e) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(deflt,
+                 ErrorCode.INVALID_DEFAULTVALUE.getFieldName()));
       }
 
       return validatorResultBuilder.build();
@@ -86,11 +80,12 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      this.type = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.TYPE.getQName());
       if (matched.size() != 0) {
          this.type = (Type)matched.get(0);
       }
-
+      this.units = null;
       matched = this.getSubStatement(YangBuiltinKeyword.UNITS.getQName());
       if (matched.size() != 0) {
          this.units = (Units)matched.get(0);
@@ -108,7 +103,7 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
          YangXPathContext yangXPathContext = new YangXPathContext(effectivePath.getContext(), this, this);
          effectivePath.getXPathExpression().setXPathContext(yangXPathContext);
          YangXPathValidator yangXPathValidator = new YangXPathValidator(effectivePath.getXPathExpression(), yangXPathContext, new ValidatorResultBuilderFactory(), 2);
-         ValidatorResult xpathResult = (ValidatorResult)yangXPathValidator.visit(path, this);
+         ValidatorResult xpathResult = yangXPathValidator.visit(path, this);
          validatorResultBuilder.merge(xpathResult);
          if (!xpathResult.isOk()) {
             return validatorResultBuilder.build();
@@ -119,25 +114,15 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
          try {
             referencedNode = path.getTargetSchemaNode(yangXPathContext);
             if (null == referencedNode || !(referencedNode instanceof TypedDataNode)) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.WRONG_PATH.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.WRONG_PATH.getFieldName()));
                return validatorResultBuilder.build();
             }
 
             leafRef.setReferencedNode((TypedDataNode)referencedNode);
-         } catch (ModelException var11) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setSeverity(var11.getSeverity());
-            validatorRecordBuilder.setErrorPath(var11.getElement().getElementPosition());
-            validatorRecordBuilder.setBadElement(var11.getElement());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(var11.getDescription()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         } catch (ModelException e) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
+                    e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
          }
       }
 

@@ -109,11 +109,8 @@ class MustSupportImpl implements MustSupport {
       if (index != -1) {
          this.musts.set(index, must);
       } else {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setBadElement(must);
-         validatorRecordBuilder.setErrorPath(must.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(must,
+                 ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
       }
 
       return validatorResultBuilder.build();
@@ -137,10 +134,10 @@ class MustSupportImpl implements MustSupport {
 
    public ValidatorResult validateMusts() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var2 = this.musts.iterator();
+      Iterator<Must> mustIterator = this.musts.iterator();
 
-      while(var2.hasNext()) {
-         Must must = (Must)var2.next();
+      while(mustIterator.hasNext()) {
+         Must must = mustIterator.next();
          YangXPath xpath = must.getXPathExpression();
          YangXPathContext yangXPathContext = new YangXPathContext(must.getContext(), this.contextNode, this.self);
          xpath.setXPathContext(yangXPathContext);

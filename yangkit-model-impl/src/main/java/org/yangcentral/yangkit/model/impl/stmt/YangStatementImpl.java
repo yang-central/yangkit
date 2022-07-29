@@ -49,21 +49,18 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected ValidatorResult afterValidateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      ValidatorRecordBuilder validatorRecordBuilder;
       if (this instanceof Referencable) {
          Referencable referencable = (Referencable)this;
          if(!referencable.getReferencedBy().isEmpty()){
-            int[] unAvailableIndexes = new int[referencable.getReferencedBy().size()];
-            int pos = 0;
+            List<YangStatement> unAvailableStatements = new ArrayList<>();
             for(int i = 0; i < referencable.getReferencedBy().size();i++){
                YangStatement ref = referencable.getReferencedBy().get(i);
                if(!ModelUtil.isAvailableStatement(ref)){
-                  unAvailableIndexes[pos] = i;
-                  pos++;
+                  unAvailableStatements.add(ref);
                }
             }
-            for(int i = 0; i < pos;i++){
-               referencable.getReferencedBy().remove(unAvailableIndexes[i]);
+            for(YangStatement ref:unAvailableStatements){
+               referencable.getReferencedBy().remove(ref);
             }
          }
          if (!referencable.isReferenced()) {
@@ -85,10 +82,10 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected ValidatorResult afterValidateChildren() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var2 = this.subElements.iterator();
+      Iterator elementIterator = this.subElements.iterator();
 
-      while(var2.hasNext()) {
-         YangElement subElement = (YangElement)var2.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangStatement) {
             YangStatement statement = (YangStatement)subElement;
             if (!statement.isErrorStatement()) {
@@ -102,6 +99,9 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public void setArgStr(String argStr) {
       this.argStr = argStr;
+      this.init = false;
+      this.setBuilt(false);
+      this.isValidated = false;
    }
 
    public Position getElementPosition() {
@@ -155,12 +155,43 @@ public abstract class YangStatementImpl implements YangStatement {
       return this.unknowns;
    }
 
+   @Override
+   public List<YangUnknown> getUnknowns(QName keyword) {
+      List<YangUnknown> matched = new ArrayList<>();
+      for(YangUnknown unknown:unknowns){
+         if (unknown.getYangKeyword().equals(keyword)) {
+            matched.add(unknown);
+         }
+      }
+      return matched;
+   }
+
+   @Override
+   public YangUnknown getUnknown(QName keyword, String arg) {
+      if(arg == null){
+         List<YangUnknown> unknownList = getUnknowns(keyword);
+         if(unknownList.isEmpty()){
+            return null;
+         }
+         return unknownList.get(0);
+      }
+      for(YangUnknown unknown:unknowns){
+         if(unknown.getYangKeyword() == null || unknown.getArgStr() == null){
+            continue;
+         }
+         if (unknown.getYangKeyword().equals(keyword) && unknown.getArgStr().equals(arg)) {
+            return unknown;
+         }
+      }
+      return null;
+   }
+
    private List<YangUnknown> getUnknowns(String keyword) {
       List<YangUnknown> targetUnknowns = new ArrayList();
-      Iterator var3 = this.unknowns.iterator();
+      Iterator unknownIterator = this.unknowns.iterator();
 
-      while(var3.hasNext()) {
-         YangUnknown unknown = (YangUnknown)var3.next();
+      while(unknownIterator.hasNext()) {
+         YangUnknown unknown = (YangUnknown)unknownIterator.next();
          if (unknown.getKeyword().equals(keyword)) {
             targetUnknowns.add(unknown);
          }
@@ -176,10 +207,10 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected ValidatorResult validateChildren() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator var2 = this.subElements.iterator();
+      Iterator elementIterator = this.subElements.iterator();
 
-      while(var2.hasNext()) {
-         YangElement subElement = (YangElement)var2.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangStatement) {
             YangStatement statement = (YangStatement)subElement;
             if (!statement.isErrorStatement()) {
@@ -196,13 +227,8 @@ public abstract class YangStatementImpl implements YangStatement {
       if (this.isValidated()) {
          return validatorResultBuilder.build();
       } else if (this.isValidating) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.CIRCLE_REFERNCE.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.CIRCLE_REFERNCE.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          this.isValidating = true;
@@ -225,11 +251,11 @@ public abstract class YangStatementImpl implements YangStatement {
       if (this.isBuilt()) {
          return validatorResultBuilder.build();
       } else {
-         BuildPhase[] var2 = BuildPhase.values();
-         int var3 = var2.length;
+         BuildPhase[] buildPhases = BuildPhase.values();
+         int length = buildPhases.length;
 
-         for(int var4 = 0; var4 < var3; ++var4) {
-            BuildPhase phase = var2[var4];
+         for(int i = 0; i < length; ++i) {
+            BuildPhase phase = buildPhases[i];
             ValidatorResult phaseResult = this.build(phase);
             validatorResultBuilder.merge(phaseResult);
             if (!phaseResult.isOk()) {
@@ -251,29 +277,20 @@ public abstract class YangStatementImpl implements YangStatement {
       if (this.isBuilt()) {
          return validatorResultBuilder.build();
       } else if (this.isBuilding) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.CIRCLE_REFERNCE.getFieldName()));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.CIRCLE_REFERNCE.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          this.isBuilding = true;
          YangStatementParserPolicy parserPolicy = YangStatementRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
-         if (parserPolicy == null) {
-            ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_CLASS_REG.toString(new String[]{"keyword=" + this.getYangKeyword().getQualifiedName()})));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         if (parserPolicy == null && !(this instanceof DefaultYangUnknown)) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.MISSING_CLASS_REG.toString(new String[]{"keyword=" + this.getYangKeyword().getQualifiedName()})));
             return validatorResultBuilder.build();
          } else {
             ValidatorResult selfResult;
-            if (parserPolicy.getPhases().contains(buildPhase)) {
+            if ((parserPolicy!= null && parserPolicy.getPhases().contains(buildPhase))
+            || (this instanceof DefaultYangUnknown)) {
                if (this.phaseResultMap.containsKey(buildPhase)) {
                   validatorResultBuilder.merge((ValidatorResult)this.phaseResultMap.get(buildPhase));
                } else {
@@ -307,10 +324,10 @@ public abstract class YangStatementImpl implements YangStatement {
    protected ValidatorResult buildChildren(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       List<YangUnknown> buildUnknowns = null;
-      Iterator var4 = this.subElements.iterator();
+      Iterator elementIterator = this.subElements.iterator();
 
-      while(var4.hasNext()) {
-         YangElement subElement = (YangElement)var4.next();
+      while(elementIterator.hasNext()) {
+         YangElement subElement = (YangElement)elementIterator.next();
          if (!(subElement instanceof YangComment)) {
             if (subElement instanceof YangUnknownBlock) {
                if (BuildPhase.GRAMMAR == phase) {
@@ -331,10 +348,10 @@ public abstract class YangStatementImpl implements YangStatement {
       }
 
       if (buildUnknowns != null) {
-         var4 = buildUnknowns.iterator();
+         elementIterator = buildUnknowns.iterator();
 
-         while(var4.hasNext()) {
-            YangUnknown yangUnknown = (YangUnknown)var4.next();
+         while(elementIterator.hasNext()) {
+            YangUnknown yangUnknown = (YangUnknown)elementIterator.next();
             this.addChild(yangUnknown);
             yangUnknown.setContext(new YangContext(this.getContext()));
             yangUnknown.init();
@@ -374,10 +391,10 @@ public abstract class YangStatementImpl implements YangStatement {
                return false;
             } else {
                if (this.subElements.size() > 0) {
-                  Iterator var2 = this.subElements.iterator();
+                  Iterator elementIterator = this.subElements.iterator();
 
-                  while(var2.hasNext()) {
-                     YangElement subElement = (YangElement)var2.next();
+                  while(elementIterator.hasNext()) {
+                     YangElement subElement = (YangElement)elementIterator.next();
                      if (subElement instanceof YangStatement) {
                         YangStatement subStatement = (YangStatement)subElement;
                         if (!subStatement.isBuilt()) {
@@ -419,6 +436,8 @@ public abstract class YangStatementImpl implements YangStatement {
          }
 
          this.setBuilt(false);
+         this.init = false;
+         this.isValidated = false;
          return true;
       }
    }
@@ -431,6 +450,8 @@ public abstract class YangStatementImpl implements YangStatement {
       }
 
       this.setBuilt(false);
+      this.init = false;
+      this.isValidated = false;
       return true;
    }
 
@@ -445,6 +466,8 @@ public abstract class YangStatementImpl implements YangStatement {
          }
 
          this.setBuilt(false);
+         this.init = false;
+         this.isValidated = false;
          return true;
       }
    }
@@ -488,18 +511,20 @@ public abstract class YangStatementImpl implements YangStatement {
             YangStatementImpl statement = (YangStatementImpl)element;
             statement.setParentStatement((YangStatement)null);
          }
-
+         this.setBuilt(false);
+         this.init = false;
+         this.isValidated = false;
          return true;
       }
    }
 
    public void setChildren(List<YangElement> yangElements) {
-      this.clear();
+      this.subElements.clear();
       if (null != yangElements) {
-         Iterator var2 = yangElements.iterator();
+         Iterator elementIterator = yangElements.iterator();
 
-         while(var2.hasNext()) {
-            YangElement yangElement = (YangElement)var2.next();
+         while(elementIterator.hasNext()) {
+            YangElement yangElement = (YangElement)elementIterator.next();
             if (null != yangElement) {
                this.addChild(yangElement);
             }
@@ -519,7 +544,14 @@ public abstract class YangStatementImpl implements YangStatement {
    protected void clear() {
       this.unknowns.clear();
       this.isBuilt = false;
-      this.subElements.clear();
+      this.init = false;
+      this.isValidated = false;
+      this.isBuilding = false;
+      this.isValidating = false;
+      this.buildPhase = null;
+      this.validatorResult = null;
+      this.isError = false;
+      this.clonedBy = null;
    }
 
    public YangContext getContext() {
@@ -533,6 +565,7 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected ValidatorResult initChildren() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      unknowns.clear();
       for(YangElement subElement:subElements){
          if(subElement == null){
             continue;
@@ -561,105 +594,72 @@ public abstract class YangStatementImpl implements YangStatement {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (this instanceof YangUnknown) {
          return validatorResultBuilder.build();
-      } else {
-         assert this.context != null;
+      }
+      YangSpecification yangSpecification = this.context.getYangSpecification();
+      YangStatementDef statementDef = yangSpecification.getStatementDef(this.getYangKeyword());
+      ValidatorRecordBuilder validatorRecordBuilder;
+      if (null == statementDef) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName() + " keyword:" + this.getYangKeyword().getLocalName() ));
+         return validatorResultBuilder.build();
+      }
 
-         YangSpecification yangSpecification = this.context.getYangSpecification();
-         YangStatementDef statementDef = yangSpecification.getStatementDef(this.getYangKeyword());
-         ValidatorRecordBuilder validatorRecordBuilder;
-         if (null == statementDef) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setErrorPath(this.position);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName() + " keyword:" + this.getYangKeyword().getLocalName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            return validatorResultBuilder.build();
-         } else {
-            if (this instanceof Identifiable) {
-               if (!ModelUtil.isIdentifier(this.getArgStr())) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorPath(this.position);
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_IDENTIFIER.getFieldName() + " argument:" + this.getArgStr()));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               }
-            } else if (this instanceof IdentifierRef && !ModelUtil.isIdentifierRef(this.getArgStr())) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorPath(this.position);
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_IDENTIFIER_REF.getFieldName() + " argument:" + this.getArgStr()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+         if (this instanceof Identifiable) {
+            if (!ModelUtil.isIdentifier(this.getArgStr())) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.INVALID_IDENTIFIER.getFieldName() + " argument:" + this.getArgStr()));
             }
+         } else if (this instanceof IdentifierRef && !ModelUtil.isIdentifierRef(this.getArgStr())) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.INVALID_IDENTIFIER_REF.getFieldName() + " argument:" + this.getArgStr() ));
+         }
 
-            Map<QName, Cardinality> subStatementInfos = statementDef.getSubStatementInfos();
-            Iterator<QName> keys = subStatementInfos.keySet().iterator();
+         Map<QName, Cardinality> subStatementInfos = statementDef.getSubStatementInfos();
+         Iterator<QName> keys = subStatementInfos.keySet().iterator();
 
-            while(keys.hasNext()) {
-               QName key = (QName)keys.next();
-               List<YangStatement> filteredStatements = this.getSubStatement(key);
-               Cardinality cardinality = (Cardinality)subStatementInfos.get(key);
-               if (!cardinality.isValid(filteredStatements.size())) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setErrorPath(this.position);
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.CARDINALITY_BROKEN.getFieldName() + " sub-statement:" + key.getLocalName() + "'s cardinality is:" + cardinality));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               }
-            }
-
-            Iterator var11 = this.subElements.iterator();
-
-            while(true) {
-               while(true) {
-                  YangElement subElement;
-                  do {
-                     if (!var11.hasNext()) {
-                        return validatorResultBuilder.build();
-                     }
-
-                     subElement = (YangElement)var11.next();
-                  } while(!(subElement instanceof YangStatement));
-
-                  if (subElement instanceof YangUnknown) {
-                     YangUnknownParserPolicy unknownParserPolicy = YangUnknownRegister.getInstance().getUnknownInfo(((YangUnknown)subElement).getYangKeyword());
-                     if (unknownParserPolicy == null || unknownParserPolicy.getParentStatements().size() <= 0) {
-                        continue;
-                     }
-
-                     if (unknownParserPolicy.getParentStatement(this.getYangKeyword()) == null) {
-                        validatorRecordBuilder = new ValidatorRecordBuilder();
-                        validatorRecordBuilder.setErrorPath(subElement.getElementPosition());
-                        validatorRecordBuilder.setBadElement((YangStatement)subElement);
-                        validatorRecordBuilder.setSeverity(Severity.ERROR);
-                        validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                        validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                        validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                        continue;
-                     }
-                  }
-
-                  YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-                  if (!subStatementInfos.containsKey(builtinStatement.getYangKeyword())) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-                     validatorRecordBuilder.setBadElement(builtinStatement);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                     validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-                  }
-               }
+         while(keys.hasNext()) {
+            QName key = (QName)keys.next();
+            List<YangStatement> filteredStatements = this.getSubStatement(key);
+            Cardinality cardinality = (Cardinality)subStatementInfos.get(key);
+            if (!cardinality.isValid(filteredStatements.size())) {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.CARDINALITY_BROKEN.getFieldName() + " sub-statement:" + key.getLocalName() + "'s cardinality is:" + cardinality ));
             }
          }
-      }
+
+         Iterator<YangElement> elementIterator = this.subElements.iterator();
+         while (elementIterator.hasNext()){
+            YangElement subElement = elementIterator.next();
+            if(!(subElement instanceof YangStatement)){
+               continue;
+            }
+            if (subElement instanceof YangUnknown) {
+               YangUnknownParserPolicy unknownParserPolicy = YangUnknownRegister.getInstance().getUnknownInfo(((YangUnknown)subElement).getYangKeyword());
+               if (unknownParserPolicy == null || unknownParserPolicy.getParentStatements().size() <= 0) {
+                  continue;
+               }
+
+               if (unknownParserPolicy.getParentStatement(this.getYangKeyword()) == null) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError((YangStatement)subElement,
+                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+                  continue;
+               }
+            }
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            if (!subStatementInfos.containsKey(builtinStatement.getYangKeyword())) {
+               validatorRecordBuilder = new ValidatorRecordBuilder();
+               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
+               validatorRecordBuilder.setBadElement(builtinStatement);
+               validatorRecordBuilder.setSeverity(Severity.ERROR);
+               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+               validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
+                       ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+               continue;
+            }
+
+         }
+         return validatorResultBuilder.build();
    }
 
    public ValidatorResult init() {
@@ -705,10 +705,10 @@ public abstract class YangStatementImpl implements YangStatement {
          }
 
          clonedStatement.setElementPosition(this.getElementPosition());
-         Iterator var3 = this.getSubElements().iterator();
+         Iterator elementIterator = this.getSubElements().iterator();
 
-         while(var3.hasNext()) {
-            YangElement subElement = (YangElement)var3.next();
+         while(elementIterator.hasNext()) {
+            YangElement subElement = (YangElement)elementIterator.next();
             if (subElement instanceof YangStatement) {
                YangStatement subStatement = (YangStatement)subElement;
                clonedStatement.addChild(subStatement.clone());
@@ -717,14 +717,14 @@ public abstract class YangStatementImpl implements YangStatement {
 
          ((YangStatementImpl)clonedStatement).clonedBy = this;
          return clonedStatement;
-      } catch (NoSuchMethodException var6) {
-         var6.printStackTrace();
-      } catch (InvocationTargetException var7) {
-         var7.printStackTrace();
-      } catch (InstantiationException var8) {
-         var8.printStackTrace();
-      } catch (IllegalAccessException var9) {
-         var9.printStackTrace();
+      } catch (NoSuchMethodException e) {
+         e.printStackTrace();
+      } catch (InvocationTargetException e) {
+         e.printStackTrace();
+      } catch (InstantiationException e) {
+         e.printStackTrace();
+      } catch (IllegalAccessException e) {
+         e.printStackTrace();
       }
 
       return null;
@@ -772,10 +772,10 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> subStatements = new ArrayList();
-      Iterator var2 = this.unknowns.iterator();
+      Iterator unknownIterator = this.unknowns.iterator();
 
-      while(var2.hasNext()) {
-         YangUnknown unknown = (YangUnknown)var2.next();
+      while(unknownIterator.hasNext()) {
+         YangUnknown unknown = (YangUnknown)unknownIterator.next();
          subStatements.add(unknown);
       }
 
