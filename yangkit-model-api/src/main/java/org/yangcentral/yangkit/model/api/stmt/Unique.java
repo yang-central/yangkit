@@ -6,4 +6,7 @@ public interface Unique extends YangBuiltinStatement {
    List<Leaf> getUniqueNodes();
 
    boolean addUniqueNode(Leaf uniqueNode);
+
+   void removeUniqueNodes();
+
 }

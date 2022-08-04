@@ -206,7 +206,6 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
          YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            ValidatorRecordBuilder validatorRecordBuilder;
             if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.FRACTIONDIGITS.getQName())) {
                if (findfractionDigits) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
@@ -771,10 +770,10 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                   lastResult = false;
                } else {
                   List<Typedef> typedefs = getAllDerived(this);
-                  Iterator var7 = typedefs.iterator();
+                  Iterator typedefIterator = typedefs.iterator();
 
-                  while(var7.hasNext()) {
-                     Typedef typedef = (Typedef)var7.next();
+                  while(typedefIterator.hasNext()) {
+                     Typedef typedef = (Typedef)typedefIterator.next();
                      typedef.addReference(this);
                   }
                }

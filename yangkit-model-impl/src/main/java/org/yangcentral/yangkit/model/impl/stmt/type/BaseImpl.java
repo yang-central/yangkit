@@ -53,6 +53,12 @@ public class BaseImpl extends YangBuiltInStatementImpl implements Base {
       }
    }
 
+   @Override
+   protected void clear() {
+      identity = null;
+      super.clear();
+   }
+
    public YangStatement getReferenceStatement() {
       return this.identity;
    }

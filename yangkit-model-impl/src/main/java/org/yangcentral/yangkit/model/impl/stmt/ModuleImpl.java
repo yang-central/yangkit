@@ -406,9 +406,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          Include include = (Include)includeIterator.next();
          if (include.getInclude().isPresent()) {
             SubModule includeModule = (SubModule)include.getInclude().get();
-            if (!includeModule.isBuilt()) {
-               validatorResultBuilder.merge(includeModule.build(phase));
-            }
+            validatorResultBuilder.merge(includeModule.build(phase));
          }
       }
 
@@ -425,9 +423,6 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             continue;
          }
          SubModule includeModule = (SubModule)include.getInclude().get();
-         if(includeModule.isBuilt()){
-            continue;
-         }
          BuildPhase[] buildPhases = BuildPhase.values();
          int length = buildPhases.length;
 
@@ -465,7 +460,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                }
             } else {
                validatorResultBuilder.merge(this.mergeSubModules());
-               validatorResultBuilder.merge(this.validateSubModules());
+               //validatorResultBuilder.merge(this.validateSubModules());
             }
 
             Iterator<Augment> augmentIterator = this.augments.iterator();
@@ -490,6 +485,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          }
 
          case SCHEMA_BUILD:{
+            for(SchemaNode schemaNode:this.schemaNodeContainer.getSchemaNodeChildren()){
+               this.getContext().getSchemaContext().removeSchemaNodeChild(schemaNode);
+            }
             this.schemaNodeContainer.removeSchemaNodeChildren();
             if (this.getEffectiveYangVersion().equals(Yang.VERSION_11) && this instanceof MainModule) {
                validatorResultBuilder.merge(this.validateSubModules(phase));
@@ -538,7 +536,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             List<Augment> errorCache = new ArrayList();
             ValidatorResultBuilder subResultBuilder = new ValidatorResultBuilder();
 
-            int parsedCount;
+            int parsedCount = 0;
             do {
                subResultBuilder.clear();
                parsedCount = 0;
@@ -548,21 +546,23 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                   Augment augment = augmentCacheIt.next();
                   SchemaPath targetPath = augment.getTargetPath();
                   SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
-                  ValidatorRecordBuilder validatorRecordBuilder;
                   if (target == null) {
                      subResultBuilder.addRecord(ModelUtil.reportError(augment,
                              ErrorCode.MISSING_TARGET.getFieldName()));
                      errorCache.add(augment);
-                  } else if (!(target instanceof Augmentable)) {
+                     continue;
+                  }
+
+                  if (!(target instanceof Augmentable)) {
                     subResultBuilder.addRecord(ModelUtil.reportError(augment,
                              ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
                      errorCache.add(augment);
-                  } else {
-                     ++parsedCount;
-                     augment.setTarget(target);
-                     SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)target;
-                     subResultBuilder.merge(schemaNodeContainer.addSchemaNodeChild(augment));
+                     continue;
                   }
+                  ++parsedCount;
+                  augment.setTarget(target);
+                  SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) target;
+                  subResultBuilder.merge(schemaNodeContainer.addSchemaNodeChild(augment));
                }
 
                augmentCache.clear();
@@ -598,12 +598,43 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       this.imports.clear();
       this.includes.clear();
       this.revisions.clear();
+      if(this.getContext() != null){
+         this.getContext().getExtensionCache().clear();
+      }
+
       this.extensions.clear();
+      if(this.getContext() != null){
+         this.getContext().getFeatureCache().clear();
+      }
+
       this.features.clear();
+      if(this.getContext() != null){
+         this.getContext().getIdentityCache().clear();
+      }
       this.identities.clear();
       this.rpcs.clear();
       this.augments.clear();
       this.deviations.clear();
+      if(this.getContext() != null){
+         this.getContext().getTypedefIdentifierCache().clear();
+      }
+
+      this.typedefContainer.removeTypedefs();
+      if(this.getContext() != null){
+         this.getContext().getGroupingIdentifierCache().clear();
+      }
+
+      this.groupingDefContainer.removeGroupings();
+      this.dataDefContainer.removeDataDefs();
+      this.notificationContainer.removeNotifications();
+      if(this.getContext() != null){
+         this.getContext().getSchemaNodeIdentifierCache().clear();
+      }
+
+      for(SchemaNode schemaNode:this.schemaNodeContainer.getSchemaNodeChildren()){
+         this.getContext().getSchemaContext().removeSchemaNodeChild(schemaNode);
+      }
+      this.schemaNodeContainer.removeSchemaNodeChildren();
       super.clear();
    }
 
@@ -800,15 +831,15 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Import getImportByPrefix(String prefix) {
-      Iterator var2 = this.imports.iterator();
+      Iterator importIterator = this.imports.iterator();
 
       Import im;
       do {
-         if (!var2.hasNext()) {
+         if (!importIterator.hasNext()) {
             return null;
          }
 
-         im = (Import)var2.next();
+         im = (Import)importIterator.next();
       } while(!im.getPrefix().getArgStr().equals(prefix));
 
       return im;

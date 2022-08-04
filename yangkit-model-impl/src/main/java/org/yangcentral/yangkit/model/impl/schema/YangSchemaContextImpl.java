@@ -1,5 +1,6 @@
 package org.yangcentral.yangkit.model.impl.schema;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.base.YangSpecification;
@@ -31,7 +32,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    private Map<String, List<Module>> moduleMap = new ConcurrentHashMap();
    private Map<String, List<YangElement>> parseResult = new ConcurrentHashMap();
    private YangSchema schema;
-   private SchemaNodeContainer schemaNodeContainer = new SchemaNodeContainerImpl(null);
+   private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(null);
 
    public List<Module> getModules() {
       return this.modules;
@@ -211,54 +212,43 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       return this.schemaNodeContainer.getMandatoryDescendant();
    }
 
+   /**
+    * validate yang schema context, it will initial all statements (init fields from argument and sub statements),
+    * and build all init statements(build linkage,check static grammar,build schema tree,etc.), and then it will validate
+    * all statements of all modules(in this phase, it will only check whether the relation between statements is correct,
+    * for example, check whether the xpath expression is correct.)
+    * @return
+    */
    public ValidatorResult validate() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       List<Module> modules = new ArrayList();
       modules.addAll(this.getModules());
       modules.addAll(this.getImportOnlyModules());
-      Iterator iterator = modules.iterator();
-
-      Module module;
-      ValidatorResult result;
-      while(iterator.hasNext()) {
-         module = (Module)iterator.next();
-         if (!module.isInit()) {
-            module.setContext(new YangContext(this, module));
-            result = module.init();
-            validatorResultBuilder.merge(result);
+      //init
+      for(Module module:modules){
+         if(module.getContext() == null){
+            module.setContext(new YangContext(this,module));
          }
-      }
-
-      iterator = modules.iterator();
-
-      while(true) {
-         do {
-            do {
-               do {
-                  if (!iterator.hasNext()) {
-                     iterator = modules.iterator();
-
-                     while(iterator.hasNext()) {
-                        module = (Module)iterator.next();
-                        if (module.isInit() && module.isBuilt()) {
-                           result = module.validate();
-                           validatorResultBuilder.merge(result);
-                           validatorResultBuilder.merge(module.afterValidate());
-                        }
-                     }
-
-                     ValidatorResult validatorResult = validatorResultBuilder.build();
-                     return validatorResult;
-                  }
-
-                  module = (Module)iterator.next();
-               } while(!module.isInit());
-            } while(module.isBuilt());
-         } while(module instanceof SubModule && module.getContext().getYangSpecification() == YangSpecification.getVersion11Spec());
-
-         result = module.build();
+         ValidatorResult result = module.init();
          validatorResultBuilder.merge(result);
       }
+
+      //build
+      for(Module module:modules){
+         if((module instanceof SubModule)
+                 && (module.getContext().getYangSpecification() == YangSpecification.getVersion11Spec())){
+            //yang1.1, a submodule MUST be built by the module it belongs to.
+            continue;
+         }
+         ValidatorResult result = module.build();
+         validatorResultBuilder.merge(result);
+      }
+      //validate
+      for(Module module:modules){
+         validatorResultBuilder.merge(module.validate());
+         validatorResultBuilder.merge(module.afterValidate());
+      }
+      return validatorResultBuilder.build();
    }
 
    public List<SchemaNode> getSchemaNodeChildren() {

@@ -88,40 +88,6 @@ public class TypedefImpl extends EntityImpl implements Typedef {
       return this.referencedBys;
    }
 
-   public void addReference(YangStatement yangStatement) {
-      this.referencedBys.add(yangStatement);
-   }
-
-   public void delReference(YangStatement yangStatement) {
-      int pos = -1;
-
-      for(int i = 0; i < this.referencedBys.size(); ++i) {
-         if (this.referencedBys.get(i) == yangStatement) {
-            pos = i;
-            break;
-         }
-      }
-
-      if (pos != -1) {
-         this.referencedBys.remove(pos);
-      }
-
-   }
-
-   public boolean isReferencedBy(YangStatement yangStatement) {
-      Iterator var2 = this.referencedBys.iterator();
-
-      YangStatement statement;
-      do {
-         if (!var2.hasNext()) {
-            return false;
-         }
-
-         statement = (YangStatement)var2.next();
-      } while(statement != yangStatement);
-
-      return true;
-   }
 
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();

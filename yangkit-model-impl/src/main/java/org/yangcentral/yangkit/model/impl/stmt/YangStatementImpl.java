@@ -23,14 +23,15 @@ public abstract class YangStatementImpl implements YangStatement {
    private String argStr;
    private List<YangElement> subElements = new ArrayList();
    private List<YangUnknown> unknowns = new ArrayList();
-   protected boolean isBuilt;
+   //protected boolean isBuilt;
    protected boolean isBuilding;
-   protected boolean isValidated;
+   //protected boolean isValidated;
    protected boolean isValidating;
-   private boolean init;
+   //private boolean init;
    private BuildPhase buildPhase;
    private YangStatement parentStmt;
    private ValidatorResult validatorResult;
+   private ValidatorResult initResult;
    private Map<BuildPhase, ValidatorResult> phaseResultMap = new ConcurrentHashMap();
    private boolean isError = false;
    private YangStatement clonedBy;
@@ -60,7 +61,7 @@ public abstract class YangStatementImpl implements YangStatement {
                }
             }
             for(YangStatement ref:unAvailableStatements){
-               referencable.getReferencedBy().remove(ref);
+               referencable.delReference(ref);
             }
          }
          if (!referencable.isReferenced()) {
@@ -99,9 +100,7 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public void setArgStr(String argStr) {
       this.argStr = argStr;
-      this.init = false;
-      this.setBuilt(false);
-      this.isValidated = false;
+      clear();
    }
 
    public Position getElementPosition() {
@@ -200,6 +199,23 @@ public abstract class YangStatementImpl implements YangStatement {
       return targetUnknowns;
    }
 
+   private boolean isBuilt(){
+      if(validatorResult == null){
+         return false;
+      }
+      YangStatementParserPolicy policy = YangStatementRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
+      if(policy !=null){
+         if (policy.isLastPhase(this.buildPhase)&&validatorResult.isOk()){
+            return true;
+         }
+      }
+      if(this instanceof DefaultYangUnknown){
+         if(this.buildPhase == BuildPhase.SCHEMA_TREE && validatorResult.isOk()){
+            return true;
+         }
+      }
+      return false;
+   }
    protected ValidatorResult validateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       return validatorResultBuilder.build();
@@ -224,22 +240,26 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public ValidatorResult validate() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      if (this.isValidated()) {
-         return validatorResultBuilder.build();
-      } else if (this.isValidating) {
+//      if (this.isValidated()) {
+//         return validatorResultBuilder.build();
+//      } else
+         if (this.isValidating) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.CIRCLE_REFERNCE.getFieldName()));
          return validatorResultBuilder.build();
       } else {
          this.isValidating = true;
-         ValidatorResult selfResult = this.validateSelf();
-         this.setValidateResult(selfResult);
-         validatorResultBuilder.merge(selfResult);
+         if(this.isBuilt()){
+            ValidatorResult selfResult = this.validateSelf();
+            this.setValidateResult(selfResult);
+            validatorResultBuilder.merge(selfResult);
+         }
+
          validatorResultBuilder.merge(this.validateChildren());
          ValidatorResult result = validatorResultBuilder.build();
-         if (result.isOk()) {
-            this.isValidated = true;
-         }
+//         if (result.isOk()) {
+//            this.isValidated = true;
+//         }
 
          this.isValidating = false;
          return result;
@@ -248,35 +268,29 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public synchronized ValidatorResult build() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      if (this.isBuilt()) {
-         return validatorResultBuilder.build();
-      } else {
-         BuildPhase[] buildPhases = BuildPhase.values();
-         int length = buildPhases.length;
+      BuildPhase[] buildPhases = BuildPhase.values();
+      int length = buildPhases.length;
 
-         for(int i = 0; i < length; ++i) {
-            BuildPhase phase = buildPhases[i];
-            ValidatorResult phaseResult = this.build(phase);
-            validatorResultBuilder.merge(phaseResult);
-            if (!phaseResult.isOk()) {
-               break;
-            }
+      for(int i = 0; i < length; ++i) {
+         BuildPhase phase = buildPhases[i];
+         ValidatorResult phaseResult = this.build(phase);
+         validatorResultBuilder.merge(phaseResult);
+         if (!phaseResult.isOk()) {
+            break;
          }
-
-         ValidatorResult result = validatorResultBuilder.build();
-         if (result.isOk()) {
-            this.setBuilt(true);
-         }
-
-         return result;
       }
+
+      ValidatorResult result = validatorResultBuilder.build();
+//      if (result.isOk()) {
+//         this.setBuilt(true);
+//      }
+
+      return result;
    }
 
    public synchronized ValidatorResult build(BuildPhase buildPhase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      if (this.isBuilt()) {
-         return validatorResultBuilder.build();
-      } else if (this.isBuilding) {
+      if (this.isBuilding) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.CIRCLE_REFERNCE.getFieldName()));
          return validatorResultBuilder.build();
@@ -292,20 +306,23 @@ public abstract class YangStatementImpl implements YangStatement {
             if ((parserPolicy!= null && parserPolicy.getPhases().contains(buildPhase))
             || (this instanceof DefaultYangUnknown)) {
                if (this.phaseResultMap.containsKey(buildPhase)) {
-                  validatorResultBuilder.merge((ValidatorResult)this.phaseResultMap.get(buildPhase));
+                  validatorResultBuilder.merge(this.phaseResultMap.get(buildPhase));
                } else {
-                  this.buildPhase = buildPhase;
-                  selfResult = this.buildSelf(buildPhase);
-                  this.phaseResultMap.put(buildPhase, selfResult);
-                  this.setValidateResult(selfResult);
-                  validatorResultBuilder.merge(selfResult);
+
+                  if(this.getValidateResult() != null && this.getValidateResult().isOk()){
+                     this.buildPhase = buildPhase;
+                     selfResult = this.buildSelf(buildPhase);
+                     this.phaseResultMap.put(buildPhase, selfResult);
+                     this.setValidateResult(selfResult);
+                     validatorResultBuilder.merge(selfResult);
+                  }
+
                }
             }
 
             validatorResultBuilder.merge(this.buildChildren(buildPhase));
             this.isBuilding = false;
-            selfResult = validatorResultBuilder.build();
-            return selfResult;
+            return validatorResultBuilder.build();
          }
       }
    }
@@ -377,53 +394,53 @@ public abstract class YangStatementImpl implements YangStatement {
       }
    }
 
-   public boolean isBuilt() {
-      if (this.isBuilt) {
-         return true;
-      } else if (!this.isInit()) {
-         return false;
-      } else {
-         YangStatementParserPolicy parserPolicy = YangStatementRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
-         if (parserPolicy == null) {
-            return false;
-         } else if (this.getValidateResult() != null && this.getValidateResult().isOk()) {
-            if (!parserPolicy.getPhases().isEmpty() && !parserPolicy.isLastPhase(this.buildPhase)) {
-               return false;
-            } else {
-               if (this.subElements.size() > 0) {
-                  Iterator elementIterator = this.subElements.iterator();
-
-                  while(elementIterator.hasNext()) {
-                     YangElement subElement = (YangElement)elementIterator.next();
-                     if (subElement instanceof YangStatement) {
-                        YangStatement subStatement = (YangStatement)subElement;
-                        if (!subStatement.isBuilt()) {
-                           return false;
-                        }
-                     }
-                  }
-               }
-
-               this.isBuilt = true;
-               return this.isBuilt;
-            }
-         } else {
-            return false;
-         }
-      }
-   }
+//   public boolean isBuilt() {
+//      if (this.isBuilt) {
+//         return true;
+//      } else if (!this.isInit()) {
+//         return false;
+//      } else {
+//         YangStatementParserPolicy parserPolicy = YangStatementRegister.getInstance().getStatementParserPolicy(this.getYangKeyword());
+//         if (parserPolicy == null) {
+//            return false;
+//         } else if (this.getValidateResult() != null && this.getValidateResult().isOk()) {
+//            if (!parserPolicy.getPhases().isEmpty() && !parserPolicy.isLastPhase(this.buildPhase)) {
+//               return false;
+//            } else {
+//               if (this.subElements.size() > 0) {
+//                  Iterator elementIterator = this.subElements.iterator();
+//
+//                  while(elementIterator.hasNext()) {
+//                     YangElement subElement = (YangElement)elementIterator.next();
+//                     if (subElement instanceof YangStatement) {
+//                        YangStatement subStatement = (YangStatement)subElement;
+//                        if (!subStatement.isBuilt()) {
+//                           return false;
+//                        }
+//                     }
+//                  }
+//               }
+//
+//               this.isBuilt = true;
+//               return this.isBuilt;
+//            }
+//         } else {
+//            return false;
+//         }
+//      }
+//   }
 
    public boolean isBuilding() {
       return this.isBuilding;
    }
 
-   public boolean isValidated() {
-      return this.isValidated;
-   }
+//   public boolean isValidated() {
+//      return this.isValidated;
+//   }
 
-   public void setBuilt(boolean built) {
-      this.isBuilt = built;
-   }
+//   public void setBuilt(boolean built) {
+//      this.isBuilt = built;
+//   }
 
    public boolean addChild(YangElement yangElement) {
       boolean result = this.subElements.add(yangElement);
@@ -434,10 +451,7 @@ public abstract class YangStatementImpl implements YangStatement {
             YangStatementImpl yangStatement = (YangStatementImpl)yangElement;
             yangStatement.setParentStatement(this);
          }
-
-         this.setBuilt(false);
-         this.init = false;
-         this.isValidated = false;
+         clear();
          return true;
       }
    }
@@ -448,10 +462,7 @@ public abstract class YangStatementImpl implements YangStatement {
          YangStatementImpl yangStatement = (YangStatementImpl)yangElement;
          yangStatement.setParentStatement(this);
       }
-
-      this.setBuilt(false);
-      this.init = false;
-      this.isValidated = false;
+      clear();
       return true;
    }
 
@@ -464,10 +475,7 @@ public abstract class YangStatementImpl implements YangStatement {
             YangStatementImpl yangStatement = (YangStatementImpl)yangElement;
             yangStatement.setParentStatement(this);
          }
-
-         this.setBuilt(false);
-         this.init = false;
-         this.isValidated = false;
+         clear();
          return true;
       }
    }
@@ -511,9 +519,7 @@ public abstract class YangStatementImpl implements YangStatement {
             YangStatementImpl statement = (YangStatementImpl)element;
             statement.setParentStatement((YangStatement)null);
          }
-         this.setBuilt(false);
-         this.init = false;
-         this.isValidated = false;
+         clear();
          return true;
       }
    }
@@ -543,15 +549,14 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected void clear() {
       this.unknowns.clear();
-      this.isBuilt = false;
-      this.init = false;
-      this.isValidated = false;
       this.isBuilding = false;
       this.isValidating = false;
       this.buildPhase = null;
       this.validatorResult = null;
       this.isError = false;
       this.clonedBy = null;
+      this.initResult = null;
+      this.phaseResultMap.clear();
    }
 
    public YangContext getContext() {
@@ -664,25 +669,25 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public ValidatorResult init() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      ValidatorResult result;
-      if (this.getValidateResult() == null) {
-         result = this.initSelf();
-         this.setValidateResult(result);
-         validatorResultBuilder.merge(result);
+      if(initResult != null){
+         return initResult;
       }
-
+      ValidatorResult result = this.initSelf();
+      initResult = result;
+      this.setValidateResult(result);
+      validatorResultBuilder.merge(result);
       validatorResultBuilder.merge(this.initChildren());
       result = validatorResultBuilder.build();
-      if (result.isOk()) {
-         this.init = true;
-      }
+//      if (result.isOk()) {
+//         this.init = true;
+//      }
 
       return result;
    }
 
-   public boolean isInit() {
-      return this.init;
-   }
+//   public boolean isInit() {
+//      return this.init;
+//   }
 
    public <T extends YangStatement> T getSelf() {
       return (T) this;

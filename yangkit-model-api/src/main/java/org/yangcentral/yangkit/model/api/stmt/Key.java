@@ -9,4 +9,9 @@ public interface Key extends YangBuiltinStatement {
    boolean addKeyNode(Leaf keyNode);
 
    Leaf getKeyNode(QName identifier);
+
+   Leaf removeKeyNode(QName identifier);
+
+   void removeKeyNodes();
+
 }

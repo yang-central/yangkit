@@ -76,6 +76,13 @@ public class BitImpl extends EntityImpl implements Bit {
       return this.ifFeatureSupport.evaluateFeatures();
    }
 
+   @Override
+   protected void clear() {
+      position = null;
+      ifFeatureSupport.removeIfFeatures();
+      super.clear();
+   }
+
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
       if (this.position != null) {

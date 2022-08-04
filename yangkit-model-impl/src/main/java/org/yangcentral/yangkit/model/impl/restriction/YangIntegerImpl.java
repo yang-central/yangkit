@@ -59,10 +59,8 @@ public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionI
    public ValidatorResult setRange(Range range) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if(range != null){
-         if (!range.isBuilt()) {
-            range.setBound(this.getHighBound(), this.getLowBound());
-            validatorResultBuilder.merge(range.build(BuildPhase.GRAMMAR));
-         }
+         range.setBound(this.getHighBound(), this.getLowBound());
+         validatorResultBuilder.merge(range.build(BuildPhase.GRAMMAR));
 
          if (this.getDerived() != null) {
             Range derivedRange = ((YangInteger)this.getDerived().getType().getRestriction()).getRange();

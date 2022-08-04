@@ -35,13 +35,6 @@ public interface YangStatement extends YangElement {
    ValidatorResult getValidateResult();
 
    void setValidateResult(ValidatorResult validatorResult);
-
-   boolean isBuilt();
-
-   boolean isBuilding();
-
-   boolean isValidated();
-
    boolean addChild(YangElement yangElement);
 
    boolean addChild(int index, YangElement yangElement);
@@ -63,8 +56,6 @@ public interface YangStatement extends YangElement {
    void setContext(YangContext context);
 
    ValidatorResult init();
-
-   boolean isInit();
 
    <T extends YangStatement> T getSelf();
 

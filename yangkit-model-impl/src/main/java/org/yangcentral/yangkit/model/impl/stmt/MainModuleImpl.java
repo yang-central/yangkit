@@ -50,6 +50,9 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
       if (matched.size() > 0) {
          this.namespace = (Namespace)matched.get(0);
       }
+      if(this.prefix != null){
+         prefixCache.remove(this.prefix.getArgStr());
+      }
       this.prefix = null;
       matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() > 0) {

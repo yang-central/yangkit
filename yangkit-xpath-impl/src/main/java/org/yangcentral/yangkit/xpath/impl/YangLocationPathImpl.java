@@ -67,14 +67,14 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
    public static SchemaNodeContainer getXPathSchemaParent(SchemaNode current) {
       SchemaNodeContainer parent = current.getParentSchemaNode();
       if (parent == null) {
-         current.getParentSchemaNode();
+         return null;
       }
 
       if (!(parent instanceof VirtualSchemaNode) && !(parent instanceof Case) && !(parent instanceof Choice) && !(parent instanceof Input) && !(parent instanceof Output)) {
          if (parent instanceof Module) {
             return new YangXPathRoot((Module)parent);
          } else {
-            return (SchemaNodeContainer)(parent.isSchemaTreeRoot() ? new YangXPathRoot((SchemaNode)parent) : parent);
+            return (parent.isSchemaTreeRoot() ? new YangXPathRoot((SchemaNode)parent) : parent);
          }
       } else {
          return getXPathSchemaParent((SchemaNode)parent);

@@ -169,6 +169,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       List<YangElement> subElements = this.getSubElements();
       Iterator iterator = subElements.iterator();
       this.dataDefinitions.clear();
+      this.cases.clear();
       while(iterator.hasNext()) {
          YangElement subElement = (YangElement)iterator.next();
          if (subElement instanceof YangBuiltinStatement) {
@@ -353,7 +354,6 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
          newCase.setShortCase(true);
          newCase.setParent(this);
          newCase.addChild(dataDefinition);
-         newCase.init();
          this.dataDefinitions.add(newCase);
          this.cases.add(newCase);
          validatorResultBuilder.merge(newCase.init());

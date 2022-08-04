@@ -69,12 +69,16 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
+      Module curModule = this.getContext().getCurModule();
+      Map<String, ModuleId> prefixes = curModule.getPrefixes();
+      if(this.prefix != null){
+         prefixes.remove(this.prefix.getArgStr());
+      }
       this.prefix = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() != 0) {
          this.prefix = (Prefix)matched.get(0);
-         Module curModule = this.getContext().getCurModule();
-         Map<String, ModuleId> prefixes = curModule.getPrefixes();
+
          if (prefixes.containsKey(this.prefix.getArgStr())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(prefix,ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
             return validatorResultBuilder.build();

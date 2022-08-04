@@ -59,33 +59,6 @@ public class ImportImpl extends YangStatementImpl implements Import {
       return referencedStmts;
    }
 
-   @Override
-   public void addReference(YangStatement yangStatement) {
-      for(YangStatement statement:referencedStmts){
-         if(statement == yangStatement){
-            return;
-         }
-      }
-      referencedStmts.add(yangStatement);
-   }
-
-   @Override
-   public void delReference(YangStatement yangStatement) {
-      referencedStmts.remove(yangStatement);
-   }
-
-   @Override
-   public boolean isReferencedBy(YangStatement yangStatement) {
-      for(YangStatement ref:referencedStmts){
-         if(ref == yangStatement){
-            return true;
-         }
-      }
-      return false;
-   }
-
-
-
 
    public Description getDescription() {
       return this.description;
@@ -159,23 +132,19 @@ public class ImportImpl extends YangStatementImpl implements Import {
          }
 
          ValidatorResult importModuleResult;
-         if (!this.importedModule.isInit()) {
-            importModuleResult = this.importedModule.init();
-            if (!importModuleResult.isOk()) {
-               validatorResultBuilder.merge(importModuleResult);
-               return validatorResultBuilder.build();
-            }
+         importModuleResult = this.importedModule.init();
+         if (!importModuleResult.isOk()) {
+            validatorResultBuilder.merge(importModuleResult);
+            return validatorResultBuilder.build();
          }
 
-         if (!this.importedModule.isBuilt()) {
-            importModuleResult = this.importedModule.build();
-            if (!importModuleResult.isOk()) {
-               if (schemaContext.isImportOnly(this.importedModule)) {
-                  validatorResultBuilder.merge(importModuleResult);
-               } else {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                          ErrorCode.IMPORT_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()})));
-               }
+         importModuleResult = this.importedModule.build();
+         if (!importModuleResult.isOk()) {
+            if (schemaContext.isImportOnly(this.importedModule)) {
+               validatorResultBuilder.merge(importModuleResult);
+            } else {
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.IMPORT_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()})));
             }
          }
 
@@ -202,14 +171,18 @@ public class ImportImpl extends YangStatementImpl implements Import {
       if (matched.size() != 0) {
          this.revisionDate = (RevisionDate)matched.get(0);
       }
+      Module curModule = this.getContext().getCurModule();
+      Map<String, ModuleId> prefixes = curModule.getPrefixes();
+      if(this.prefix != null){
+         prefixes.remove(this.prefix.getArgStr());
+      }
       this.prefix = null;
       matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() != 0) {
          this.prefix = (Prefix)matched.get(0);
       }
 
-      Module curModule = this.getContext().getCurModule();
-      Map<String, ModuleId> prefixes = curModule.getPrefixes();
+
       if (prefixes.containsKey(this.prefix.getArgStr())) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this.prefix,
                  ErrorCode.DUPLICATE_DEFINITION.getFieldName()));

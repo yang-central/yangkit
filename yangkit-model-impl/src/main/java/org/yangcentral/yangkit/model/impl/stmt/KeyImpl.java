@@ -1,7 +1,10 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
+import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Key;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
 
@@ -36,6 +39,8 @@ public class KeyImpl extends YangBuiltInStatementImpl implements Key {
       return false;
    }
 
+
+
    public Leaf getKeyNode(QName identifier) {
       Iterator leafIterator = this.keyNodes.iterator();
 
@@ -51,7 +56,24 @@ public class KeyImpl extends YangBuiltInStatementImpl implements Key {
       return key;
    }
 
+   @Override
+   public Leaf removeKeyNode(QName identifier) {
+      for(Leaf node:keyNodes){
+         if(node.getIdentifier().equals(identifier)){
+            keyNodes.remove(node);
+            return node;
+         }
+      }
+      return null;
+   }
+
+   @Override
+   public void removeKeyNodes() {
+      this.keyNodes.clear();
+   }
+
    public QName getYangKeyword() {
       return YangBuiltinKeyword.KEY.getQName();
    }
+
 }

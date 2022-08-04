@@ -237,6 +237,7 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
+            this.schemaNodeContainer.removeSchemaNodeChildren();
             Iterator dataDefinitionIterator = this.getDataDefChildren().iterator();
 
             while(dataDefinitionIterator.hasNext()) {

@@ -147,6 +147,8 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
 
    private ValidatorResult validateUnique(Unique unique) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      //clear
+      unique.removeUniqueNodes();
       String[] uniStrs = unique.getArgStr().split(" ");
       int length = uniStrs.length;
 
@@ -184,6 +186,11 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
 
    private ValidatorResult validateKey(Key key) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      //clear
+      if(!key.getkeyNodes().isEmpty()){
+         key.removeKeyNodes();
+      }
+
       String[] keys = key.getArgStr().split(" ");
       int length = keys.length;
 

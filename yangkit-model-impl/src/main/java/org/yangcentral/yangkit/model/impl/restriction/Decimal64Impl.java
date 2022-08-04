@@ -66,10 +66,8 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
       if (null == this.range) {
          return validatorResultBuilder.build();
       } else {
-         if (!this.range.isBuilt()) {
-            this.range.setBound(this.getHighBound(), this.getLowBound());
-            validatorResultBuilder.merge(this.range.build(BuildPhase.GRAMMAR));
-         }
+         this.range.setBound(this.getHighBound(), this.getLowBound());
+         validatorResultBuilder.merge(this.range.build(BuildPhase.GRAMMAR));
 
          if (this.getDerived() != null && !this.range.isSubSet(((Decimal64)this.getDerived().getType().getRestriction()).getRange())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(range,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),

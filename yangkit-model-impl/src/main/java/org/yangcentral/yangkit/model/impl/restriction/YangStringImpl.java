@@ -85,10 +85,8 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
          this.length = null;
          return validatorResultBuilder.build();
       }
-      if (!length.isBuilt()) {
-         length.setBound(this.getHighBound(), this.getLowBound());
-         validatorResultBuilder.merge(length.build(BuildPhase.GRAMMAR));
-      }
+      length.setBound(this.getHighBound(), this.getLowBound());
+      validatorResultBuilder.merge(length.build(BuildPhase.GRAMMAR));
 
       if (this.getDerived() != null) {
          Length derivedLength = ((YangString)this.getDerived().getType().getRestriction()).getEffectiveLength();

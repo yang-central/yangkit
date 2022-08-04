@@ -36,6 +36,11 @@ public class UniqueImpl extends YangBuiltInStatementImpl implements Unique {
       return false;
    }
 
+   @Override
+   public void removeUniqueNodes() {
+      this.uniqueNodes.clear();
+   }
+
    public QName getYangKeyword() {
       return YangBuiltinKeyword.UNIQUE.getQName();
    }

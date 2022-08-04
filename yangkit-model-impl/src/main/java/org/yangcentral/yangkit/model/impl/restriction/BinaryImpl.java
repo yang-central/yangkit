@@ -38,10 +38,8 @@ public class BinaryImpl extends RestrictionImpl<byte[]> implements Binary {
          this.length = null;
          return validatorResultBuilder.build();
       }
-      if (!length.isBuilt()) {
-         length.setBound(this.getHighBound(), this.getLowBound());
-         validatorResultBuilder.merge(length.build(BuildPhase.GRAMMAR));
-      }
+      length.setBound(this.getHighBound(), this.getLowBound());
+      validatorResultBuilder.merge(length.build(BuildPhase.GRAMMAR));
 
       if (this.getDerived() != null && !length.isSubSet(((Binary)this.getDerived().getType().getRestriction()).getLength())) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(length,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),

@@ -1,10 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
@@ -81,13 +77,8 @@ public class IncludeImpl extends YangStatementImpl implements Include {
          List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
          if (null != moduleList && moduleList.size() != 0) {
             if (moduleList.size() > 1) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.TOO_MANY_DEPENDECE_MODULES.getFieldName()));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                       ErrorCode.TOO_MANY_DEPENDECE_MODULES.getFieldName()));
                return validatorResultBuilder.build();
             }
 
@@ -114,87 +105,61 @@ public class IncludeImpl extends YangStatementImpl implements Include {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + this.getArgStr()})));
          return validatorResultBuilder.build();
-      } else if (wrongType) {
-         validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.WRONG_TYPE_DEPENDECE_MODULE.getFieldName() + " It should be a submodule, but get a module."));
-         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+      }
+
+      if (wrongType) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.WRONG_TYPE_DEPENDECE_MODULE.getFieldName() + " It should be a submodule, but get a module."));
          return validatorResultBuilder.build();
+      }
+      ValidatorResult includeResult = this.includeModule.init();
+      if (!includeResult.isOk()) {
+         if(schemaContext.isImportOnly(includeModule)){
+            validatorResultBuilder.merge(includeResult);
+         } else {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.INCLUDE_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()}) ));
+         }
+         return validatorResultBuilder.build();
+      }
+      if (!this.includeModule.getEffectiveYangVersion().equals(this.getContext().getCurModule().getEffectiveYangVersion())) {
+         incompatiableVersion = true;
+      }
+
+      if (incompatiableVersion) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 Severity.WARNING,ErrorTag.BAD_ELEMENT,
+                 ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
+      }
+
+      boolean includedErrorSubmodule = false;
+      if (curModule instanceof MainModule) {
+         if (!curModule.getArgStr().equals(this.includeModule.getBelongsto().getArgStr())) {
+            includedErrorSubmodule = true;
+         }
       } else {
-         if (!this.includeModule.isInit()) {
-            if (!schemaContext.isImportOnly(this.includeModule)) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setBadElement(this);
-               validatorRecordBuilder.setErrorPath(this.getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INCLUDE_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()})));
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               return validatorResultBuilder.build();
-            }
-
-            ValidatorResult includeResult = this.includeModule.init();
-            if (!includeResult.isOk()) {
-               validatorResultBuilder.merge(includeResult);
-               return validatorResultBuilder.build();
-            }
-         }
-
-         if (!this.includeModule.getEffectiveYangVersion().equals(this.getContext().getCurModule().getEffectiveYangVersion())) {
-            incompatiableVersion = true;
-         }
-
-         if (incompatiableVersion) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setSeverity(Severity.WARNING);
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-         }
-
-         boolean includedErrorSubmodule = false;
-         if (curModule instanceof MainModule) {
-            if (!curModule.getArgStr().equals(this.includeModule.getBelongsto().getArgStr())) {
-               includedErrorSubmodule = true;
-            }
-         } else {
-            SubModule sb = (SubModule)curModule;
-            if (!sb.getBelongsto().getArgStr().equals(this.includeModule.getBelongsto().getArgStr())) {
-               includedErrorSubmodule = true;
-            }
-         }
-
-         if (includedErrorSubmodule) {
-            validatorRecordBuilder = new ValidatorRecordBuilder();
-            validatorRecordBuilder.setSeverity(Severity.ERROR);
-            validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setBadElement(this);
-            validatorRecordBuilder.setErrorPath(this.getElementPosition());
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INCLUDE_MODULE_NOT_BELONGSTO_SELF.getFieldName()));
-            validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-            return validatorResultBuilder.build();
-         } else {
-            if (this.getContext().getCurModule().getEffectiveYangVersion().equals("1")) {
-               ValidatorResult includeResult = this.includeModule.build();
-               if (!includeResult.isOk()) {
-                  validatorRecordBuilder = new ValidatorRecordBuilder();
-                  validatorRecordBuilder.setSeverity(Severity.ERROR);
-                  validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                  validatorRecordBuilder.setBadElement(this);
-                  validatorRecordBuilder.setErrorPath(this.getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INCLUDE_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()})));
-                  validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               }
-            }
-
-            return validatorResultBuilder.build();
+         SubModule sb = (SubModule)curModule;
+         if (!sb.getBelongsto().getArgStr().equals(this.includeModule.getBelongsto().getArgStr())) {
+            includedErrorSubmodule = true;
          }
       }
+
+      if (includedErrorSubmodule) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INCLUDE_MODULE_NOT_BELONGSTO_SELF.getFieldName()));
+         return validatorResultBuilder.build();
+      }
+
+      if (this.getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)) {
+         includeResult = this.includeModule.build();
+         if (!includeResult.isOk()) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.INCLUDE_MODULE_NOT_VALIDATE.toString(new String[]{"module=" + this.getArgStr()}) ));
+         }
+      }
+
+      return validatorResultBuilder.build();
+
    }
 
    protected ValidatorResult initSelf() {

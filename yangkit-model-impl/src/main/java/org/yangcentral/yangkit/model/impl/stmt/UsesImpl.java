@@ -166,9 +166,15 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
             }
             //build ref grouping
             this.refGrouping = this.buildRefGrouping(validatorResultBuilder);
-            if(!this.refGrouping.isReferencedBy(this)){
-               this.refGrouping.addReference(this);
+            if(this.refGrouping != null){
+               if(!this.refGrouping.isReferencedBy(this)){
+                  this.refGrouping.addReference(this);
+               }
             }
+            else {
+               return validatorResultBuilder.build();
+            }
+
             //build augments
             Iterator<Augment> augmentIterator = this.augments.iterator();
             while(augmentIterator.hasNext()) {
@@ -217,12 +223,16 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                clonedDataDefiniton.getContext().setNamespace(this.getContext().getNamespace());
                clonedDataDefiniton.init();
                for(BuildPhase buildPhase:BuildPhase.values()) {
-                  if (buildPhase.compareTo(phase) < 0) {
-                     clonedDataDefiniton.build(buildPhase);
+                  if (buildPhase.compareTo(phase) <= 0) {
+                     ValidatorResult phaseResult = clonedDataDefiniton.build(buildPhase);
+                     validatorResultBuilder.merge(phaseResult);
+                     if(!phaseResult.isOk()){
+                        break;
+                     }
                   }
                }
 
-               validatorResultBuilder.merge(clonedDataDefiniton.build(phase));
+               //validatorResultBuilder.merge(clonedDataDefiniton.build(phase));
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedDataDefiniton));
             }
             //build action
