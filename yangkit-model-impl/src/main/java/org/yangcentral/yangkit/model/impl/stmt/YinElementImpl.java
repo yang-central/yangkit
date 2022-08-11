@@ -29,9 +29,15 @@ public class YinElementImpl extends YangSimpleStatementImpl implements YinElemen
       return this.value;
    }
 
+   @Override
+   protected void clear() {
+      this.value = false;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      this.value = false;
+
       if (!this.getArgStr().equals("true") && !this.getArgStr().equals("false")) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.INVALID_ARG.getFieldName()));

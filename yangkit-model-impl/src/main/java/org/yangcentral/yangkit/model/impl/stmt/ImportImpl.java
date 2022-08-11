@@ -88,7 +88,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
       YangSchemaContext schemaContext = context.getSchemaContext();
       boolean notFound = false;
       boolean wrongType = false;
-      this.importedModule = null;
+
       if (this.revisionDate == null) {
          List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
          if (null != moduleList && moduleList.size() != 0) {
@@ -152,36 +152,46 @@ public class ImportImpl extends YangStatementImpl implements Import {
       }
    }
 
-   protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      validatorResultBuilder.merge(super.initSelf());
+   @Override
+   protected void clear() {
       this.description = null;
-      List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
-      if (matched.size() != 0) {
-         this.description = (Description)matched.get(0);
-      }
-
       this.reference = null;
-      matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
-      if (matched.size() != 0) {
-         this.reference = (Reference)matched.get(0);
-      }
       this.revisionDate = null;
-      matched = this.getSubStatement(YangBuiltinKeyword.REVISIONDATE.getQName());
-      if (matched.size() != 0) {
-         this.revisionDate = (RevisionDate)matched.get(0);
-      }
       Module curModule = this.getContext().getCurModule();
       Map<String, ModuleId> prefixes = curModule.getPrefixes();
       if(this.prefix != null){
          prefixes.remove(this.prefix.getArgStr());
       }
       this.prefix = null;
+      this.importedModule = null;
+      super.clear();
+   }
+
+   protected ValidatorResult initSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      validatorResultBuilder.merge(super.initSelf());
+
+      List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
+      if (matched.size() != 0) {
+         this.description = (Description)matched.get(0);
+      }
+
+
+      matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
+      if (matched.size() != 0) {
+         this.reference = (Reference)matched.get(0);
+      }
+
+      matched = this.getSubStatement(YangBuiltinKeyword.REVISIONDATE.getQName());
+      if (matched.size() != 0) {
+         this.revisionDate = (RevisionDate)matched.get(0);
+      }
+      Module curModule = this.getContext().getCurModule();
+      Map<String, ModuleId> prefixes = curModule.getPrefixes();
       matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() != 0) {
          this.prefix = (Prefix)matched.get(0);
       }
-
 
       if (prefixes.containsKey(this.prefix.getArgStr())) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this.prefix,

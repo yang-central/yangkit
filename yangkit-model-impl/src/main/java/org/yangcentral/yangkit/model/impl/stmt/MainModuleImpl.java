@@ -42,18 +42,25 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
       return YangBuiltinKeyword.MODULE.getQName();
    }
 
-   protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      validatorResultBuilder.merge(super.initSelf());
+   @Override
+   protected void clear() {
       this.namespace = null;
-      List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.NAMESPACE.getQName());
-      if (matched.size() > 0) {
-         this.namespace = (Namespace)matched.get(0);
-      }
       if(this.prefix != null){
          prefixCache.remove(this.prefix.getArgStr());
       }
       this.prefix = null;
+      super.clear();
+   }
+
+   protected ValidatorResult initSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      validatorResultBuilder.merge(super.initSelf());
+
+      List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.NAMESPACE.getQName());
+      if (matched.size() > 0) {
+         this.namespace = (Namespace)matched.get(0);
+      }
+
       matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() > 0) {
          this.prefix = (Prefix)matched.get(0);

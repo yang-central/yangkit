@@ -68,9 +68,15 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
       }
    }
 
+   @Override
+   protected void clear() {
+      this.extension = null;
+      super.clear();
+   }
+
    private ValidatorResult validate_grammar() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      this.extension = null;
+
       try {
          Extension extension = this.findExtensionFromKeyword(this.getContext().getSchemaContext(), this.getContext().getCurModule());
          if (null != extension) {

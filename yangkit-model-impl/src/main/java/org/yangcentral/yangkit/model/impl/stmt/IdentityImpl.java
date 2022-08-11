@@ -112,9 +112,42 @@ public class IdentityImpl extends EntityImpl implements Identity {
       return YangBuiltinKeyword.IDENTITY.getQName();
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case BASE:{
+            if(getBase(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case IFFEATURE:{
+            if(getIfFeature(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      this.bases.clear();
+      this.ifFeatureSupport.removeIfFeatures();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      this.bases.clear();
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.BASE.getQName());
       Iterator iterator;
       YangStatement statement;
@@ -133,7 +166,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
             }
          }
       }
-      this.ifFeatureSupport.removeIfFeatures();
+
       matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
       iterator = matched.iterator();
 

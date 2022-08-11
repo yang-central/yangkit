@@ -163,13 +163,49 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       return null;
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result =  super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case CASE:
+         case ANYDATA:
+         case ANYXML:
+         case CHOICE:
+         case CONTAINER:
+         case LEAF:
+         case LEAFLIST:
+         case LIST:{
+            if(getDataDefChild(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      this.dataDefinitions.clear();
+      this.cases.clear();
+      this.mandatory = null;
+      this.aDefault = null;
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
       Iterator iterator = subElements.iterator();
-      this.dataDefinitions.clear();
-      this.cases.clear();
+
       while(iterator.hasNext()) {
          YangElement subElement = (YangElement)iterator.next();
          if (subElement instanceof YangBuiltinStatement) {
@@ -188,12 +224,12 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
             }
          }
       }
-      this.mandatory = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MANDATORY.getQName());
       if (matched.size() > 0) {
          this.mandatory = (Mandatory)matched.get(0);
       }
-      this.aDefault = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() > 0) {
          if (this.mandatory != null && this.mandatory.getValue()) {
@@ -263,7 +299,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
             break;
          case SCHEMA_BUILD:
             iterator = this.cases.iterator();
-            this.schemaNodeContainer.removeSchemaNodeChildren();
+
             while(true) {
                if (!iterator.hasNext()) {
                   break label44;
@@ -327,26 +363,18 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
    public ValidatorResult addDataDefChild(DataDefinition dataDefinition) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Case old;
+      old = this.getCase(dataDefinition.getArgStr());
+      if (null != old) {
+         validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(old, dataDefinition));
+         dataDefinition.setErrorStatement(true);
+         return validatorResultBuilder.build();
+      }
       if (dataDefinition instanceof Case) {
-         old = this.getCase(dataDefinition.getArgStr());
-         if (null != old) {
-            validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(old, dataDefinition));
-            dataDefinition.setErrorStatement(true);
-            return validatorResultBuilder.build();
-         }
-
          Case newCase = (Case)dataDefinition;
          this.dataDefinitions.add(newCase);
          this.cases.add(newCase);
          newCase.setParent(this);
       } else {
-         old = this.getCase(dataDefinition.getArgStr());
-         if (old != null) {
-            validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(old, dataDefinition));
-            dataDefinition.setErrorStatement(true);
-            return validatorResultBuilder.build();
-         }
-
          Case newCase = new CaseImpl(dataDefinition.getArgStr());
          YangContext childContext = new YangContext(this.getContext());
          newCase.setContext(childContext);

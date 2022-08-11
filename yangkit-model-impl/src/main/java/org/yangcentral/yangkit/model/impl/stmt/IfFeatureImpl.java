@@ -55,9 +55,15 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
       return YangBuiltinKeyword.IFFEATURE.getQName();
    }
 
+   @Override
+   protected void clear() {
+      this.ifFeatureExpr = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      this.ifFeatureExpr = null;
+
       try {
          if (this.getContext().getCurModule().getEffectiveYangVersion().equals("1") && !ModelUtil.isIdentifierRef(this.getArgStr())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(this,

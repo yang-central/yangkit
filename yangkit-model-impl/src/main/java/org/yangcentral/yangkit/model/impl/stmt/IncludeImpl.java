@@ -71,8 +71,7 @@ public class IncludeImpl extends YangStatementImpl implements Include {
       boolean notFound = false;
       boolean wrongType = false;
       boolean incompatiableVersion = false;
-      ValidatorRecordBuilder validatorRecordBuilder;
-      this.includeModule = null;
+
       if (this.revisionDate == null) {
          List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
          if (null != moduleList && moduleList.size() != 0) {
@@ -160,6 +159,15 @@ public class IncludeImpl extends YangStatementImpl implements Include {
 
       return validatorResultBuilder.build();
 
+   }
+
+   @Override
+   protected void clear() {
+      this.description = null;
+      this.reference = null;
+      this.revisionDate = null;
+      this.includeModule = null;
+      super.clear();
    }
 
    protected ValidatorResult initSelf() {

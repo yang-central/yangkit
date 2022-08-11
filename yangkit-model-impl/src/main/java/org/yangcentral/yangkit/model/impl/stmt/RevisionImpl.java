@@ -47,6 +47,13 @@ public class RevisionImpl extends YangSimpleStatementImpl implements Revision {
       return YangBuiltinKeyword.REVISION.getQName();
    }
 
+   @Override
+   protected void clear() {
+      this.description = null;
+      this.reference = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
@@ -54,12 +61,12 @@ public class RevisionImpl extends YangSimpleStatementImpl implements Revision {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.INVALID_REVISION_FORMAT.getFieldName()));
       }
-      this.description = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() > 0) {
          this.description = (Description)matched.get(0);
       }
-      this.reference = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() > 0) {
          this.reference = (Reference)matched.get(0);

@@ -64,12 +64,45 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       return this.dataDefContainer.getDataDefChild(name);
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result =  super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case CONTAINER:
+         case LIST:
+         case LEAF:
+         case LEAFLIST:
+         case ANYDATA:
+         case ANYXML:
+         case CHOICE:{
+            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      this.dataDefContainer.removeDataDefs();
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
       Iterator subElementIt = subElements.iterator();
-      this.dataDefContainer.removeDataDefs();
+
       while(subElementIt.hasNext()) {
          YangElement subElement = (YangElement)subElementIt.next();
          if (subElement instanceof YangBuiltinStatement) {
@@ -152,7 +185,7 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       switch (phase) {
          case SCHEMA_BUILD:
             Iterator iterator = this.getDataDefChildren().iterator();
-            this.schemaNodeContainer.removeSchemaNodeChildren();
+
             while(iterator.hasNext()) {
                DataDefinition dataDefinition = (DataDefinition)iterator.next();
                if (dataDefinition.evaluateFeatures()) {

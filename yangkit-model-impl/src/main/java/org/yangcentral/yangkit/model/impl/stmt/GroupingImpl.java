@@ -102,16 +102,62 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       return this.typedefContainer.getTypedef(defName);
    }
 
-   protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      validatorResultBuilder.merge(super.initSelf());
-      List<YangElement> subElements = this.getSubElements();
-      Iterator elementIterator = subElements.iterator();
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case TYPEDEF:{
+            if(getTypedef(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case GROUPING:{
+            if(getGrouping(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case CONTAINER:
+         case LIST:
+         case LEAF:
+         case LEAFLIST:
+         case ANYDATA:
+         case ANYXML:
+         case CHOICE:
+         case ACTION:
+         case NOTIFICATION:{
+            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
       this.typedefContainer.removeTypedefs();
       this.groupingDefContainer.removeGroupings();
       this.dataDefContainer.removeDataDefs();
       this.actionContainer.removeActions();
       this.notificationContainer.removeNotifications();
+      super.clear();
+   }
+
+   protected ValidatorResult initSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      validatorResultBuilder.merge(super.initSelf());
+      List<YangElement> subElements = this.getSubElements();
+      Iterator elementIterator = subElements.iterator();
+
       while(elementIterator.hasNext()) {
          YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {

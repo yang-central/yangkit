@@ -49,10 +49,36 @@ public class FeatureImpl extends EntityImpl implements Feature {
       return YangBuiltinKeyword.FEATURE.getQName();
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case IFFEATURE:{
+            if(getIfFeature(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      this.ifFeatureSupport.removeIfFeatures();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.ifFeatureSupport.removeIfFeatures();
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
       Iterator statementIterator = matched.iterator();
 

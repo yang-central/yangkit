@@ -53,10 +53,18 @@ public class WhenImpl extends YangBuiltInStatementImpl implements When {
       return YangBuiltinKeyword.WHEN.getQName();
    }
 
+   @Override
+   protected void clear() {
+      this.xPath = null;
+      this.description = null;
+      this.reference = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.xPath = null;
+
       try {
          YangXPath xPath = new YangXPathImpl(this.getArgStr());
          this.xPath = xPath;
@@ -75,12 +83,12 @@ public class WhenImpl extends YangBuiltInStatementImpl implements When {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.INVALID_XPATH.getFieldName()));
       }
-      this.description = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() != 0) {
          this.description = (Description)matched.get(0);
       }
-      this.reference = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() != 0) {
          this.reference = (Reference)matched.get(0);

@@ -485,10 +485,6 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          }
 
          case SCHEMA_BUILD:{
-            for(SchemaNode schemaNode:this.schemaNodeContainer.getSchemaNodeChildren()){
-               this.getContext().getSchemaContext().removeSchemaNodeChild(schemaNode);
-            }
-            this.schemaNodeContainer.removeSchemaNodeChildren();
             if (this.getEffectiveYangVersion().equals(Yang.VERSION_11) && this instanceof MainModule) {
                validatorResultBuilder.merge(this.validateSubModules(phase));
             }
@@ -590,6 +586,24 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    protected void clear() {
+      if(this.getEffectiveYangVersion().equals(Yang.VERSION_1)){
+         for(DataDefinition dataDefinition:getDataDefChildren()){
+            this.getContext().getSchemaContext().removeSchemaNodeChild(dataDefinition);
+         }
+         for(Rpc rpc:rpcs){
+            this.getContext().getSchemaContext().removeSchemaNodeChild(rpc);
+         }
+         for(Notification notification:getNotifications()){
+            this.getContext().getSchemaContext().removeSchemaNodeChild(notification);
+         }
+      } else if(this instanceof MainModule){
+         for(SchemaNode schemaNode:schemaNodeContainer.getSchemaNodeChildren()){
+            this.getContext().getSchemaContext().removeSchemaNodeChild(schemaNode);
+         }
+      }
+
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+
       this.yangVersion = null;
       this.description = null;
       this.reference = null;
@@ -631,10 +645,6 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          this.getContext().getSchemaNodeIdentifierCache().clear();
       }
 
-      for(SchemaNode schemaNode:this.schemaNodeContainer.getSchemaNodeChildren()){
-         this.getContext().getSchemaContext().removeSchemaNodeChild(schemaNode);
-      }
-      this.schemaNodeContainer.removeSchemaNodeChildren();
       super.clear();
    }
 
@@ -647,9 +657,97 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       this.notificationContainer.setYangContext(context);
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result =  super.checkChild(subStatement);
+      if(!result){
+         return result;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case IMPORT:{
+            Import newImport = (Import)subStatement;
+            Import orig = (Import) ModelUtil.checkConflict(subStatement,this.getSubStatement(subStatement.getYangKeyword()));
+            if(orig == null){
+               return true;
+            }
+
+            if (orig.getRevisionDate() != null && newImport.getRevisionDate() != null) {
+               if (orig.getRevisionDate().getArgStr().equals(newImport.getRevisionDate().getArgStr())) {
+                  return  false;
+               } else {
+                  return true;
+               }
+            }
+            return false;
+         }
+         case INCLUDE:{
+            Include orig = (Include) ModelUtil.checkConflict(subStatement,this.getSubStatement(subStatement.getYangKeyword()));
+            if(orig != null){
+               return false;
+            }
+            return true;
+         }
+         case REVISION:{
+            Revision orig = (Revision) ModelUtil.checkConflict(subStatement,this.getSubStatement(subStatement.getYangKeyword()));
+            if(orig != null){
+               return false;
+            }
+            return true;
+         }
+         case EXTENSION:{
+            if(getContext().getExtensionCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         case FEATURE:{
+            if(getContext().getFeatureCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         case IDENTITY:{
+            if(getContext().getIdentityCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         case TYPEDEF:{
+            if(getTypedef(subStatement.getArgStr())!= null){
+               return false;
+            }
+            return true;
+         }
+         case GROUPING:{
+            if(this.getGrouping(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case CONTAINER:
+         case LIST:
+         case LEAF:
+         case LEAFLIST:
+         case ANYDATA:
+         case ANYXML:
+         case CHOICE:
+         case RPC:
+         case NOTIFICATION:{
+            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+
+         default:{
+            return true;
+         }
+      }
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      clear();
       ValidatorResult superValidatorResult = super.initSelf();
       validatorResultBuilder.merge(superValidatorResult);
       List<YangElement> subElements = this.getSubElements();
@@ -686,7 +784,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                   break;
                case IMPORT:
                   Import newImport = (Import)builtinStatement;
-                  Import imp = (Import) ModelUtil.checkConflict(newImport, this.imports);
+                  Import imp = ModelUtil.checkConflict(newImport, this.imports);
                   if (null != imp) {
                      if (imp.getRevisionDate() != null && newImport.getRevisionDate() != null) {
                         if (imp.getRevisionDate().getArgStr().equals(newImport.getRevisionDate().getArgStr())) {

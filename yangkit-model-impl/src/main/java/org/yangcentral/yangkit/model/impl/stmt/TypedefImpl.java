@@ -56,6 +56,14 @@ public class TypedefImpl extends EntityImpl implements Typedef {
       return YangBuiltinKeyword.TYPEDEF.getQName();
    }
 
+   @Override
+   protected void clear() {
+      this.type = null;
+      this.units = null;
+      this.aDefault = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
@@ -64,17 +72,17 @@ public class TypedefImpl extends EntityImpl implements Typedef {
                  ErrorCode.INVALID_TYPEDEF_NAME.getFieldName()));
          return validatorResultBuilder.build();
       }
-      this.type = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.TYPE.getQName());
       if (matched.size() != 0) {
          this.type = (Type) matched.get(0);
       }
-      this.units = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.UNITS.getQName());
       if (matched.size() != 0) {
          this.units = (Units) matched.get(0);
       }
-      this.aDefault = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() != 0) {
          this.aDefault = (Default) matched.get(0);

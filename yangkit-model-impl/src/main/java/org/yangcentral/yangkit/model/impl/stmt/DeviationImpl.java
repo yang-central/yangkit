@@ -80,6 +80,16 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
       return YangBuiltinKeyword.DEVIATION.getQName();
    }
 
+   @Override
+   protected void clear() {
+      this.description = null;
+      this.reference = null;
+      this.deviates.clear();
+      this.targetPath = null;
+      this.target = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       if (!ModelUtil.isAbsoluteSchemaNodeIdentifier(this.getArgStr())) {
@@ -87,17 +97,17 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
                  ErrorCode.INVALID_ARG.getFieldName()));
          return validatorResultBuilder.build();
       }
-      this.description = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() != 0) {
          this.description = (Description)matched.get(0);
       }
-      this.reference = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() != 0) {
          this.reference = (Reference)matched.get(0);
       }
-      this.deviates.clear();
+
       matched = this.getSubStatement(YangBuiltinKeyword.DEVIATE.getQName());
       if (matched.size() != 0) {
          Iterator iterator;
@@ -132,7 +142,7 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
       ValidatorRecordBuilder validatorRecordBuilder;
       switch (phase) {
          case GRAMMAR:{
-            this.targetPath = null;
+
             try {
                SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), null, this,this.getArgStr());
                if (targetPath instanceof SchemaPath.Descendant) {
@@ -151,9 +161,10 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
          }
 
          case SCHEMA_MODIFIER:{
-            this.target = null;
+
             SchemaNode targetNode = this.targetPath.getSchemaNode(this.getContext().getSchemaContext());
             if (targetNode == null) {
+               this.targetPath.getSchemaNode(this.getContext().getSchemaContext());
                validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.MISSING_TARGET.getFieldName()));
                return validatorResultBuilder.build();
             }

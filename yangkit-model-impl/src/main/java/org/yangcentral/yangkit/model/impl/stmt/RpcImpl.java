@@ -143,13 +143,52 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
       return this.ifFeatureSupport.evaluateFeatures();
    }
 
-   protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case TYPEDEF:{
+            if(getTypedef(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case GROUPING:{
+            if(getGrouping(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case IFFEATURE:{
+            if(getIfFeature(subStatement.getArgStr())!=null){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
       this.groupingDefContainer.removeGroupings();
       this.typedefContainer.removeTypedefs();
       this.ifFeatureSupport.removeIfFeatures();
       this.input = null;
       this.output = null;
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+      super.clear();
+   }
+
+   protected ValidatorResult initSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.GROUPING.getQName());
       Iterator iterator;
       YangStatement statement;
@@ -202,7 +241,6 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            this.schemaNodeContainer.removeSchemaNodeChildren();
             this.setSchemaTreeType(SchemaTreeType.RPCTREE);
             if (this.input != null) {
                this.schemaNodeContainer.addSchemaNodeChild(this.input);

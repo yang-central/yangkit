@@ -26,9 +26,15 @@ public class ExtensionImpl extends EntityImpl implements Extension {
       return YangBuiltinKeyword.EXTENSION.getQName();
    }
 
+   @Override
+   protected void clear() {
+      this.argument = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      this.argument = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.ARGUMENT.getQName());
       if (matched.size() > 0) {
          this.argument = (Argument)matched.get(0);

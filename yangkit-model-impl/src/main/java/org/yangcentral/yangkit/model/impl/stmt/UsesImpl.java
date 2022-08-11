@@ -72,11 +72,19 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
       this.schemaNodeContainer.setYangContext(context);
    }
 
+   @Override
+   protected void clear() {
+      this.augments.clear();
+      this.refines.clear();
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+      this.refGrouping = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.augments.clear();
-      this.refines.clear();
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.AUGMENT.getQName());
       Iterator iterator;
       YangStatement child;
@@ -210,7 +218,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
          }
 
          case SCHEMA_BUILD:{
-            this.schemaNodeContainer.removeSchemaNodeChildren();
+
             //build datadef
             List<DataDefinition> dataDefChildren = this.refGrouping.getDataDefChildren();
             Iterator<DataDefinition> dataDefinitionIterator = dataDefChildren.iterator();

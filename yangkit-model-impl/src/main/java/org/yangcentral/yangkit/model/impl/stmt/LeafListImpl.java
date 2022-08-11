@@ -156,25 +156,34 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
       return YangBuiltinKeyword.LEAFLIST.getQName();
    }
 
+   @Override
+   protected void clear() {
+      this.minElements = null;
+      this.maxElements = null;
+      this.orderedBy = null;
+      this.defaults.clear();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.minElements = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MINELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.minElements = (MinElements)matched.get(0);
       }
-      this.maxElements = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.MAXELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.maxElements = (MaxElements)matched.get(0);
       }
-      this.orderedBy = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.ORDEREDBY.getQName());
       if (null != matched && matched.size() > 0) {
          this.orderedBy = (OrderedBy)matched.get(0);
       }
-      this.defaults.clear();
+
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() > 0) {
          ValidatorRecordBuilder validatorRecordBuilder;

@@ -38,10 +38,10 @@ public class YangYinParser {
       if (null == files) {
          return yangFiles;
       } else {
-         Iterator var2 = files.iterator();
+         Iterator fileIterator = files.iterator();
 
-         while(var2.hasNext()) {
-            File file = (File)var2.next();
+         while(fileIterator.hasNext()) {
+            File file = (File)fileIterator.next();
             yangFiles.addAll(getYangFiles(file));
          }
 
@@ -220,7 +220,7 @@ public class YangYinParser {
 
    public static YangSchemaContext parse(List<File> files, YangSchemaContext context) throws IOException, YangParserException, DocumentException {
       List<File> yangFiles = getYangFiles(files);
-      Iterator var3 = yangFiles.iterator();
+      Iterator fileIterator = yangFiles.iterator();
 
       while(true) {
          YangElement element;
@@ -230,11 +230,11 @@ public class YangYinParser {
             List elements;
             do {
                do {
-                  if (!var3.hasNext()) {
+                  if (!fileIterator.hasNext()) {
                      return context;
                   }
 
-                  yangFile = (File)var3.next();
+                  yangFile = (File)fileIterator.next();
                   if (yangFile.getName().endsWith(".yang")) {
                      YangParser yangParser = new YangParser();
                      String yangStr = FileUtil.readFile2String(yangFile);
@@ -253,10 +253,10 @@ public class YangYinParser {
             } while(elements.isEmpty());
 
             context.getParseResult().put(yangFile.getAbsolutePath(), elements);
-            Iterator var11 = elements.iterator();
+            Iterator iterator = elements.iterator();
 
-            while(var11.hasNext()) {
-               element = (YangElement)var11.next();
+            while(iterator.hasNext()) {
+               element = (YangElement)iterator.next();
                if (element instanceof YangStatement) {
                   Module module = (Module)element;
                   if (context.getYangSchema() == null) {

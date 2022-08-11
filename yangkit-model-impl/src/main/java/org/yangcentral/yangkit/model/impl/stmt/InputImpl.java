@@ -165,13 +165,65 @@ public class InputImpl extends SchemaNodeImpl implements Input {
    public ValidatorResult validateMusts() {
       return this.mustSupport.validateMusts();
    }
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case TYPEDEF:{
+            if(getTypedef(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case GROUPING:{
+            if(getGrouping(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case CONTAINER:
+         case LIST:
+         case LEAF:
+         case LEAFLIST:
+         case ANYDATA:
+         case ANYXML:
+         case CHOICE: {
+            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         case MUST:{
+            if(getMust(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      this.dataDefContainer.removeDataDefs();
+      this.groupingDefContainer.removeGroupings();
+      this.typedefContainer.removeTypedefs();
+      mustSupport.removeMusts();
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+      identifier = null;
+      super.clear();
+   }
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       Iterator elementIterator = this.getSubElements().iterator();
-      this.dataDefContainer.removeDataDefs();
-      this.groupingDefContainer.removeGroupings();
-      this.typedefContainer.removeTypedefs();
+
       while(elementIterator.hasNext()) {
          YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
@@ -196,6 +248,11 @@ public class InputImpl extends SchemaNodeImpl implements Input {
                case TYPEDEF:
                   Typedef typedef = (Typedef)builtinStatement;
                   validatorResultBuilder.merge(this.typedefContainer.addTypedef(typedef));
+                  break;
+               case MUST:{
+                  Must must = (Must) builtinStatement;
+                  validatorResultBuilder.merge(this.mustSupport.addMust(must));
+               }
             }
          }
       }
@@ -213,7 +270,7 @@ public class InputImpl extends SchemaNodeImpl implements Input {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            this.schemaNodeContainer.removeSchemaNodeChildren();
+
             Iterator dataDefinitionIterator = this.getDataDefChildren().iterator();
 
             while(dataDefinitionIterator.hasNext()) {

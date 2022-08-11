@@ -62,16 +62,9 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       super.setContext(context);
    }
 
-   protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+   @Override
+   protected void clear() {
       this.deviateType = null;
-      try {
-         DeviateType deviateType = DeviateType.forValue(this.getArgStr());
-         this.deviateType = deviateType;
-      } catch (IllegalArgumentException e) {
-         validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.INVALID_ARG.getFieldName()));
-         return validatorResultBuilder.build();
-      }
       this.config = null;
       this.mustSupport.removeMusts();
       this.defaults.clear();
@@ -81,6 +74,20 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       this.type = null;
       this.uniques.clear();
       this.units = null;
+      super.clear();
+   }
+
+   protected ValidatorResult initSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+
+      try {
+         DeviateType deviateType = DeviateType.forValue(this.getArgStr());
+         this.deviateType = deviateType;
+      } catch (IllegalArgumentException e) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.INVALID_ARG.getFieldName()));
+         return validatorResultBuilder.build();
+      }
+
       Iterator elementIterator = this.getSubElements().iterator();
 
       while(elementIterator.hasNext()) {

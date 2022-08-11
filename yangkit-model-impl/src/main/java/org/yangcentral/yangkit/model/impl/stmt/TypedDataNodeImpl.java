@@ -77,15 +77,22 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
       return validatorResultBuilder.build();
    }
 
+   @Override
+   protected void clear() {
+      this.type = null;
+      this.units = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.type = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.TYPE.getQName());
       if (matched.size() != 0) {
          this.type = (Type)matched.get(0);
       }
-      this.units = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.UNITS.getQName());
       if (matched.size() != 0) {
          this.units = (Units)matched.get(0);

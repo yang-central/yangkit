@@ -9,6 +9,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.register.*;
 import org.yangcentral.yangkit.util.ModelUtil;
 
@@ -32,6 +33,8 @@ public abstract class YangStatementImpl implements YangStatement {
    private YangStatement parentStmt;
    private ValidatorResult validatorResult;
    private ValidatorResult initResult;
+   private int lastSeq =-1;
+   private int seq = 0;
    private Map<BuildPhase, ValidatorResult> phaseResultMap = new ConcurrentHashMap();
    private boolean isError = false;
    private YangStatement clonedBy;
@@ -104,6 +107,16 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    public Position getElementPosition() {
+      if(position == null){
+         if(context != null){
+            Module curModule = context.getCurModule();
+            String moduleName = curModule.getArgStr();
+            String revision = curModule.getCurRevisionDate().isPresent()?curModule.getCurRevisionDate().get():null;
+            String source = moduleName +  "@" +(revision==null?"":revision);
+            Position pos = new Position(source,new YangStatementLocation(this));
+            position = pos;
+         }
+      }
       return this.position;
    }
 
@@ -284,7 +297,6 @@ public abstract class YangStatementImpl implements YangStatement {
 //      if (result.isOk()) {
 //         this.setBuilt(true);
 //      }
-
       return result;
    }
 
@@ -442,6 +454,34 @@ public abstract class YangStatementImpl implements YangStatement {
 //      this.isBuilt = built;
 //   }
 
+   public boolean checkChild(YangStatement subStatement){
+      if(context == null){
+         return true;
+      }
+      YangSpecification yangSpecification = context.getYangSpecification();
+      if(yangSpecification == null){
+         return true;
+      }
+      YangStatementDef statementDef = yangSpecification.getStatementDef(this.getYangKeyword());
+      if(statementDef == null){
+         return true;
+      }
+      if(subStatement instanceof DefaultYangUnknown){
+         return true;
+      }
+      Cardinality cardinality = statementDef.getSubStatementCardinality(subStatement.getYangKeyword());
+      if(cardinality == null){
+         return false;
+      }
+      if(cardinality.isUnbounded()){
+         return true;
+      }
+      List<YangStatement> matched = this.getSubStatement(subStatement.getYangKeyword());
+      if((matched.size() +1) > cardinality.getMaxElements()){
+         return false;
+      }
+      return true;
+   }
    public boolean addChild(YangElement yangElement) {
       boolean result = this.subElements.add(yangElement);
       if (!result) {
@@ -451,7 +491,7 @@ public abstract class YangStatementImpl implements YangStatement {
             YangStatementImpl yangStatement = (YangStatementImpl)yangElement;
             yangStatement.setParentStatement(this);
          }
-         clear();
+         seq++;
          return true;
       }
    }
@@ -462,8 +502,18 @@ public abstract class YangStatementImpl implements YangStatement {
          YangStatementImpl yangStatement = (YangStatementImpl)yangElement;
          yangStatement.setParentStatement(this);
       }
-      clear();
+      seq++;
       return true;
+   }
+
+   @Override
+   public int getChildIndex(YangElement child) {
+      for(int i =0; i< subElements.size();i++){
+         if(subElements.get(i) == child){
+            return i;
+         }
+      }
+      return -1;
    }
 
    public boolean updateChild(int index, YangElement yangElement) {
@@ -475,7 +525,7 @@ public abstract class YangStatementImpl implements YangStatement {
             YangStatementImpl yangStatement = (YangStatementImpl)yangElement;
             yangStatement.setParentStatement(this);
          }
-         clear();
+         seq++;
          return true;
       }
    }
@@ -484,7 +534,7 @@ public abstract class YangStatementImpl implements YangStatement {
       int index = -1;
 
       for(int i = 0; i < this.subElements.size(); ++i) {
-         YangElement element = (YangElement)this.subElements.get(i);
+         YangElement element = this.subElements.get(i);
          if (element instanceof YangStatement) {
             YangStatement yangStatement = (YangStatement)element;
             if (yangStatement.equals(statement)) {
@@ -504,7 +554,7 @@ public abstract class YangStatementImpl implements YangStatement {
       int pos = -1;
 
       for(int i = 0; i < this.subElements.size(); ++i) {
-         YangElement subElement = (YangElement)this.subElements.get(i);
+         YangElement subElement = this.subElements.get(i);
          if (subElement == yangElement) {
             pos = i;
             break;
@@ -514,12 +564,15 @@ public abstract class YangStatementImpl implements YangStatement {
       if (-1 == pos) {
          return false;
       } else {
-         YangElement element = (YangElement)this.subElements.remove(pos);
+         YangElement element = this.subElements.remove(pos);
          if (element instanceof YangStatement) {
             YangStatementImpl statement = (YangStatementImpl)element;
-            statement.setParentStatement((YangStatement)null);
+            if(statement.getParentStatement() == this){
+               statement.setParentStatement(null);
+            }
+
          }
-         clear();
+         seq++;
          return true;
       }
    }
@@ -557,6 +610,8 @@ public abstract class YangStatementImpl implements YangStatement {
       this.clonedBy = null;
       this.initResult = null;
       this.phaseResultMap.clear();
+      lastSeq = -1;
+      seq = 0;
    }
 
    public YangContext getContext() {
@@ -669,12 +724,19 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public ValidatorResult init() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      if(initResult != null){
-         return initResult;
+      if(lastSeq != seq){
+         clear();
+         lastSeq = seq;
       }
-      ValidatorResult result = this.initSelf();
-      initResult = result;
-      this.setValidateResult(result);
+      ValidatorResult result;
+      if(initResult != null){
+         result =  initResult;
+      } else {
+         result = this.initSelf();
+         initResult = result;
+         this.setValidateResult(result);
+      }
+
       validatorResultBuilder.merge(result);
       validatorResultBuilder.merge(this.initChildren());
       result = validatorResultBuilder.build();
@@ -708,8 +770,7 @@ public abstract class YangStatementImpl implements YangStatement {
             constructor = this.getClass().getConstructor(String.class);
             clonedStatement = (YangStatement)constructor.newInstance(this.getArgStr());
          }
-
-         clonedStatement.setElementPosition(this.getElementPosition());
+         //clonedStatement.setElementPosition(this.getElementPosition());
          Iterator elementIterator = this.getSubElements().iterator();
 
          while(elementIterator.hasNext()) {

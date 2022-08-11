@@ -38,7 +38,11 @@ public class AnyxmlImpl extends DataNodeImpl implements Anyxml {
    public QName getYangKeyword() {
       return YangBuiltinKeyword.ANYXML.getQName();
    }
-
+   @Override
+   protected void clear() {
+      mandatory = null;
+      super.clear();
+   }
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());

@@ -56,7 +56,7 @@ class DataDefContainerImpl implements DataDefContainer {
    public ValidatorResult addDataDefChild(DataDefinition dataDefinition) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(dataDefinition instanceof Uses)) {
-         DataDefinition orig = this.getDataDefChild(dataDefinition.getArgStr());
+         DataDefinition orig = (DataDefinition) this.getYangContext().getSchemaNodeIdentifierCache().get(dataDefinition.getArgStr());
          if (null != orig) {
             validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(orig, dataDefinition));
             dataDefinition.setErrorStatement(true);

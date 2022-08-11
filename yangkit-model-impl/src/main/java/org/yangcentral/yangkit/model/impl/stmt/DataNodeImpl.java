@@ -59,10 +59,37 @@ public abstract class DataNodeImpl extends SchemaDataNodeImpl implements DataNod
       return this.mustSupport.validateMusts();
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case MUST:{
+            if(getMust(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      this.mustSupport.removeMusts();
+      identifier = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.mustSupport.removeMusts();
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MUST.getQName());
       if (matched.size() != 0) {
          Iterator iterator = matched.iterator();

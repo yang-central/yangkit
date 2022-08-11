@@ -66,15 +66,22 @@ public class LeafImpl extends TypedDataNodeImpl implements Leaf {
       this.mandatory = mandatory;
    }
 
+   @Override
+   protected void clear() {
+      this.mandatory = null;
+      this.aDefault = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.mandatory = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MANDATORY.getQName());
       if (matched.size() != 0) {
          this.mandatory = (Mandatory)matched.get(0);
       }
-      this.aDefault = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() != 0) {
          this.aDefault = (Default)matched.get(0);

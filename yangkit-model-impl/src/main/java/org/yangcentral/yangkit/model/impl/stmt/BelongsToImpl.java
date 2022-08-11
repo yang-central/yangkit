@@ -40,7 +40,7 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
 
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       String moduleName = this.getArgStr();
-      this.mainModules.clear();
+
       List<Module> modules = this.getContext().getSchemaContext().getModule(moduleName);
       if (modules != null) {
          Iterator moduleIterator = modules.iterator();
@@ -66,15 +66,24 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
       }
    }
 
+   @Override
+   protected void clear() {
+      if(this.prefix != null){
+         Module curModule = this.getContext().getCurModule();
+         Map<String, ModuleId> prefixes = curModule.getPrefixes();
+         prefixes.remove(this.prefix.getArgStr());
+      }
+      this.prefix = null;
+      this.mainModules.clear();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       Module curModule = this.getContext().getCurModule();
       Map<String, ModuleId> prefixes = curModule.getPrefixes();
-      if(this.prefix != null){
-         prefixes.remove(this.prefix.getArgStr());
-      }
-      this.prefix = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.PREFIX.getQName());
       if (matched.size() != 0) {
          this.prefix = (Prefix)matched.get(0);

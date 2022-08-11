@@ -39,6 +39,8 @@ public interface YangStatement extends YangElement {
 
    boolean addChild(int index, YangElement yangElement);
 
+   int getChildIndex(YangElement child);
+
    boolean updateChild(YangStatement yangStatement);
 
    boolean updateChild(int index, YangElement yangElement);
@@ -46,6 +48,8 @@ public interface YangStatement extends YangElement {
    boolean removeChild(YangElement yangElement);
 
    void setChildren(List<YangElement> yangElements);
+
+   boolean checkChild(YangStatement subStatement);
 
    YangStatement getParentStatement();
 

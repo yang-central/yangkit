@@ -112,13 +112,49 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       return this.schemaNodeContainer.getMandatoryDescendant();
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case CONTAINER:
+         case LIST:
+         case LEAF:
+         case LEAFLIST:
+         case ANYDATA:
+         case ANYXML:
+         case CHOICE:
+         case CASE:
+         case ACTION:
+         case NOTIFICATION:{
+            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      dataDefContainer.removeDataDefs();
+      actionContainer.removeActions();
+      notificationContainer.removeNotifications();
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
       Iterator elementIterator = subElements.iterator();
-      dataDefContainer.removeDataDefs();
-      actionContainer.removeActions();
-      notificationContainer.removeNotifications();
+
       while(elementIterator.hasNext()) {
          YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {
@@ -157,7 +193,6 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       SchemaNode child;
       switch (phase) {
          case SCHEMA_BUILD:
-            this.schemaNodeContainer.removeSchemaNodeChildren();
             List<DataDefinition> dataDefChildren = this.getDataDefChildren();
             Iterator schemaChildrenIt = dataDefChildren.iterator();
 

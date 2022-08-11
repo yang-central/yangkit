@@ -39,6 +39,13 @@ public class EnumImpl extends EntityImpl implements YangEnum {
       this.ifFeatureSupport.setYangContext(context);
    }
 
+   @Override
+   protected void clear() {
+      value = null;
+      ifFeatureSupport.removeIfFeatures();
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
       this.value = null;
@@ -46,7 +53,12 @@ public class EnumImpl extends EntityImpl implements YangEnum {
       if (matched.size() != 0) {
          this.value = (Value)matched.get(0);
       }
-
+      matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
+      if(matched.size() >0){
+         for(YangStatement subStatement:matched){
+            validatorResultBuilder.merge(this.addIfFeature((IfFeature) subStatement));
+         }
+      }
       return validatorResultBuilder.build();
    }
 

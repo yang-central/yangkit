@@ -221,10 +221,45 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       return YangBuiltinKeyword.LIST.getQName();
    }
 
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result = super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case UNIQUE:{
+            if(getUnique(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
+      this.uniques.clear();
+      this.key = null;
+      this.minElements = null;
+      this.maxElements = null;
+      this.orderedBy = null;
+      List<YangStatement> leafs = this.getSubStatement(YangBuiltinKeyword.LEAF.getQName());
+      for(YangStatement statement:leafs){
+         Leaf leaf = (Leaf) statement;
+         leaf.setKey(false);
+      }
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.uniques.clear();
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.UNIQUE.getQName());
       Iterator statementIterator = matched.iterator();
 
@@ -232,22 +267,22 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          YangStatement subStatement = (YangStatement)statementIterator.next();
          this.uniques.add((Unique)subStatement);
       }
-      this.key = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.KEY.getQName());
       if (null != matched && matched.size() > 0) {
          this.key = (Key)matched.get(0);
       }
-      this.minElements = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.MINELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.minElements = (MinElements)matched.get(0);
       }
-      this.maxElements = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.MAXELEMENTS.getQName());
       if (null != matched && matched.size() > 0) {
          this.maxElements = (MaxElements)matched.get(0);
       }
-      this.orderedBy = null;
+
       matched = this.getSubStatement(YangBuiltinKeyword.ORDEREDBY.getQName());
       if (null != matched && matched.size() > 0) {
          this.orderedBy = (OrderedBy)matched.get(0);
@@ -312,11 +347,6 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       validatorResultBuilder.merge(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_TREE:{
-            List<YangStatement> leafs = this.getSubStatement(YangBuiltinKeyword.LEAF.getQName());
-            for(YangStatement statement:leafs){
-               Leaf leaf = (Leaf) statement;
-               leaf.setKey(false);
-            }
             if (this.getKey() != null) {
                validatorResultBuilder.merge(this.validateKey(this.getKey()));
             }

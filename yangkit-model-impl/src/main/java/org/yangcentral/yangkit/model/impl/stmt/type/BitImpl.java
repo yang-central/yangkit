@@ -36,10 +36,15 @@ public class BitImpl extends EntityImpl implements Bit {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      this.position = null;
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.POSITION.getQName());
       if (matched.size() != 0) {
          this.position = (Position)matched.get(0);
+      }
+      matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
+      if(matched.size() >0){
+         for(YangStatement subStatement:matched){
+            validatorResultBuilder.merge(this.addIfFeature((IfFeature) subStatement));
+         }
       }
 
       return validatorResultBuilder.build();

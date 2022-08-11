@@ -39,11 +39,17 @@ public class AnyDataImpl extends DataNodeImpl implements Anydata {
       return YangBuiltinKeyword.ANYDATA.getQName();
    }
 
+   @Override
+   protected void clear() {
+      mandatory = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MANDATORY.getQName());
-      mandatory = null;
+
       if (matched.size() > 0) {
          this.mandatory = (Mandatory)matched.get(0);
       }

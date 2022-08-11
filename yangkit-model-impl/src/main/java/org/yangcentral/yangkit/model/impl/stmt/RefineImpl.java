@@ -329,14 +329,8 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
       }
    }
 
-   protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      if (!ModelUtil.isDescendantSchemaNodeIdentifier(this.getArgStr())) {
-         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                 ErrorCode.INVALID_ARG.getFieldName() ));
-      }
-
-      Iterator elementIterator = this.getSubElements().iterator();
+   @Override
+   protected void clear() {
       this.config = null;
       this.ifFeatureSupport.removeIfFeatures();
       this.description = null;
@@ -347,6 +341,18 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
       this.reference = null;
       this.maxElements = null;
       this.minElements = null;
+      super.clear();
+   }
+
+   protected ValidatorResult initSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      if (!ModelUtil.isDescendantSchemaNodeIdentifier(this.getArgStr())) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                 ErrorCode.INVALID_ARG.getFieldName() ));
+      }
+
+      Iterator elementIterator = this.getSubElements().iterator();
+
       while(elementIterator.hasNext()) {
          YangElement subElement = (YangElement)elementIterator.next();
          if (subElement instanceof YangBuiltinStatement) {

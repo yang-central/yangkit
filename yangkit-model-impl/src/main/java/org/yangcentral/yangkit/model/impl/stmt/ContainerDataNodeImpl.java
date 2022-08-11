@@ -107,15 +107,62 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       return this.typedefContainer.getTypedef(defName);
    }
 
-   protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      validatorResultBuilder.merge(super.initSelf());
+   @Override
+   public boolean checkChild(YangStatement subStatement) {
+      boolean result =  super.checkChild(subStatement);
+      if(!result){
+         return false;
+      }
+      YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
+      switch (builtinKeyword){
+         case TYPEDEF:{
+            if(getTypedef(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case GROUPING:{
+            if(getGrouping(subStatement.getArgStr()) != null){
+               return false;
+            }
+            return true;
+         }
+         case CONTAINER:
+         case LIST:
+         case LEAF:
+         case LEAFLIST:
+         case ANYDATA:
+         case ANYXML:
+         case CHOICE:
+         case ACTION:
+         case NOTIFICATION:{
+            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
+               return false;
+            }
+            return true;
+         }
+         default:{
+            return true;
+         }
+      }
+   }
+
+   @Override
+   protected void clear() {
       //clear current state
       this.typedefContainer.removeTypedefs();
       this.groupingDefContainer.removeGroupings();
       this.dataDefContainer.removeDataDefs();
       this.actionContainer.removeActions();
       this.notificationContainer.removeNotifications();
+      this.schemaNodeContainer.removeSchemaNodeChildren();
+      super.clear();
+   }
+
+   protected ValidatorResult initSelf() {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      validatorResultBuilder.merge(super.initSelf());
+
       List<YangElement> subElements = this.getSubElements();
       Iterator iterator = subElements.iterator();
 
@@ -199,7 +246,6 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       validatorResultBuilder.merge(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            this.schemaNodeContainer.removeSchemaNodeChildren();
             Iterator iterator = this.getDataDefChildren().iterator();
 
             while(iterator.hasNext()) {

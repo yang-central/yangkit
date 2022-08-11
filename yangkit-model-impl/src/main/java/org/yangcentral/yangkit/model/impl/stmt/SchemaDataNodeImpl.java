@@ -27,6 +27,12 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
       super(argStr);
    }
 
+   @Override
+   protected void clear() {
+      this.config = null;
+      super.clear();
+   }
+
    public Config getConfig() {
       return this.config;
    }
@@ -49,7 +55,7 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.config = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.CONFIG.getQName());
       if (matched.size() != 0) {
          this.config = (Config)matched.get(0);

@@ -854,7 +854,21 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
          }
       } else if (this.restriction instanceof Union) {
          Union union = (Union)this.restriction;
-         statements.addAll(union.getTypes());
+         for(Type type: union.getTypes()){
+            String arg = type.getArgStr();
+            if(type.isDerivedType()){
+               arg = type.getBuiltinType().getArgStr();
+            }
+            Type newType = new TypeImpl(arg);
+            List<YangStatement> effectiveStatements = type.getEffectiveSubStatements();
+            for(YangStatement statement:effectiveStatements){
+               newType.addChild(statement);
+            }
+            newType.setContext(type.getContext());
+            newType.init();
+            newType.build();
+            statements.add(newType);
+         }
       }
 
       statements.addAll(super.getEffectiveSubStatements());

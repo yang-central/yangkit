@@ -27,10 +27,16 @@ public class SubModuleImpl extends ModuleImpl implements SubModule {
       return this.belongsTo;
    }
 
+   @Override
+   protected void clear() {
+      this.belongsTo = null;
+      super.clear();
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
-      this.belongsTo = null;
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName());
       if (null != matched && matched.size() > 0) {
          this.belongsTo = (BelongsTo)matched.get(0);
