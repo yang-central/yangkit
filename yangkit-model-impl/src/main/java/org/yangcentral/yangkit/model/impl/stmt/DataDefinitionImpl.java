@@ -97,7 +97,7 @@ public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataD
       YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
       switch (builtinKeyword){
          case IFFEATURE:{
-            if(this.getIfFeature(subStatement.getArgStr()) != null){
+            if(this.getSubStatement(builtinKeyword.getQName(),subStatement.getArgStr()) != null){
                return false;
             }
             return true;

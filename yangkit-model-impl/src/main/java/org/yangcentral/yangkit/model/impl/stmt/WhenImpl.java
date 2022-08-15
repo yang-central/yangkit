@@ -14,6 +14,7 @@ import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.YangXPath;
+import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,5 +110,24 @@ public class WhenImpl extends YangBuiltInStatementImpl implements When {
 
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+      if(obj == null){
+         return false;
+      }
+      if(!(obj instanceof When)){
+         return false;
+      }
+      if(this == obj){
+         return true;
+      }
+      When another = (When) obj;
+      boolean result = this.getXPathExpression().equals(another.getXPathExpression());
+      if(!result){
+         this.getXPathExpression().equals(another.getXPathExpression());
+      }
+      return result;
    }
 }

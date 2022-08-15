@@ -26,6 +26,7 @@ import org.jaxen.saxpath.XPathReader;
 import org.jaxen.saxpath.XPathSyntaxException;
 import org.jaxen.saxpath.helpers.XPathReaderFactory;
 import org.jaxen.util.SingletonList;
+import org.yangcentral.yangkit.model.api.stmt.XPathSupport;
 import org.yangcentral.yangkit.xpath.YangContextSupport;
 import org.yangcentral.yangkit.xpath.YangXPath;
 import org.yangcentral.yangkit.xpath.YangXPathVisitorContext;
@@ -37,6 +38,7 @@ public class YangXPathImpl implements YangXPath {
    private YangContextSupport support;
    private Navigator navigator;
    private YangXPathContext xPathContext;
+
 
    public YangXPathImpl(String xpathExpr) throws JaxenException {
       try {
@@ -228,5 +230,25 @@ public class YangXPathImpl implements YangXPath {
    protected Object selectSingleNodeForContext(Context context) throws JaxenException {
       List results = this.selectNodesForContext(context);
       return results.isEmpty() ? null : results.get(0);
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+      if(null == obj){
+         return false;
+      }
+      if(!(obj instanceof YangXPath)){
+         return false;
+      }
+      if(this == obj){
+         return true;
+      }
+      YangXPathImpl another = (YangXPathImpl) obj;
+
+      if(xPathContext == null || another.xPathContext == null){
+         return this.exprText.equals(another.exprText);
+      }
+
+      return XPathUtil.equals(this.getRootExpr(),another.getRootExpr(),this,another);
    }
 }

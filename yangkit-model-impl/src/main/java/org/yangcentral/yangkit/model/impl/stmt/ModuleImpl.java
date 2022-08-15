@@ -70,6 +70,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    private NotificationContainerImpl notificationContainer = new NotificationContainerImpl();
    private List<Augment> augments = new ArrayList();
    private List<Deviation> deviations = new ArrayList();
+   private List<Module> dependentBys = new ArrayList<>();
    private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
    protected Map<String, ModuleId> prefixCache = new ConcurrentHashMap();
 
@@ -609,6 +610,11 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       this.reference = null;
       this.organization = null;
       this.contact = null;
+      for(Import im:imports){
+         if(im.getImport().isPresent()){
+            im.getImport().get().removeDependentBy(this);
+         }
+      }
       this.imports.clear();
       this.includes.clear();
       this.revisions.clear();
@@ -627,6 +633,14 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       }
       this.identities.clear();
       this.rpcs.clear();
+      for(Augment augment:augments){
+         SchemaNode target = augment.getTarget();
+         if(target == null){
+            continue;
+         }
+         SchemaNodeContainer container = (SchemaNodeContainer) target;
+         container.removeSchemaNodeChild(augment);
+      }
       this.augments.clear();
       this.deviations.clear();
       if(this.getContext() != null){
@@ -655,6 +669,27 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       this.schemaNodeContainer.setYangContext(context);
       this.dataDefContainer.setYangContext(context);
       this.notificationContainer.setYangContext(context);
+   }
+
+   @Override
+   public List<Module> getDependentBys() {
+      return dependentBys;
+   }
+
+   @Override
+   public void addDependentBy(Module module) {
+      for(Module org:dependentBys){
+         if(org == module){
+            return;
+         }
+      }
+      dependentBys.add(module);
+   }
+
+   @Override
+   public void removeDependentBy(Module module) {
+      dependentBys.remove(module);
+
    }
 
    @Override

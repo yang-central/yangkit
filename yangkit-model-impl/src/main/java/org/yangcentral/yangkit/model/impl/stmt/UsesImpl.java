@@ -203,7 +203,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
 
             while(refineIterator.hasNext()) {
                Refine refine = refineIterator.next();
-               refine.setTargetPath(null);
+               //refine.setTargetPath(null);
                try {
                   SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, refine,refine.getArgStr());
                   refine.setTargetPath(targetPath);

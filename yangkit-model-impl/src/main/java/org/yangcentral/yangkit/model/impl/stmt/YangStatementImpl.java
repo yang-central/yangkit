@@ -155,6 +155,9 @@ public abstract class YangStatementImpl implements YangStatement {
       if(matched == null || matched.isEmpty()){
          return null;
       }
+      if(arg == null){
+         return matched.get(0);
+      }
       for(YangStatement statement:matched){
          if(statement.getArgStr().equals(arg)){
             return statement;

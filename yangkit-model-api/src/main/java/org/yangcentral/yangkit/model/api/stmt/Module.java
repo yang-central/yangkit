@@ -67,4 +67,8 @@ public interface Module extends YangBuiltinStatement, MetaDef, SchemaNodeContain
    List<YangStatement> getEffectiveLinkageStatement();
 
    List<YangStatement> getEffectiveDefinitionStatement();
+
+   List<Module> getDependentBys();
+   void addDependentBy(Module module);
+   void removeDependentBy(Module module);
 }

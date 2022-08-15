@@ -13,4 +13,5 @@ public interface YangXPath extends XPath, Serializable {
    void setXPathContext(YangXPathVisitorContext var1);
 
    Object evaluate(Object var1, YangContextSupport.EvaluateType var2) throws JaxenException;
+
 }

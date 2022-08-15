@@ -158,7 +158,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
             return true;
          }
          case IFFEATURE:{
-            if(getIfFeature(subStatement.getArgStr()) != null){
+            if(getSubStatement(builtinKeyword.getQName(),subStatement.getArgStr()) != null){
                return false;
             }
             return true;

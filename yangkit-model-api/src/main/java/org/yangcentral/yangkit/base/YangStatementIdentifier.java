@@ -30,6 +30,10 @@ public class YangStatementIdentifier {
 
         YangSpecification yangSpecification = yangStatement.getContext().getYangSpecification();
         YangStatementDef parentStatementDef = yangSpecification.getStatementDef(parentStmt.getYangKeyword());
+        if(parentStatementDef == null){
+            sb.append(yangStatement.getArgStr());//add argument
+            return sb.toString();
+        }
         Cardinality cardinality = parentStatementDef.getSubStatementCardinality(yangStatement.getYangKeyword());
         if(cardinality == null || cardinality.isUnbounded() || cardinality.getMaxElements() > 1){
             sb.append(yangStatement.getArgStr());//add argument

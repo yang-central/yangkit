@@ -215,4 +215,16 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
       }
       return validatorResultBuilder.build();
    }
+
+   @Override
+   public boolean equals(Object obj) {
+      if( !super.equals(obj)){
+         return false;
+      }
+      if(!(obj instanceof SchemaNode)){
+         return false;
+      }
+      SchemaNode another = (SchemaNode) obj;
+      return this.getIdentifier().equals(another.getIdentifier());
+   }
 }

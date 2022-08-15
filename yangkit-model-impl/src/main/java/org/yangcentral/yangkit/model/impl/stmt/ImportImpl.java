@@ -130,7 +130,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
             validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.WARNING,
                     ErrorTag.BAD_ELEMENT,ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
          }
-
+         importedModule.addDependentBy(this.getContext().getCurModule());
          ValidatorResult importModuleResult;
          importModuleResult = this.importedModule.init();
          if (!importModuleResult.isOk()) {
