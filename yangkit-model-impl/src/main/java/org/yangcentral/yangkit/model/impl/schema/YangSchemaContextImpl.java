@@ -188,15 +188,9 @@ public class YangSchemaContextImpl implements YangSchemaContext {
             return null;
          } else {
             filterModules.remove(matchedModule);
-            iterator = this.getSchemaNodeChildren().iterator();
-
-            while(iterator.hasNext()) {
-               SchemaNode schemaNode = (SchemaNode)iterator.next();
-               if (schemaNode.getContext().getCurModule() == matchedModule) {
-                  this.removeSchemaNodeChild(schemaNode);
-               }
+            for(SchemaNode schemaNode:matchedModule.getSchemaNodeChildren()){
+               this.removeSchemaNodeChild(schemaNode);
             }
-
             this.modules.remove(matchedModule);
             this.importOnlyModules.remove(matchedModule);
             return matchedModule;

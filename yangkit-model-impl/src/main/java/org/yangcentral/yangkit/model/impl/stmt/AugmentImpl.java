@@ -241,6 +241,8 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
                         this.removeSchemaNodeChild(child);
                         this.removeSchemaNodeChild(ch);//remove the old if it's built
                         this.addSchemaNodeChild(ch);
+                        ch.init();
+                        ch.build();
                      }
                      choice.removeCase(ch.getIdentifier());//remove the old if it's built
                      if (!choice.addCase(ch)) {
