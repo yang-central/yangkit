@@ -738,10 +738,10 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
          typedefs.addAll(getAllDerived(derived.getType()));
       } else if (type.getRestriction() instanceof Union) {
          Union union = (Union)type.getRestriction();
-         Iterator var3 = union.getTypes().iterator();
+         Iterator typeIterator = union.getTypes().iterator();
 
-         while(var3.hasNext()) {
-            Type subtype = (Type)var3.next();
+         while(typeIterator.hasNext()) {
+            Type subtype = (Type)typeIterator.next();
             typedefs.addAll(getAllDerived(subtype));
          }
       }
