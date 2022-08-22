@@ -74,4 +74,5 @@ public interface YangStatement extends YangElement {
    ValidatorResult afterValidate();
 
    List<YangStatement> getEffectiveSubStatements();
+   boolean changed();
 }

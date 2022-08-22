@@ -90,6 +90,7 @@ public class YangContext {
    }
 
    public void merge(YangContext other) {
+      this.mergedContexts.clear();
       this.mergedContexts.add(other);
    }
 /**

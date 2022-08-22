@@ -51,6 +51,11 @@ public abstract class YangStatementImpl implements YangStatement {
       return validatorResultBuilder.build();
    }
 
+   @Override
+   public boolean changed() {
+      return seq != lastSeq;
+   }
+
    protected ValidatorResult afterValidateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (this instanceof Referencable) {
@@ -103,7 +108,7 @@ public abstract class YangStatementImpl implements YangStatement {
 
    public void setArgStr(String argStr) {
       this.argStr = argStr;
-      clear();
+      seq++;
    }
 
    public Position getElementPosition() {
@@ -640,7 +645,12 @@ public abstract class YangStatementImpl implements YangStatement {
             continue;
          }
          YangStatement yangStatement = (YangStatement) subElement;
-         YangContext childContext = new YangContext(context);
+         YangContext childContext = yangStatement.getContext();
+         if((childContext == null) || yangStatement.changed()){
+            childContext = new YangContext(context);
+         } else {
+            childContext.merge(context);
+         }
          if(this instanceof Grouping){
             childContext.setCurGrouping((Grouping) this);
          }
