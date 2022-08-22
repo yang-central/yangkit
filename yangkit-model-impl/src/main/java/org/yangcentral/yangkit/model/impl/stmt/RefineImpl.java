@@ -163,20 +163,40 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
       switch (phase) {
          case SCHEMA_BUILD:
             this.mustSupport.setContextNode(XPathUtil.getXPathContextNode(this.targetNode));
-            MetaDef metaDef = this.targetNode;
             if (this.description != null) {
-               metaDef.setDescription(this.description);
+               YangStatement candidate = description.clone();
+               candidate.setContext(description.getContext());
+               List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
+               if(statements.isEmpty()){
+                  targetNode.addChild(candidate);
+               } else {
+                  targetNode.removeChild(statements.get(0));
+                  targetNode.addChild(candidate);
+               }
             }
 
             if (this.reference != null) {
-               metaDef.setReference(this.reference);
+               YangStatement candidate = reference.clone();
+               candidate.setContext(reference.getContext());
+               List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
+               if(statements.isEmpty()){
+                  targetNode.addChild(candidate);
+               } else {
+                  targetNode.removeChild(statements.get(0));
+                  targetNode.addChild(candidate);
+               }
             }
-
-            ValidatorRecordBuilder validatorRecordBuilder;
             if (this.config != null) {
                if (this.targetNode instanceof ConfigSupport) {
-                  ConfigSupport configSupport = (ConfigSupport)this.targetNode;
-                  configSupport.setConfig(this.config);
+                  YangStatement candidate = config.clone();
+                  candidate.setContext(config.getContext());
+                  List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.CONFIG.getQName());
+                  if(statements.isEmpty()){
+                     targetNode.addChild(candidate);
+                  } else {
+                     targetNode.removeChild(statements.get(0));
+                     targetNode.addChild(candidate);
+                  }
                } else {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                           ErrorCode.NOT_SUPPORT_CONFIG.getFieldName()));
@@ -194,10 +214,15 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
 
                   while(iterator.hasNext()) {
                      IfFeature ifFeature = (IfFeature)iterator.next();
-                     if(dataDefinition.getIfFeature(ifFeature.getArgStr()) != null){
-                        dataDefinition.removeIfFeature(ifFeature.getArgStr());
+                     YangStatement candidate = ifFeature.clone();
+                     candidate.setContext(ifFeature.getContext());
+                     YangStatement orig = targetNode.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName(),ifFeature.getArgStr());
+                     if(orig == null){
+                        targetNode.addChild(candidate);
+                     } else {
+                        targetNode.removeChild(orig);
+                        targetNode.addChild(candidate);
                      }
-                     validatorResultBuilder.merge(dataDefinition.addIfFeature(ifFeature));
                   }
                }
             }
@@ -209,8 +234,15 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
 
                   while(iterator.hasNext()) {
                      Must must = (Must)iterator.next();
-                     mustSupport.removeMust(must.getArgStr());
-                     validatorResultBuilder.merge(mustSupport.addMust(must));
+                     YangStatement candidate = must.clone();
+                     candidate.setContext(must.getContext());
+                     YangStatement orig = targetNode.getSubStatement(YangBuiltinKeyword.MUST.getQName(),must.getArgStr());
+                     if(orig == null){
+                        targetNode.addChild(candidate);
+                     } else {
+                        targetNode.removeChild(orig);
+                        targetNode.addChild(candidate);
+                     }
                   }
                } else {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this,
@@ -219,36 +251,28 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
             }
 
             if (this.defaults.size() > 0) {
-               if (this.targetNode instanceof Leaf) {
-                  Leaf leaf = (Leaf)this.targetNode;
-                  if (this.defaults.size() > 1) {
-                     validatorRecordBuilder = new ValidatorRecordBuilder();
-                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                     validatorRecordBuilder.setSeverity(Severity.ERROR);
-                     validatorRecordBuilder.setErrorPath(((Default)this.defaults.get(1)).getElementPosition());
-                     validatorRecordBuilder.setBadElement((YangStatement)this.defaults.get(1));
-                     validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                     validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(1),
-                             ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
-                  }
-
-                  leaf.setDefault((Default)this.defaults.get(0));
-               } else if (this.targetNode instanceof Choice) {
-                  Choice choice = (Choice)this.targetNode;
+               if ((this.targetNode instanceof Leaf) || (this.targetNode instanceof Choice)) {
                   if (this.defaults.size() > 1) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(1),
                              ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                   }
-
-                  boolean bool = choice.setDefault(this.defaults.get(0));
-                  if (!bool) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
-                             ErrorCode.MISSING_CASE.toString(new String[]{"name="
-                                     + ((Default)this.defaults.get(0)).getArgStr()})));
+                  YangStatement candidate = defaults.get(0).clone();
+                  candidate.setContext(defaults.get(0).getContext());
+                  List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
+                  if(!statements.isEmpty()){
+                     targetNode.removeChild(statements.get(0));
                   }
+                  targetNode.addChild(candidate);
                } else if (this.targetNode instanceof LeafList) {
-                  LeafList leafList = (LeafList)this.targetNode;
-                  leafList.setDefaults(this.defaults);
+                  List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
+                  for(YangStatement dflt:statements){
+                     targetNode.removeChild(dflt);
+                  }
+                  for(Default newDflt:defaults){
+                     YangStatement candidate = newDflt.clone();
+                     candidate.setContext(newDflt.getContext());
+                     targetNode.addChild(candidate);
+                  }
                } else {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
                           ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
@@ -260,15 +284,29 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(mandatory,
                           ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                } else {
-                  MandatorySupport mandatorySupport = (MandatorySupport)this.targetNode;
-                  mandatorySupport.setMandatory(this.mandatory);
+                  YangStatement candidate = mandatory.clone();
+                  candidate.setContext(mandatory.getContext());
+                  List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.MANDATORY.getQName());
+                  if(statements.isEmpty()){
+                     targetNode.addChild(candidate);
+                  } else {
+                     targetNode.removeChild(statements.get(0));
+                     targetNode.addChild(candidate);
+                  }
                }
             }
 
             if (this.presence != null) {
                if (this.targetNode instanceof Container) {
-                  Container container = (Container)this.targetNode;
-                  container.setPresence(this.presence);
+                  YangStatement candidate = presence.clone();
+                  candidate.setContext(presence.getContext());
+                  List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.PRESENCE.getQName());
+                  if(statements.isEmpty()){
+                     targetNode.addChild(candidate);
+                  } else {
+                     targetNode.removeChild(statements.get(0));
+                     targetNode.addChild(candidate);
+                  }
                } else {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(presence,
                           ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
@@ -278,8 +316,15 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
             MultiInstancesDataNode multiInstancesDataNode;
             if (this.maxElements != null) {
                if (this.targetNode instanceof MultiInstancesDataNode) {
-                  multiInstancesDataNode = (MultiInstancesDataNode)this.targetNode;
-                  multiInstancesDataNode.setMaxElements(this.maxElements);
+                  YangStatement candidate = maxElements.clone();
+                  candidate.setContext(maxElements.getContext());
+                  List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.MAXELEMENTS.getQName());
+                  if(statements.isEmpty()){
+                     targetNode.addChild(candidate);
+                  } else {
+                     targetNode.removeChild(statements.get(0));
+                     targetNode.addChild(candidate);
+                  }
                } else {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(maxElements,
                           ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
@@ -288,8 +333,15 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
 
             if (this.minElements != null) {
                if (this.targetNode instanceof MultiInstancesDataNode) {
-                  multiInstancesDataNode = (MultiInstancesDataNode)this.targetNode;
-                  multiInstancesDataNode.setMinElements(this.minElements);
+                  YangStatement candidate = minElements.clone();
+                  candidate.setContext(minElements.getContext());
+                  List<YangStatement> statements = targetNode.getSubStatement(YangBuiltinKeyword.MINELEMENTS.getQName());
+                  if(statements.isEmpty()){
+                     targetNode.addChild(candidate);
+                  } else {
+                     targetNode.removeChild(statements.get(0));
+                     targetNode.addChild(candidate);
+                  }
                } else {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(minElements,
                           ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
@@ -308,21 +360,29 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                      }
                   }
                   if(isMultiInstance){
-                     YangUnknown orig = this.targetNode.getUnknown(unknown.getYangKeyword(),unknown.getArgStr());
+                     YangStatement orig = this.targetNode.getSubStatement(unknown.getYangKeyword(),unknown.getArgStr());
                      if(orig != null){
-                        this.targetNode.getUnknowns().remove(orig);
+                        this.targetNode.removeChild(orig);
 
                      }
                   } else {
-                     List<YangUnknown> origs = this.targetNode.getUnknowns(unknown.getYangKeyword());
+                     List<YangStatement> origs = this.targetNode.getSubStatement(unknown.getYangKeyword());
                      if(!origs.isEmpty()){
-                        this.targetNode.getUnknowns().remove(origs.get(0));
+                        this.targetNode.removeChild(origs.get(0));
                      }
                   }
-                  this.targetNode.getUnknowns().add(unknown);
+                  YangStatement candidate = unknown.clone();
+                  candidate.setContext(unknown.getContext());
+                  targetNode.addChild(candidate);
 
                }
 
+            }
+            ValidatorResult validatorResult = targetNode.init();
+            if(!validatorResult.isOk()){
+               validatorResultBuilder.merge(validatorResult);
+            } else {
+               validatorResultBuilder.merge(targetNode.build());
             }
          default:
             return validatorResultBuilder.build();

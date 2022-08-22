@@ -633,7 +633,6 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected ValidatorResult initChildren() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      unknowns.clear();
       for(YangElement subElement:subElements){
          if(subElement == null){
             continue;
@@ -646,7 +645,7 @@ public abstract class YangStatementImpl implements YangStatement {
          }
          YangStatement yangStatement = (YangStatement) subElement;
          YangContext childContext = yangStatement.getContext();
-         if((childContext == null) || yangStatement.changed()){
+         if((childContext == null)){
             childContext = new YangContext(context);
          } else {
             childContext.merge(context);
@@ -655,9 +654,6 @@ public abstract class YangStatementImpl implements YangStatement {
             childContext.setCurGrouping((Grouping) this);
          }
          yangStatement.setContext(childContext);
-         if (subElement instanceof YangUnknown){
-            unknowns.add((YangUnknown) subElement);
-         }
          validatorResultBuilder.merge(yangStatement.init());
       }
       return validatorResultBuilder.build();
@@ -717,18 +713,13 @@ public abstract class YangStatementImpl implements YangStatement {
                           ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                   continue;
                }
+               unknowns.add((YangUnknown) subElement);
+               continue;
             }
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
             if (!subStatementInfos.containsKey(builtinStatement.getYangKeyword())) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setErrorPath(builtinStatement.getElementPosition());
-               validatorRecordBuilder.setBadElement(builtinStatement);
-               validatorRecordBuilder.setSeverity(Severity.ERROR);
-               validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
                        ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-               continue;
             }
 
          }
