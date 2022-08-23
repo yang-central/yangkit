@@ -170,14 +170,14 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       groupingDefContainer.removeGroupings();
       typedefContainer.removeTypedefs();
       ifFeatureSupport.removeIfFeatures();
       this.schemaNodeContainer.removeSchemaNodeChildren();
       this.input = null;
       this.output = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

@@ -176,14 +176,14 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.groupingDefContainer.removeGroupings();
       this.typedefContainer.removeTypedefs();
       this.ifFeatureSupport.removeIfFeatures();
       this.input = null;
       this.output = null;
       this.schemaNodeContainer.removeSchemaNodeChildren();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

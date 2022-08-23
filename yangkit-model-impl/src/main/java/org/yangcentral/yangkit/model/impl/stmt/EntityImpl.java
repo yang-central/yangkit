@@ -48,11 +48,11 @@ public abstract class EntityImpl extends YangBuiltInStatementImpl implements Ent
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.description = null;
       this.reference = null;
       this.status = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

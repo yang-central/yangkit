@@ -28,9 +28,9 @@ public class SubModuleImpl extends ModuleImpl implements SubModule {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.belongsTo = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

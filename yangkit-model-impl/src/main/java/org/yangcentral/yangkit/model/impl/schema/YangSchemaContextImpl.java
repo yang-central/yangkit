@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.model.impl.schema;
 
 import com.sun.org.apache.xpath.internal.operations.Mod;
+import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.base.YangSpecification;
@@ -11,11 +12,8 @@ import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchema;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
-import org.yangcentral.yangkit.model.api.stmt.SubModule;
 import org.yangcentral.yangkit.model.impl.stmt.SchemaNodeContainerImpl;
 
 import java.net.URI;
@@ -206,6 +204,44 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       return this.schemaNodeContainer.getMandatoryDescendant();
    }
 
+   private void buildDependencies(){
+      List<Module> modules = new ArrayList();
+      modules.addAll(this.getModules());
+      modules.addAll(this.getImportOnlyModules());
+      for(Module module:modules){
+         if(module == null){
+            continue;
+         }
+         module.getDependentBys().clear();
+      }
+      for(Module module:modules){
+         if(module == null){
+            continue;
+         }
+         List<YangStatement> imports = module.getSubStatement(YangBuiltinKeyword.IMPORT.getQName());
+         for(YangStatement statement:imports){
+            Import im = (Import) statement;
+            String moduleName = im.getArgStr();
+            String revisionDate = null;
+            List<YangStatement> revisionDates = im.getSubStatement(YangBuiltinKeyword.REVISIONDATE.getQName());
+            if(!revisionDate.isEmpty()){
+               revisionDate = revisionDates.get(0).getArgStr();
+            }
+
+            Optional<Module> importModuleOp = this.getModule(moduleName,revisionDate);
+            if(importModuleOp.isPresent()){
+               importModuleOp.get().addDependentBy(module);
+            }
+         }
+      }
+   }
+
+   private void clear(Module module){
+      module.clear();
+      for(Module dependent:module.getDependentBys()){
+         clear(dependent);
+      }
+   }
    /**
     * validate yang schema context, it will initial all statements (init fields from argument and sub statements),
     * and build all init statements(build linkage,check static grammar,build schema tree,etc.), and then it will validate
@@ -218,6 +254,12 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       List<Module> modules = new ArrayList();
       modules.addAll(this.getModules());
       modules.addAll(this.getImportOnlyModules());
+      buildDependencies();
+      for(Module module:modules){
+         if(module.changed()){
+            clear(module);
+         }
+      }
       //init
       for(Module module:modules){
          if(module.getContext() == null){

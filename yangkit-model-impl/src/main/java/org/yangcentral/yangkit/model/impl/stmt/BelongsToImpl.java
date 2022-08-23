@@ -67,7 +67,7 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       if(this.prefix != null){
          Module curModule = this.getContext().getCurModule();
          Map<String, ModuleId> prefixes = curModule.getPrefixes();
@@ -75,7 +75,7 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
       }
       this.prefix = null;
       this.mainModules.clear();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

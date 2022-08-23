@@ -210,14 +210,14 @@ public class InputImpl extends SchemaNodeImpl implements Input {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.dataDefContainer.removeDataDefs();
       this.groupingDefContainer.removeGroupings();
       this.typedefContainer.removeTypedefs();
       mustSupport.removeMusts();
       this.schemaNodeContainer.removeSchemaNodeChildren();
       identifier = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

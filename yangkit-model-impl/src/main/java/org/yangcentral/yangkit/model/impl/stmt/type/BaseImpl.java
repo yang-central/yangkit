@@ -54,9 +54,9 @@ public class BaseImpl extends YangBuiltInStatementImpl implements Base {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       identity = null;
-      super.clear();
+      super.clearSelf();
    }
 
    public YangStatement getReferenceStatement() {

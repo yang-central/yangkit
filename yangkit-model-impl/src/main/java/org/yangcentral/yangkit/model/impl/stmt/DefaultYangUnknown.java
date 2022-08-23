@@ -69,9 +69,9 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.extension = null;
-      super.clear();
+      super.clearSelf();
    }
 
    private ValidatorResult validate_grammar() {

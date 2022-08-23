@@ -56,13 +56,13 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.description = null;
       this.reference = null;
       this.errorMessage = null;
       this.errorAppTag = null;
       this.sections.clear();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

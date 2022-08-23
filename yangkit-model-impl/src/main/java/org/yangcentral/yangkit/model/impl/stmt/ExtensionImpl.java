@@ -27,9 +27,9 @@ public class ExtensionImpl extends EntityImpl implements Extension {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.argument = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

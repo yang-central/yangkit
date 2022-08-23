@@ -67,10 +67,10 @@ public class LeafImpl extends TypedDataNodeImpl implements Leaf {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.mandatory = null;
       this.aDefault = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

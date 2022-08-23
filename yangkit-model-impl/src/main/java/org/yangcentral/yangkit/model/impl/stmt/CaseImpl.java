@@ -91,10 +91,10 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.dataDefContainer.removeDataDefs();
       this.schemaNodeContainer.removeSchemaNodeChildren();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

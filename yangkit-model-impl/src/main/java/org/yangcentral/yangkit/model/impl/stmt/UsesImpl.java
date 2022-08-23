@@ -1,6 +1,5 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.base.Position;
@@ -73,12 +72,12 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.augments.clear();
       this.refines.clear();
       this.schemaNodeContainer.removeSchemaNodeChildren();
       this.refGrouping = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

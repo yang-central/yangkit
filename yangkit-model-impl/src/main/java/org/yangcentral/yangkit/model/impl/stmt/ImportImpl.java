@@ -2,14 +2,11 @@ package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
@@ -130,7 +127,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
             validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.WARNING,
                     ErrorTag.BAD_ELEMENT,ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
          }
-         importedModule.addDependentBy(this.getContext().getCurModule());
+         //importedModule.addDependentBy(this.getContext().getCurModule());
          ValidatorResult importModuleResult;
          importModuleResult = this.importedModule.init();
          if (!importModuleResult.isOk()) {
@@ -153,7 +150,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.description = null;
       this.reference = null;
       this.revisionDate = null;
@@ -164,7 +161,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
       }
       this.prefix = null;
       this.importedModule = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

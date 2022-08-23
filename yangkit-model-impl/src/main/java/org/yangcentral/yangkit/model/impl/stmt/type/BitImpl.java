@@ -82,10 +82,10 @@ public class BitImpl extends EntityImpl implements Bit {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       position = null;
       ifFeatureSupport.removeIfFeatures();
-      super.clear();
+      super.clearSelf();
    }
 
    public List<YangStatement> getEffectiveSubStatements() {

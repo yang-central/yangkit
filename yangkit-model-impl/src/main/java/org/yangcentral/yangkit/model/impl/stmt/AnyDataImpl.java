@@ -40,9 +40,9 @@ public class AnyDataImpl extends DataNodeImpl implements Anydata {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       mandatory = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

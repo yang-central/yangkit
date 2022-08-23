@@ -63,14 +63,14 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.pattern = null;
       this.description = null;
       this.reference = null;
       this.errorMessage = null;
       this.errorAppTag = null;
       this.modifier = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

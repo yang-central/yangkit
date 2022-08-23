@@ -1,20 +1,14 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.YangXPath;
-import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,12 +59,12 @@ public class MustImpl extends YangBuiltInStatementImpl implements Must {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.description = null;
       this.reference = null;
       this.errorMessage = null;
       this.errorAppTag = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

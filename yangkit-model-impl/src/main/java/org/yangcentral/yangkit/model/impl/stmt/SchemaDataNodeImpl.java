@@ -1,12 +1,7 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
@@ -28,9 +23,9 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.config = null;
-      super.clear();
+      super.clearSelf();
    }
 
    public Config getConfig() {

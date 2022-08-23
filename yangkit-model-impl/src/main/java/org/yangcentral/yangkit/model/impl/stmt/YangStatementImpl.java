@@ -2,7 +2,6 @@ package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
@@ -608,7 +607,16 @@ public abstract class YangStatementImpl implements YangStatement {
       this.parentStmt = parentStatement;
    }
 
-   protected void clear() {
+   public void clear(){
+      clearSelf();
+      for(YangElement element:subElements){
+         if(element instanceof YangStatement){
+            YangStatement subStatement = (YangStatement) element;
+            subStatement.clear();
+         }
+      }
+   }
+   protected void clearSelf() {
       this.unknowns.clear();
       this.isBuilding = false;
       this.isValidating = false;
@@ -729,7 +737,6 @@ public abstract class YangStatementImpl implements YangStatement {
    public ValidatorResult init() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if(lastSeq != seq){
-         clear();
          lastSeq = seq;
       }
       ValidatorResult result;

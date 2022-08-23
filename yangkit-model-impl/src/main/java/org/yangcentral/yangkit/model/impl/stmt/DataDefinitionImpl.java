@@ -109,10 +109,10 @@ public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataD
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.when = null;
       this.ifFeatureSupport.removeIfFeatures();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

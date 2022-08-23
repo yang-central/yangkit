@@ -148,7 +148,7 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       //clear current state
       this.typedefContainer.removeTypedefs();
       this.groupingDefContainer.removeGroupings();
@@ -156,7 +156,7 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       this.actionContainer.removeActions();
       this.notificationContainer.removeNotifications();
       this.schemaNodeContainer.removeSchemaNodeChildren();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

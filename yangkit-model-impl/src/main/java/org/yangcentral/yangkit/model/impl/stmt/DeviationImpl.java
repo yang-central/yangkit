@@ -2,12 +2,9 @@ package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
@@ -19,7 +16,6 @@ import org.yangcentral.yangkit.model.api.stmt.Deviation;
 import org.yangcentral.yangkit.model.api.stmt.ModelException;
 import org.yangcentral.yangkit.model.api.stmt.Reference;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
@@ -81,13 +77,13 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.description = null;
       this.reference = null;
       this.deviates.clear();
       this.targetPath = null;
       this.target = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

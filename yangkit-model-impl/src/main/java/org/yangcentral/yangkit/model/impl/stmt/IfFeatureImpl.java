@@ -7,14 +7,10 @@ import org.yangcentral.yangkit.antlr.IfFeatureExpressionLexer;
 import org.yangcentral.yangkit.antlr.IfFeatureExpressionParser;
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.*;
@@ -56,9 +52,9 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.ifFeatureExpr = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

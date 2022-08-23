@@ -2,14 +2,9 @@ package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
@@ -242,7 +237,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.uniques.clear();
       this.key = null;
       this.minElements = null;
@@ -253,7 +248,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          Leaf leaf = (Leaf) statement;
          leaf.setKey(false);
       }
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

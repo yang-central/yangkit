@@ -142,12 +142,12 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       dataDefContainer.removeDataDefs();
       actionContainer.removeActions();
       notificationContainer.removeNotifications();
       this.schemaNodeContainer.removeSchemaNodeChildren();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

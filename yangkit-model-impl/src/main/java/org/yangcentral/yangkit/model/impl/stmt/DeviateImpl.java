@@ -2,9 +2,6 @@ package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
@@ -32,8 +29,6 @@ import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangList;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
-import org.yangcentral.yangkit.register.YangStatementParserPolicy;
-import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import java.util.ArrayList;
@@ -63,7 +58,7 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.deviateType = null;
       this.config = null;
       this.mustSupport.removeMusts();
@@ -74,7 +69,7 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       this.type = null;
       this.uniques.clear();
       this.units = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

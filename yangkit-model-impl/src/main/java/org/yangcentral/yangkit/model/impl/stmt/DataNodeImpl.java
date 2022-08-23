@@ -80,10 +80,10 @@ public abstract class DataNodeImpl extends SchemaDataNodeImpl implements DataNod
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.mustSupport.removeMusts();
       identifier = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

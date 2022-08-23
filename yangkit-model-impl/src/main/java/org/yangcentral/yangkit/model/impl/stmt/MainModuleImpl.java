@@ -1,13 +1,8 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Include;
@@ -43,13 +38,13 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.namespace = null;
       if(this.prefix != null){
          prefixCache.remove(this.prefix.getArgStr());
       }
       this.prefix = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

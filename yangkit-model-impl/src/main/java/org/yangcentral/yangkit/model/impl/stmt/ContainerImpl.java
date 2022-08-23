@@ -35,9 +35,9 @@ public class ContainerImpl extends ContainerDataNodeImpl implements Container {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.presence = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

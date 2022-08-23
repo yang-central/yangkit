@@ -75,4 +75,5 @@ public interface YangStatement extends YangElement {
 
    List<YangStatement> getEffectiveSubStatements();
    boolean changed();
+   void clear();
 }

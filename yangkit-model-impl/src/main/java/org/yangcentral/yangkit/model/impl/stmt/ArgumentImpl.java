@@ -28,9 +28,9 @@ public class ArgumentImpl extends YangBuiltInStatementImpl implements Argument {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       yinElement = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

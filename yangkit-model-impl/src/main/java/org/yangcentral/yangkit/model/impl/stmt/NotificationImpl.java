@@ -195,14 +195,14 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.typedefContainer.removeTypedefs();
       this.groupingDefContainer.removeGroupings();
       this.dataDefContainer.removeDataDefs();
       this.ifFeatureSupport.removeIfFeatures();
       this.mustSupport.removeMusts();
       this.schemaNodeContainer.removeSchemaNodeChildren();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

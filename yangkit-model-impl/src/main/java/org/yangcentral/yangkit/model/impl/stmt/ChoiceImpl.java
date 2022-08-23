@@ -191,13 +191,13 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.dataDefinitions.clear();
       this.cases.clear();
       this.mandatory = null;
       this.aDefault = null;
       this.schemaNodeContainer.removeSchemaNodeChildren();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

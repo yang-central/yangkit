@@ -70,9 +70,9 @@ public class FeatureImpl extends EntityImpl implements Feature {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.ifFeatureSupport.removeIfFeatures();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

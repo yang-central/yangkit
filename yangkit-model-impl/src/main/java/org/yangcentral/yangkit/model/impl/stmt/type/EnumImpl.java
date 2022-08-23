@@ -40,10 +40,10 @@ public class EnumImpl extends EntityImpl implements YangEnum {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       value = null;
       ifFeatureSupport.removeIfFeatures();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

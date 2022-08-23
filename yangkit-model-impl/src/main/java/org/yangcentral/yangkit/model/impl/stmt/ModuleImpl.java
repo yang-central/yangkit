@@ -581,12 +581,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       return validatorResultBuilder.build();
    }
 
-   public void setChildren(List<YangElement> yangElements) {
-      this.clear();
-      super.setChildren(yangElements);
-   }
 
-   protected void clear() {
+
+   protected void clearSelf() {
       if(this.getEffectiveYangVersion().equals(Yang.VERSION_1)){
          for(DataDefinition dataDefinition:getDataDefChildren()){
             this.getContext().getSchemaContext().removeSchemaNodeChild(dataDefinition);
@@ -659,7 +656,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          this.getContext().getSchemaNodeIdentifierCache().clear();
       }
 
-      super.clear();
+      super.clearSelf();
    }
 
    public void setContext(YangContext context) {

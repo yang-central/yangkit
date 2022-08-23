@@ -1,13 +1,8 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.restriction.BuiltinType;
@@ -19,7 +14,6 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class TypedefImpl extends EntityImpl implements Typedef {
@@ -57,11 +51,11 @@ public class TypedefImpl extends EntityImpl implements Typedef {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.type = null;
       this.units = null;
       this.aDefault = null;
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {

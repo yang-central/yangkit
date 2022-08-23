@@ -139,10 +139,10 @@ public class IdentityImpl extends EntityImpl implements Identity {
    }
 
    @Override
-   protected void clear() {
+   protected void clearSelf() {
       this.bases.clear();
       this.ifFeatureSupport.removeIfFeatures();
-      super.clear();
+      super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {
