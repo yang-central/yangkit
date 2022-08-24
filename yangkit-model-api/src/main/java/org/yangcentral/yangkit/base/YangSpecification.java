@@ -61,6 +61,14 @@ public class YangSpecification {
       return this.statementDefs;
    }
 
+   public void addStatementDef(YangStatementDef statementDef){
+      statementDefs.put(statementDef.getKeyword(),statementDef);
+   }
+
+   public void removeStatementDef(QName qName){
+      statementDefs.remove(qName);
+   }
+
    private void initYang11Statements() {
       YangStatementDef module = new YangStatementDef(YangBuiltinKeyword.MODULE.getQName(), YangBuiltinKeyword.MODULE.getArgument(), YangBuiltinKeyword.MODULE.isYinElement());
       module.addSubStatementInfo(YangBuiltinKeyword.ANYDATA.getQName(), new Cardinality());

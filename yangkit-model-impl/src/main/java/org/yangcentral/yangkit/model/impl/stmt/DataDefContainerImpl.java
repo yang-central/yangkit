@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class DataDefContainerImpl implements DataDefContainer {
+public class DataDefContainerImpl implements DataDefContainer {
    private List<DataDefinition> dataDefs = new ArrayList();
    private YangContext yangContext;
 

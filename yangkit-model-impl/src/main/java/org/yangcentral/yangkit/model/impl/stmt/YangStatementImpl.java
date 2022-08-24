@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.*;
+import org.yangcentral.yangkit.common.api.Namespace;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
@@ -297,6 +298,13 @@ public abstract class YangStatementImpl implements YangStatement {
          validatorResultBuilder.merge(phaseResult);
          if (!phaseResult.isOk()) {
             break;
+         }
+         if(phase == BuildPhase.GRAMMAR){
+            ValidatorResult result = buildUnknowns();
+            if(!result.isOk()){
+               break;
+            }
+            validatorResultBuilder.merge(result);
          }
       }
 
@@ -857,5 +865,37 @@ public abstract class YangStatementImpl implements YangStatement {
       }
 
       return subStatements;
+   }
+
+   private YangUnknown transformUnknown(YangUnknown yangUnknown){
+      if(!(yangUnknown instanceof DefaultYangUnknown)){
+         return yangUnknown;
+      }
+      Extension extension = yangUnknown.getExtension();
+      if(extension == null){
+         return yangUnknown;
+      }
+      Namespace namespace = extension.getContext().getNamespace();
+      YangUnknown newUnknown = (YangUnknown) YangStatementRegister.getInstance().getYangStatementInstance(
+              new QName(namespace, extension.getArgStr()), yangUnknown.getArgStr());
+      if(newUnknown != null){
+         return newUnknown;
+      }
+      return yangUnknown;
+   }
+   private ValidatorResult buildUnknowns(){
+      int size = unknowns.size();
+      for(int i = 0; i < size;i++){
+         YangUnknown unknown = unknowns.get(i);
+         YangUnknown newUnknown = transformUnknown(unknown);
+         int index = getChildIndex(unknown);
+         this.updateChild(index,newUnknown);
+      }
+      this.clear();
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      validatorResultBuilder.merge(init());
+      validatorResultBuilder.merge(build(BuildPhase.LINKAGE));
+      validatorResultBuilder.merge(build(BuildPhase.GRAMMAR));
+      return validatorResultBuilder.build();
    }
 }

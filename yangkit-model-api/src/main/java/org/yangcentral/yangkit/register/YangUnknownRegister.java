@@ -31,6 +31,7 @@ public class YangUnknownRegister {
          return false;
       } else {
          this.unknownInfos.put(yangUnknownParserPolicy.getKeyword(), yangUnknownParserPolicy);
+         YangStatementRegister.getInstance().register(yangUnknownParserPolicy.getKeyword(),yangUnknownParserPolicy);
          if (yangUnknownParserPolicy.getParentStatements().size() != 0) {
             Iterator parentStatementInfoIterator = yangUnknownParserPolicy.getParentStatements().iterator();
 
@@ -46,6 +47,10 @@ public class YangUnknownRegister {
                   parentStatementDefVer1.addSubStatementInfo(yangUnknownParserPolicy.getKeyword(), parentStatementInfo.getCardinality());
                }
             }
+         }
+         if(yangUnknownParserPolicy.getStatementDef() != null){
+            YangSpecification.getVersion11Spec().addStatementDef(yangUnknownParserPolicy.getStatementDef());
+            YangSpecification.getVersion1Spec().addStatementDef(yangUnknownParserPolicy.getStatementDef());
          }
 
          return true;
@@ -71,6 +76,10 @@ public class YangUnknownRegister {
                parentStatementDef1.removeSubStatementInfo(keyword);
             }
          }
+      }
+      if(unknownParserPolicy.getStatementDef() != null){
+         YangSpecification.getVersion11Spec().removeStatementDef(unknownParserPolicy.getStatementDef().getKeyword());
+         YangSpecification.getVersion1Spec().removeStatementDef(unknownParserPolicy.getStatementDef().getKeyword());
       }
 
    }

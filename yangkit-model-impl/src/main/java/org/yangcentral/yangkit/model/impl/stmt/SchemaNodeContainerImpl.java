@@ -13,6 +13,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangData;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.*;
@@ -86,15 +87,18 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       if (this.self != null) {
          schemaNode.setParentSchemaNode(this.self);
       }
-
-      if (!(schemaNode instanceof Rpc) && !(schemaNode instanceof Action)) {
-         if (schemaNode instanceof Notification) {
-            schemaNode.setSchemaTreeType(SchemaTreeType.NOTIFICATIONTREE);
-         } else if (this.self != null && this.self instanceof SchemaNode) {
-            schemaNode.setSchemaTreeType(((SchemaNode)this.self).getSchemaTreeType());
-         }
-      } else {
+      if(schemaNode instanceof Rpc || schemaNode instanceof Action){
          schemaNode.setSchemaTreeType(SchemaTreeType.RPCTREE);
+      } else if(schemaNode instanceof Notification){
+         schemaNode.setSchemaTreeType(SchemaTreeType.NOTIFICATIONTREE);
+      } else {
+         if(this.self != null){
+            if(self instanceof YangData){
+               schemaNode.setSchemaTreeType(SchemaTreeType.YANGDATATREE);
+            } else if(self instanceof SchemaNode){
+               schemaNode.setSchemaTreeType(((SchemaNode) self).getSchemaTreeType());
+            }
+         }
       }
 
       return validatorResultBuilder.build();

@@ -1,7 +1,9 @@
 package org.yangcentral.yangkit.register;
 
 import org.yangcentral.yangkit.base.BuildPhase;
+import org.yangcentral.yangkit.base.YangStatementDef;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
 
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import java.util.List;
 
 public class YangUnknownParserPolicy extends YangStatementParserPolicy {
    private List<YangParentStatementInfo> parentStatements = new ArrayList();
+   private YangStatementDef statementDef;
 
    public YangUnknownParserPolicy(QName keyword, Class<? extends YangUnknown> clazz, List<BuildPhase> phases) {
       super(keyword, clazz, phases);
@@ -51,5 +54,13 @@ public class YangUnknownParserPolicy extends YangStatementParserPolicy {
       } while(!parentStatementInfo.getParentYangKeyword().equals(yangKeyword));
 
       return parentStatementInfo;
+   }
+
+   public YangStatementDef getStatementDef() {
+      return statementDef;
+   }
+
+   public void setStatementDef(YangStatementDef statementDef) {
+      this.statementDef = statementDef;
    }
 }
