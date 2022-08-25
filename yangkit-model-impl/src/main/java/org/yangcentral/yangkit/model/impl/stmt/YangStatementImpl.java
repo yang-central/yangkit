@@ -38,6 +38,7 @@ public abstract class YangStatementImpl implements YangStatement {
    private Map<BuildPhase, ValidatorResult> phaseResultMap = new ConcurrentHashMap();
    private boolean isError = false;
    private YangStatement clonedBy;
+   private boolean cleared = true;
 
    public YangStatementImpl(String argStr) {
       this.argStr = argStr;
@@ -637,6 +638,9 @@ public abstract class YangStatementImpl implements YangStatement {
       }
    }
    protected void clearSelf() {
+      if(cleared){
+         return;
+      }
       this.unknowns.clear();
       this.isBuilding = false;
       this.isValidating = false;
@@ -648,6 +652,7 @@ public abstract class YangStatementImpl implements YangStatement {
       this.phaseResultMap.clear();
       lastSeq = 0;
       seq = 0;
+      cleared = true;
    }
 
    public YangContext getContext() {
@@ -717,6 +722,7 @@ public abstract class YangStatementImpl implements YangStatement {
       if(lastSeq != seq){
          lastSeq = seq;
       }
+      cleared = false;
       ValidatorResult result;
       if(initResult != null){
          result =  initResult;

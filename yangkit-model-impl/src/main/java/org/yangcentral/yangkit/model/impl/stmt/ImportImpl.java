@@ -154,11 +154,14 @@ public class ImportImpl extends YangStatementImpl implements Import {
       this.description = null;
       this.reference = null;
       this.revisionDate = null;
-      Module curModule = this.getContext().getCurModule();
-      Map<String, ModuleId> prefixes = curModule.getPrefixes();
-      if(this.prefix != null){
-         prefixes.remove(this.prefix.getArgStr());
+      if(this.getContext() != null){
+         Module curModule = this.getContext().getCurModule();
+         Map<String, ModuleId> prefixes = curModule.getPrefixes();
+         if(this.prefix != null){
+            prefixes.remove(this.prefix.getArgStr());
+         }
       }
+
       this.prefix = null;
       this.importedModule = null;
       super.clearSelf();
