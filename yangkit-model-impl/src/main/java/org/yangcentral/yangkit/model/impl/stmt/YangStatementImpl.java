@@ -337,26 +337,20 @@ public abstract class YangStatementImpl implements YangStatement {
             return validatorResultBuilder.build();
          } else {
             ValidatorResult selfResult;
+            if(buildPhase == BuildPhase.GRAMMAR){
+               if (this.getContext() != null && this.getContext().getNamespace() == null) {
+                  this.getContext().setNamespace(ModelUtil.getNamespace(this.getContext().getCurModule()));
+               }
+            }
             if ((parserPolicy!= null && parserPolicy.getPhases().contains(buildPhase))
             || (this instanceof DefaultYangUnknown)) {
                if (this.phaseResultMap.containsKey(buildPhase)) {
                   validatorResultBuilder.merge(this.phaseResultMap.get(buildPhase));
                } else {
-
                   if(this.getValidateResult() != null && this.getValidateResult().isOk()){
                      this.buildPhase = buildPhase;
-                     if(buildPhase == BuildPhase.GRAMMAR){
-                        if (this.getContext() != null && this.getContext().getNamespace() == null) {
-                           this.getContext().setNamespace(ModelUtil.getNamespace(this.getContext().getCurModule()));
-                        }
-                     }
                      selfResult = this.buildSelf(buildPhase);
-                     if(buildPhase == BuildPhase.GRAMMAR){
-                        ValidatorResult result = buildUnknowns();
-                        ValidatorResultBuilder selfValidatorResultBuilder = new ValidatorResultBuilder(selfResult);
-                        selfValidatorResultBuilder.merge(result);
-                        selfResult = selfValidatorResultBuilder.build();
-                     }
+
                      this.phaseResultMap.put(buildPhase, selfResult);
                      this.setValidateResult(selfResult);
                      validatorResultBuilder.merge(selfResult);
@@ -412,6 +406,9 @@ public abstract class YangStatementImpl implements YangStatement {
             yangUnknown.init();
             validatorResultBuilder.merge(yangUnknown.build(phase));
          }
+      }
+      if(buildPhase == BuildPhase.GRAMMAR){
+         validatorResultBuilder.merge(buildUnknowns());
       }
 
       return validatorResultBuilder.build();

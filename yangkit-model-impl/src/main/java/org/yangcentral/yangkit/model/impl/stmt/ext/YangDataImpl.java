@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class YangDataImpl extends YangStatementImpl implements YangData  {
-    private String keyword;
+
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
     private final static QName YANG_KEYWORD = new QName("urn:ietf:params:xml:ns:yang:ietf-restconf","yang-data");
@@ -41,9 +41,8 @@ public class YangDataImpl extends YangStatementImpl implements YangData  {
 
         YangUnknownRegister.getInstance().register(unknownParserPolicy);
     }
-    public YangDataImpl(String keyword,String argStr) {
+    public YangDataImpl(String argStr) {
         super(argStr);
-        this.keyword = keyword;
     }
 
     @Override
@@ -75,7 +74,7 @@ public class YangDataImpl extends YangStatementImpl implements YangData  {
 
     @Override
     public String getKeyword() {
-        return keyword;
+        return null;
     }
 
     @Override
