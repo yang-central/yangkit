@@ -224,7 +224,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
             String moduleName = im.getArgStr();
             String revisionDate = null;
             List<YangStatement> revisionDates = im.getSubStatement(YangBuiltinKeyword.REVISIONDATE.getQName());
-            if(!revisionDate.isEmpty()){
+            if(!revisionDates.isEmpty()){
                revisionDate = revisionDates.get(0).getArgStr();
             }
 

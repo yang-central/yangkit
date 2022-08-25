@@ -21,7 +21,7 @@ public class YangDataImpl extends YangStatementImpl implements YangData  {
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
     private final static QName YANG_KEYWORD = new QName("urn:ietf:params:xml:ns:yang:ietf-restconf","yang-data");
-    static {
+    public static void register(){
         YangStatementRegister.getInstance().register(YANG_KEYWORD,
                 new YangStatementParserPolicy(YANG_KEYWORD, YangDataImpl.class,
                         Arrays.asList(BuildPhase.SCHEMA_BUILD)));

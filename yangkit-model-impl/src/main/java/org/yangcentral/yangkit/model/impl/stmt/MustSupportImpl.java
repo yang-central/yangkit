@@ -14,6 +14,7 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.YangXPath;
+import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import org.yangcentral.yangkit.xpath.impl.YangXPathContext;
 import org.yangcentral.yangkit.xpath.impl.YangXPathValidator;
 import java.util.ArrayList;
@@ -139,10 +140,11 @@ class MustSupportImpl implements MustSupport {
       while(mustIterator.hasNext()) {
          Must must = mustIterator.next();
          YangXPath xpath = must.getXPathExpression();
-         YangXPathContext yangXPathContext = new YangXPathContext(must.getContext(), this.contextNode, this.self);
+         Object contextNode = XPathUtil.getXPathContextNode(self);
+         YangXPathContext yangXPathContext = new YangXPathContext(must.getContext(), contextNode, this.self);
          xpath.setXPathContext(yangXPathContext);
          YangXPathValidator yangXPathValidator = new YangXPathValidator(xpath, yangXPathContext, new ValidatorResultBuilderFactory());
-         validatorResultBuilder.merge((ValidatorResult)yangXPathValidator.visit(xpath.getRootExpr(), this.contextNode));
+         validatorResultBuilder.merge(yangXPathValidator.visit(xpath.getRootExpr(), contextNode));
       }
 
       return validatorResultBuilder.build();

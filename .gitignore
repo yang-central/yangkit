@@ -1,0 +1,14 @@
+/.idea/
+/target/
+/yangkit-data-api/target/
+/yangkit-data-api/yangkit-data-api.iml
+/yangkit-model-api/target/
+/yangkit-model-api/yangkit-model-api.iml
+/yangkit-model-impl/target/
+/yangkit-model-impl/yangkit-model-impl.iml
+/yangkit-parser/target/
+/yangkit-parser/yangkit-parser.iml
+/yangkit-xpath-api/target/
+/yangkit-xpath-api/yangkit-xpath-api.iml
+/yangkit-xpath-impl/yangkit-xpath-impl.iml
+/yangkit-parent.iml

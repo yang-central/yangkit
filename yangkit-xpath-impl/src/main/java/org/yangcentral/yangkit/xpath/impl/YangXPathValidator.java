@@ -120,18 +120,19 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
    }
 
    private Object visitStep(Step step, Object context, Object currentNode) throws ModelException {
+      if(currentNode == null){
+         throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                 ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().getRootExpr().simplify().getText());
+      }
       if (step.getAxis() == Axis.PARENT) {
          if (currentNode instanceof SchemaNodeContainer && ((SchemaNodeContainer)currentNode).isSchemaTreeRoot()) {
-            throw new ModelException(Severity.WARNING, ((YangXPathContext)this.getContext()).getDefineNode(), ErrorCode.INVALID_XPATH.getFieldName() + " xpath:" + this.getYangXPath().getRootExpr().simplify().getText());
+            throw new ModelException(Severity.WARNING, (this.getContext()).getDefineNode(), ErrorCode.INVALID_XPATH.getFieldName() + " xpath:" + this.getYangXPath().getRootExpr().simplify().getText());
          }
-
          SchemaNodeContainer parent = YangLocationPathImpl.getXPathSchemaParent((SchemaNode)currentNode);
          currentNode = parent;
-         if(currentNode == null){
-            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
-                    ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().getRootExpr().simplify().getText());
-         }
+
       } else if (step.getAxis() == Axis.CHILD) {
+
          if (step instanceof NameStep) {
             NameStep nameStep = (NameStep)step;
             String prefix = nameStep.getPrefix();
@@ -272,12 +273,12 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
             throw new IllegalArgumentException("un-support function.");
          }
 
-         locationContext = ((YangXPathContext)this.getContext()).getContextNode();
+         locationContext = (this.getContext()).getContextNode();
       }
 
       Expr locationExpr = expr.getLocationPath();
-      builder.merge((ValidatorResult)this.visit(filterExpr, context));
-      builder.merge((ValidatorResult)this.visit(locationExpr, locationContext));
-      return (ValidatorResult)builder.build();
+      builder.merge(this.visit(filterExpr, context));
+      builder.merge(this.visit(locationExpr, locationContext));
+      return builder.build();
    }
 }
