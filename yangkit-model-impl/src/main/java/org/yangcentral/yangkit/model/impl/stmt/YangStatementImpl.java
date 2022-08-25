@@ -312,13 +312,7 @@ public abstract class YangStatementImpl implements YangStatement {
          if (!phaseResult.isOk()) {
             break;
          }
-         if(phase == BuildPhase.GRAMMAR){
-            ValidatorResult result = buildUnknowns();
-            if(!result.isOk()){
-               break;
-            }
-            validatorResultBuilder.merge(result);
-         }
+
       }
 
       ValidatorResult result = validatorResultBuilder.build();
@@ -351,7 +345,18 @@ public abstract class YangStatementImpl implements YangStatement {
 
                   if(this.getValidateResult() != null && this.getValidateResult().isOk()){
                      this.buildPhase = buildPhase;
+                     if(buildPhase == BuildPhase.GRAMMAR){
+                        if (this.getContext() != null && this.getContext().getNamespace() == null) {
+                           this.getContext().setNamespace(ModelUtil.getNamespace(this.getContext().getCurModule()));
+                        }
+                     }
                      selfResult = this.buildSelf(buildPhase);
+                     if(buildPhase == BuildPhase.GRAMMAR){
+                        ValidatorResult result = buildUnknowns();
+                        ValidatorResultBuilder selfValidatorResultBuilder = new ValidatorResultBuilder(selfResult);
+                        selfValidatorResultBuilder.merge(result);
+                        selfResult = selfValidatorResultBuilder.build();
+                     }
                      this.phaseResultMap.put(buildPhase, selfResult);
                      this.setValidateResult(selfResult);
                      validatorResultBuilder.merge(selfResult);
@@ -368,14 +373,7 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
-      switch (phase) {
-         case GRAMMAR:
-            if (this.getContext() != null && this.getContext().getNamespace() == null) {
-               this.getContext().setNamespace(ModelUtil.getNamespace(this.getContext().getCurModule()));
-            }
-         default:
-            return (new ValidatorResultBuilder()).build();
-      }
+      return (new ValidatorResultBuilder()).build();
    }
 
    protected ValidatorResult buildChildren(BuildPhase phase) {
