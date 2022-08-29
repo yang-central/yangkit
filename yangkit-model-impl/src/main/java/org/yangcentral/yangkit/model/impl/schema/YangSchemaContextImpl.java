@@ -1,6 +1,5 @@
 package org.yangcentral.yangkit.model.impl.schema;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.base.YangElement;
@@ -13,15 +12,10 @@ import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchema;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
-import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.impl.stmt.SchemaNodeContainerImpl;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangSchemaContextImpl implements YangSchemaContext {
@@ -60,7 +54,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
 
          while(iterator.hasNext()) {
             Module module = (Module)iterator.next();
-            if (moduleId.getRevision() == null) {
+            if (moduleId.getRevision() == null || moduleId.getRevision().equals("")) {
                if (module.getArgStr().equals(moduleId.getModuleName())) {
                   return Optional.of(module);
                }
