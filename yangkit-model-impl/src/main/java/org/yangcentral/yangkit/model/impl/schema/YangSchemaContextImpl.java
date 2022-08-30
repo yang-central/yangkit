@@ -12,6 +12,7 @@ import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchema;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.impl.stmt.SchemaNodeContainerImpl;
 
 import java.net.URI;
@@ -286,7 +287,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    public ValidatorResult addSchemaNodeChild(SchemaNode schemaNode) {
-      return this.isImportOnly(schemaNode.getContext().getCurModule()) ? (new ValidatorResultBuilder()).build() : this.schemaNodeContainer.addSchemaNodeChild(schemaNode);
+      return this.schemaNodeContainer.addSchemaNodeChild(schemaNode);
    }
 
    public ValidatorResult addSchemaNodeChildren(List<SchemaNode> schemaNodes) {
