@@ -25,6 +25,8 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    private Map<String, List<Module>> moduleMap = new ConcurrentHashMap();
    private Map<String, List<YangElement>> parseResult = new ConcurrentHashMap();
    private YangSchema schema;
+
+   private ValidatorResult validatorResult;
    private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(null);
 
    public List<Module> getModules() {
@@ -279,7 +281,13 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          validatorResultBuilder.merge(module.validate());
          validatorResultBuilder.merge(module.afterValidate());
       }
-      return validatorResultBuilder.build();
+      ValidatorResult validatorResult = validatorResultBuilder.build();
+      this.validatorResult = validatorResult;
+      return validatorResult;
+   }
+
+   public ValidatorResult getValidateResult() {
+      return validatorResult;
    }
 
    public List<SchemaNode> getSchemaNodeChildren() {

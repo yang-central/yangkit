@@ -48,4 +48,6 @@ public interface YangSchemaContext extends SchemaNodeContainer {
    Map<String, List<YangElement>> getParseResult();
 
    ValidatorResult validate();
+
+   ValidatorResult getValidateResult();
 }

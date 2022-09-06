@@ -136,11 +136,10 @@ public enum ErrorCode {
    private String formatFieldName(String[] args) {
       if (args != null && args.length != 0) {
          String output = this.fieldName;
-         String[] var3 = args;
-         int var4 = args.length;
+         int length = args.length;
 
-         for(int var5 = 0; var5 < var4; ++var5) {
-            String arg = var3[var5];
+         for(int i = 0; i < length; ++i) {
+            String arg = args[i];
             String[] argInfo = arg.split("=", 2);
             if (argInfo.length != 2) {
                throw new IllegalArgumentException("wrong format");
