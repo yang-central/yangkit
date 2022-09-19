@@ -532,7 +532,6 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             augmentCache.addAll(this.augments);
             List<Augment> errorCache = new ArrayList();
             ValidatorResultBuilder subResultBuilder = new ValidatorResultBuilder();
-
             int parsedCount = 0;
             do {
                subResultBuilder.clear();

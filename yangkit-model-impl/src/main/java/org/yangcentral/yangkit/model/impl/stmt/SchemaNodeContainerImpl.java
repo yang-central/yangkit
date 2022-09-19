@@ -60,21 +60,24 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
 
                parent = (SchemaNode)this.self;
                SchemaNodeContainer closestAncestorNode = parent.getClosestAncestorNode();
-               ValidatorRecordBuilder validatorRecordBuilder;
                if (!(this.self instanceof DataNode) && closestAncestorNode instanceof YangSchemaContext) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(schemaNode,
                           ErrorCode.ACTION_NOT_TOP.getFieldName()));
                   return validatorResultBuilder.build();
                }
 
-               if (parent.getSchemaTreeType() == SchemaTreeType.RPCTREE || parent.getSchemaTreeType() == SchemaTreeType.NOTIFICATIONTREE) {
+               if (parent.getSchemaTreeType() == SchemaTreeType.INPUTTREE
+                       || parent.getSchemaTreeType() == SchemaTreeType.OUTPUTTREE
+                       || parent.getSchemaTreeType() == SchemaTreeType.NOTIFICATIONTREE) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(schemaNode,
                           ErrorCode.ACTION_IN_DATATREE.getFieldName()));
                   return validatorResultBuilder.build();
                }
             } else if (schemaNode instanceof Notification && this.self instanceof SchemaNode) {
                parent = (SchemaNode)this.self;
-               if (parent.getSchemaTreeType() == SchemaTreeType.RPCTREE || parent.getSchemaTreeType() == SchemaTreeType.NOTIFICATIONTREE) {
+               if (parent.getSchemaTreeType() == SchemaTreeType.INPUTTREE
+                       || parent.getSchemaTreeType() == SchemaTreeType.OUTPUTTREE
+                       || parent.getSchemaTreeType() == SchemaTreeType.NOTIFICATIONTREE) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(schemaNode,
                           ErrorCode.NOTIFICATION_NOT_IN_DATATREE.getFieldName()));
                   return validatorResultBuilder.build();
@@ -87,15 +90,18 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       if (this.self != null) {
          schemaNode.setParentSchemaNode(this.self);
       }
-      if(schemaNode instanceof Rpc || schemaNode instanceof Action){
-         schemaNode.setSchemaTreeType(SchemaTreeType.RPCTREE);
+      if(schemaNode instanceof Input ){
+         schemaNode.setSchemaTreeType(SchemaTreeType.INPUTTREE);
+      } else if(schemaNode instanceof Output ){
+         schemaNode.setSchemaTreeType(SchemaTreeType.OUTPUTTREE);
       } else if(schemaNode instanceof Notification){
          schemaNode.setSchemaTreeType(SchemaTreeType.NOTIFICATIONTREE);
-      } else {
+      } else if(schemaNode instanceof YangData){
+         schemaNode.setSchemaTreeType(SchemaTreeType.YANGDATATREE);
+      }
+      else {
          if(this.self != null){
-            if(self instanceof YangData){
-               schemaNode.setSchemaTreeType(SchemaTreeType.YANGDATATREE);
-            } else if(self instanceof SchemaNode){
+            if(self instanceof SchemaNode){
                schemaNode.setSchemaTreeType(((SchemaNode) self).getSchemaTreeType());
             }
          }

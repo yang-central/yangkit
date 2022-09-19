@@ -261,7 +261,7 @@ public class ActionImpl extends SchemaNodeImpl implements Action {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            this.setSchemaTreeType(SchemaTreeType.RPCTREE);
+            //this.setSchemaTreeType(SchemaTreeType.RPCTREE);
             if (this.input != null) {
                this.schemaNodeContainer.addSchemaNodeChild(this.input);
             } else {

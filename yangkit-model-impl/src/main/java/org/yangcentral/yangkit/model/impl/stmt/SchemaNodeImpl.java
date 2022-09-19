@@ -48,7 +48,7 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
    }
 
    public SchemaPath.Absolute getSchemaPath() {
-      return this.schemaPath;
+      return schemaPath;
    }
 
    public SchemaNodeContainer getParentSchemaNode() {

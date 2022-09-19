@@ -241,7 +241,7 @@ public class RpcImpl extends SchemaNodeImpl implements Rpc {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            this.setSchemaTreeType(SchemaTreeType.RPCTREE);
+            //this.setSchemaTreeType(SchemaTreeType.RPCTREE);
             if (this.input != null) {
                this.schemaNodeContainer.addSchemaNodeChild(this.input);
             } else {
