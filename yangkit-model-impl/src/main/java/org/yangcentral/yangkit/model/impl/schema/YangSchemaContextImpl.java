@@ -235,9 +235,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
 
    private void clear(Module module){
       module.clear();
-      for(Module dependent:module.getDependentBys()){
-         clear(dependent);
-      }
+
    }
    /**
     * validate yang schema context, it will initial all statements (init fields from argument and sub statements),

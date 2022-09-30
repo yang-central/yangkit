@@ -150,7 +150,7 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
                this.setTargetPath(targetPath);
                break;
             } catch (ModelException e) {
-               validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                        e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
                break;
             }

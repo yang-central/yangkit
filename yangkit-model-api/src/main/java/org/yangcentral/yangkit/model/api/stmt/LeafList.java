@@ -3,7 +3,7 @@ package org.yangcentral.yangkit.model.api.stmt;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import java.util.List;
 
-public interface LeafList extends MultiInstancesDataNode, TypedDataNode {
+public interface LeafList extends MultiInstancesDataNode, TypedDataNode,YangBuiltinStatement {
    List<Default> getDefaults();
 
    List<Default> getEffectiveDefaults();

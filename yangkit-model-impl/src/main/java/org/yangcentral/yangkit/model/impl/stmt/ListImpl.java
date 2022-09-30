@@ -170,7 +170,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
                   }
                }
             } catch (ModelException e) {
-               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+               validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
                        ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
             }
          }

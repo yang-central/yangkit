@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.model.api.stmt;
 
-public interface Notification extends IfFeatureSupport, SchemaNode, SchemaNodeContainer, DataDefContainer, TypedefContainer, GroupingDefContainer, MustSupport, Identifiable, Augmentable {
+public interface Notification extends IfFeatureSupport, SchemaNode, SchemaNodeContainer, DataDefContainer,
+        TypedefContainer, GroupingDefContainer, MustSupport, Identifiable, Augmentable,YangBuiltinStatement {
    default boolean isSchemaTreeRoot() {
       return true;
    }

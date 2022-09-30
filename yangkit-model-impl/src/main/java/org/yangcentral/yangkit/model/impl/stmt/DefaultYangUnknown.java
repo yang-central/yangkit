@@ -34,6 +34,11 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
       return this.extension;
    }
 
+   @Override
+   public void setExtension(Extension extension) {
+      this.extension = extension;
+   }
+
    private Extension findExtensionFromKeyword(YangSchemaContext schemaContext, Module curModule) throws ModelException {
       String[] pair = this.keyword.split(":");
       if (pair.length != 2) {

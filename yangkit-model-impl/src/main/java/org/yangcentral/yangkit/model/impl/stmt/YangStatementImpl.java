@@ -540,9 +540,13 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    public boolean updateChild(int index, YangElement yangElement) {
-      if (this.subElements.get(index) == null) {
+      YangElement oldElement = subElements.get(index);
+      if (oldElement == null) {
          return false;
       } else {
+         if(oldElement instanceof YangStatement){
+            ((YangStatement) oldElement).setParentStatement(null);
+         }
          this.subElements.set(index, yangElement);
          if (yangElement instanceof YangStatement) {
             YangStatementImpl yangStatement = (YangStatementImpl)yangElement;
@@ -624,6 +628,9 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    public void clear(){
+      if(cleared){
+         return;
+      }
       clearSelf();
       for(YangElement element:subElements){
          if(element instanceof YangStatement){
@@ -633,9 +640,7 @@ public abstract class YangStatementImpl implements YangStatement {
       }
    }
    protected void clearSelf() {
-      if(cleared){
-         return;
-      }
+
       this.unknowns.clear();
       this.isBuilding = false;
       this.isValidating = false;
@@ -850,6 +855,9 @@ public abstract class YangStatementImpl implements YangStatement {
       YangUnknown newUnknown = (YangUnknown) YangStatementRegister.getInstance().getYangStatementInstance(
               new QName(namespace, extension.getArgStr()), yangUnknown.getArgStr());
       if(newUnknown != null){
+         newUnknown.setExtension(extension);
+         newUnknown.setContext(yangUnknown.getContext());
+         newUnknown.setChildren(yangUnknown.getSubElements());
          return newUnknown;
       }
       return yangUnknown;

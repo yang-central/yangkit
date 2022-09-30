@@ -1,6 +1,6 @@
 package org.yangcentral.yangkit.model.api.stmt;
 
-public interface Leaf extends TypedDataNode, MandatorySupport {
+public interface Leaf extends TypedDataNode, MandatorySupport,YangBuiltinStatement {
    Default getDefault();
 
    Default getEffectiveDefault();

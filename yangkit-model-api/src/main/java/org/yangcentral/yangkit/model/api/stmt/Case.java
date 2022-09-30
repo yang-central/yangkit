@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.model.api.stmt;
 
-public interface Case extends Identifiable, SchemaNode, SchemaNodeContainer, DataDefContainer, DataDefinition, Augmentable {
+public interface Case extends Identifiable, SchemaNode, SchemaNodeContainer,
+        DataDefContainer, DataDefinition, Augmentable,YangBuiltinStatement {
    boolean isShortCase();
 
    void setShortCase(boolean bool);

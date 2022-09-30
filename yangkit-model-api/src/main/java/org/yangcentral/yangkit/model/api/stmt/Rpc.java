@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.model.api.stmt;
 
-public interface Rpc extends IfFeatureSupport, SchemaNode, SchemaNodeContainer, TypedefContainer, GroupingDefContainer, Identifiable {
+public interface Rpc extends IfFeatureSupport, SchemaNode, SchemaNodeContainer,
+        TypedefContainer, GroupingDefContainer, Identifiable,YangBuiltinStatement {
    Input getInput();
 
    Output getOutput();

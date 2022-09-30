@@ -5,18 +5,21 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangData;
 import org.yangcentral.yangkit.model.impl.stmt.DataDefContainerImpl;
 import org.yangcentral.yangkit.model.impl.stmt.SchemaNodeContainerImpl;
 import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 import org.yangcentral.yangkit.register.*;
+import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class YangDataImpl extends YangStatementImpl implements YangData  {
+public class  YangDataImpl extends YangStatementImpl implements YangData  {
+    private Extension extension;
 
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
@@ -26,7 +29,7 @@ public class YangDataImpl extends YangStatementImpl implements YangData  {
                 new YangStatementParserPolicy(YANG_KEYWORD, YangDataImpl.class,
                         Arrays.asList(BuildPhase.SCHEMA_BUILD)));
         YangUnknownParserPolicy unknownParserPolicy = new YangUnknownParserPolicy(YANG_KEYWORD, YangDataImpl.class,
-                Arrays.asList(BuildPhase.SCHEMA_BUILD));
+                Arrays.asList(BuildPhase.GRAMMAR,BuildPhase.SCHEMA_BUILD));
         YangStatementDef yangStatementDef = new YangStatementDef(YANG_KEYWORD,"name",true);
         yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.CONTAINER.getQName(),new Cardinality());
         yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.LEAF.getQName(),new Cardinality());
@@ -42,6 +45,10 @@ public class YangDataImpl extends YangStatementImpl implements YangData  {
         YangUnknownRegister.getInstance().register(unknownParserPolicy);
     }
     public YangDataImpl(String argStr) {
+        super(argStr);
+    }
+
+    public YangDataImpl(String keyword,String argStr){
         super(argStr);
     }
 
@@ -74,13 +81,39 @@ public class YangDataImpl extends YangStatementImpl implements YangData  {
 
     @Override
     public String getKeyword() {
-        return null;
+        List<Module> modules = getContext().getSchemaContext().getModule(getYangKeyword().getNamespace());
+        if(modules.isEmpty()){
+            return null;
+        }
+        String moduleName = modules.get(0).getArgStr();
+        Module curModule =getContext().getCurModule();
+        String prefix =null;
+        if(curModule.getArgStr().equals(moduleName)){
+            prefix = curModule.getSelfPrefix();
+        } else {
+            for(Import im:curModule.getImports()){
+                if(im.getArgStr().equals(moduleName)){
+                    prefix = im.getPrefix().getArgStr();
+                    break;
+                }
+            }
+        }
+        if(prefix == null){
+            return null;
+        }
+        return prefix+":" + getYangKeyword().getLocalName();
     }
 
     @Override
     public Extension getExtension() {
-        return null;
+        return extension;
     }
+
+    @Override
+    public void setExtension(Extension extension) {
+        this.extension = extension;
+    }
+
     @Override
     public boolean checkChild(YangStatement subStatement) {
         boolean result =  super.checkChild(subStatement);
@@ -187,6 +220,20 @@ public class YangDataImpl extends YangStatementImpl implements YangData  {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         validatorResultBuilder.merge(super.buildSelf(phase));
         switch (phase) {
+            case GRAMMAR:{
+                Module curModule = getContext().getCurModule();
+                List<Module> extensionModule = getContext().getSchemaContext().getModule(YANG_KEYWORD.getNamespace());
+                if(extensionModule.isEmpty()){
+                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.UNKNOWN_EXTENSION.getFieldName()));
+                    return validatorResultBuilder.build();
+                }
+                for(Import im:curModule.getImports()){
+                    if(im.getArgStr().equals(extensionModule.get(0).getMainModule().getArgStr())){
+                        im.addReference(this);
+                    }
+                }
+                return validatorResultBuilder.build();
+            }
             case SCHEMA_BUILD:
                 Iterator iterator = this.getDataDefChildren().iterator();
 

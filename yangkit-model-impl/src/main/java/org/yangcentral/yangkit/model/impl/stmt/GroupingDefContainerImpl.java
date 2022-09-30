@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class GroupingDefContainerImpl implements GroupingDefContainer {
+public class GroupingDefContainerImpl implements GroupingDefContainer {
    private List<Grouping> groupings = new ArrayList();
    private YangContext yangContext;
 

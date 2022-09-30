@@ -14,7 +14,7 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class EntityImpl extends YangBuiltInStatementImpl implements Entity {
+public abstract class EntityImpl extends YangStatementImpl implements Entity {
    private StatusStmt status;
    private Description description;
    private Reference reference;

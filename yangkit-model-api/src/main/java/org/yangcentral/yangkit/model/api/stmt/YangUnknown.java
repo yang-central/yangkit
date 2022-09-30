@@ -4,4 +4,6 @@ public interface YangUnknown extends YangStatement {
    String getKeyword();
 
    Extension getExtension();
+
+   void setExtension(Extension extension);
 }

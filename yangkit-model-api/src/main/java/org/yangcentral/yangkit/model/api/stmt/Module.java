@@ -1,11 +1,16 @@
 package org.yangcentral.yangkit.model.api.stmt;
 
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
+import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructureSupport;
+import org.yangcentral.yangkit.model.api.stmt.ext.StructureSupport;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface Module extends YangBuiltinStatement, MetaDef, SchemaNodeContainer, DataDefContainer, TypedefContainer, GroupingDefContainer, NotificationContainer, Identifiable {
+public interface Module extends YangBuiltinStatement, MetaDef, SchemaNodeContainer, DataDefContainer, TypedefContainer,
+        GroupingDefContainer, NotificationContainer, Identifiable, StructureSupport, AugmentStructureSupport {
    YangVersion getYangVersion();
 
    String getEffectiveYangVersion();

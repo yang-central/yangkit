@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-class MustSupportImpl implements MustSupport {
+public class MustSupportImpl implements MustSupport {
    private List<Must> musts = new ArrayList();
    private Object contextNode;
    private SchemaNode self;

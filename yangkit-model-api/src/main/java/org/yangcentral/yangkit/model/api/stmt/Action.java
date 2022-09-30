@@ -1,6 +1,6 @@
 package org.yangcentral.yangkit.model.api.stmt;
 
-public interface Action extends Identifiable, IfFeatureSupport, SchemaNode, SchemaNodeContainer, TypedefContainer, GroupingDefContainer {
+public interface Action extends Identifiable, IfFeatureSupport, YangBuiltinStatement,SchemaNode, SchemaNodeContainer, TypedefContainer, GroupingDefContainer {
    Input getInput();
 
    void setInput(Input input);

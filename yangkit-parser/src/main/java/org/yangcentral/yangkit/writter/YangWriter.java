@@ -16,10 +16,6 @@ public class YangWriter {
       if (null == value) {
          return null;
       } else {
-         if (value.equals("([^\\t]{0,})")) {
-            int k = 0;
-            ++k;
-         }
 
          StringBuffer sb = new StringBuffer();
          sb.append("\"");
@@ -31,8 +27,8 @@ public class YangWriter {
                sb.append("\\\"");
             } else if ('\\' == c) {
                sb.append("\\\\\\\\");
-            } else if ('\n' == c) {
-               sb.append("\\n");
+//            } else if ('\n' == c) {
+//               sb.append("\\n");
             } else {
                sb.append(c);
             }

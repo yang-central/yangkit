@@ -39,6 +39,8 @@ import org.yangcentral.yangkit.model.api.stmt.Uses;
 import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangVersion;
+import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 
@@ -73,6 +75,10 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    private List<Module> dependentBys = new ArrayList<>();
    private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
    protected Map<String, ModuleId> prefixCache = new ConcurrentHashMap();
+
+   private List<YangDataStructure> structures = new ArrayList<>();
+
+   private List<AugmentStructure> augmentStructures = new ArrayList<>();
 
    public ModuleImpl(String argStr) {
       super(argStr);
@@ -232,6 +238,31 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    public Typedef getTypedef(String defName) {
       return this.typedefContainer.getTypedef(defName);
+   }
+
+   @Override
+   public List<AugmentStructure> getAugmentStructures() {
+      return null;
+   }
+
+   @Override
+   public ValidatorResult addAugmentStructure(AugmentStructure augmentStructure) {
+      return null;
+   }
+
+   @Override
+   public List<YangDataStructure> getStructures() {
+      return null;
+   }
+
+   @Override
+   public YangDataStructure getStructure(String name) {
+      return null;
+   }
+
+   @Override
+   public ValidatorResult addStructure(YangDataStructure structure) {
+      return null;
    }
 
    private <T extends YangStatement> ValidatorResult mergeDefintion(Map<String, T> source, List<T> candidate) {
@@ -477,7 +508,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                      augment.setTargetPath(targetPath);
                   }
                } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
                           e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
                }
             }
@@ -610,6 +641,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          if(im.getImport().isPresent()){
             im.getImport().get().removeDependentBy(this);
          }
+      }
+      for(Module dependent:getDependentBys()){
+         dependent.clear();
       }
       this.imports.clear();
       this.includes.clear();

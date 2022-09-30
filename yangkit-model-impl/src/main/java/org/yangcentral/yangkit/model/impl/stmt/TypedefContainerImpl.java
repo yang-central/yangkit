@@ -10,7 +10,7 @@ import org.yangcentral.yangkit.util.ModelUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-class TypedefContainerImpl implements TypedefContainer {
+public class TypedefContainerImpl implements TypedefContainer {
    private List<Typedef> typedefs = new ArrayList();
    private YangContext yangContext;
 

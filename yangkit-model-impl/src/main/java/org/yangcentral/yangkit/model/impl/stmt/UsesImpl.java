@@ -192,7 +192,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                           this, augment,augment.getArgStr());
                   augment.setTargetPath(targetPath);
                } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getSeverity(),
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,e.getSeverity(),
                           ErrorTag.BAD_ELEMENT,e.getDescription()));
                   continue;
                }
@@ -207,7 +207,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                   SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, refine,refine.getArgStr());
                   refine.setTargetPath(targetPath);
                } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getSeverity(),
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(refine,e.getSeverity(),
                           ErrorTag.BAD_ELEMENT,e.getDescription()));
                   continue;
                }
