@@ -333,6 +333,13 @@ public class YangParser {
                         lineValue = lineValue.substring(noFormatPos);
                         valueBeginColumn = noFormatPos;
                      }
+                  } else {
+                     if(lineValue.length() <= valueBeginColumn){
+                        lineValue = "";
+                     }
+                     else {
+                        lineValue = lineValue.substring(valueBeginColumn);
+                     }
                   }
                }
 
