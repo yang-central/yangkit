@@ -123,66 +123,53 @@ public class YangWriter {
       }
    }
 
-   private static String adjustString(int beginPos, String inStr, int columnSize, char startWith) {
-      StringBuffer sb = new StringBuffer();
+   private static String formatString(int beginPos, String inStr, int columnSize, String startWith) {
+      StringBuilder sb = new StringBuilder();
       if (null == inStr) {
          return null;
-      } else if (0 > beginPos) {
-         return null;
-      } else {
-         if (columnSize <= beginPos) {
-            columnSize = beginPos + 40;
-         }
-
-         if (beginPos >= 40) {
-            columnSize += 40;
-         }
-
-         int linebreakerPos = getLinebreakerPos(beginPos, inStr, columnSize);
-         if (linebreakerPos == inStr.length()) {
-            return inStr;
-         } else {
-            sb.append(inStr.substring(0, linebreakerPos));
-            String nextStr = null;
-            int nextBeginPos = linebreakerPos;
-            boolean linebreakerIscrlf = false;
-            if ('\n' != inStr.charAt(linebreakerPos)) {
-               if ('\r' == inStr.charAt(linebreakerPos) && '\n' == inStr.charAt(linebreakerPos + 1)) {
-                  sb.append("\r\n");
-                  linebreakerIscrlf = true;
-                  nextBeginPos = linebreakerPos + 2;
-               }
-            } else {
-               sb.append("\n");
-               linebreakerIscrlf = true;
-               nextBeginPos = linebreakerPos + 1;
-            }
-
-            if (!linebreakerIscrlf) {
-               sb.append(startWith);
-               sb.append("+");
-               sb.append("\n");
-            }
-
-            nextStr = inStr.substring(nextBeginPos);
-            if (!linebreakerIscrlf) {
-               String str = String.valueOf(startWith);
-               nextStr = str.concat(nextStr);
-            }
-
-            if (!inStr.startsWith("\"") && !inStr.startsWith("'")) {
-               if (!linebreakerIscrlf) {
-                  --beginPos;
-               }
-            } else if (linebreakerIscrlf) {
-               ++beginPos;
-            }
-
-            sb.append(buildLinePrefix(beginPos));
-            sb.append(adjustString(beginPos, nextStr, columnSize, startWith));
-            return sb.toString();
-         }
       }
+      if (0 > beginPos) {
+         return null;
+      }
+      if (columnSize <= beginPos) {
+         columnSize = beginPos + 40;
+      }
+
+      if (beginPos >= 40) {
+         columnSize += 40;
+      }
+
+      int linebreakerPos = getLinebreakerPos(beginPos, inStr, columnSize);
+      if (linebreakerPos == inStr.length()) {
+         return inStr;
+      }
+      sb.append(inStr.substring(0, linebreakerPos));//first line
+      String nextStr = null;
+      int nextBeginPos = linebreakerPos;
+      boolean linebreakerIscrlf = false;
+      if ('\n' != inStr.charAt(linebreakerPos)) {
+         if ('\r' == inStr.charAt(linebreakerPos) && '\n' == inStr.charAt(linebreakerPos + 1)) {
+            sb.append("\r\n");
+            sb.append(buildLinePrefix(beginPos));
+            nextStr = inStr.substring(linebreakerPos + 2);
+         } else {
+            sb.append(startWith);
+            sb.append("+");
+            sb.append("\n");
+            nextStr = startWith.concat(inStr.substring(linebreakerPos));
+            sb.append(buildLinePrefix(beginPos -1));
+         }
+      } else {
+         sb.append("\n");
+         sb.append(buildLinePrefix(beginPos));
+         nextStr = inStr.substring(linebreakerPos +1);
+      }
+
+
+      sb.append(formatString(beginPos, nextStr, columnSize, startWith));
+      return sb.toString();
+
+
    }
 
    public static String toYangString(YangElement element, YangFormatter format, String curIndentation) {
@@ -258,7 +245,7 @@ public class YangWriter {
                      argString = convert2QuotesValue(statement.getArgStr());
                   }
 
-                  String adjustArgString = adjustString(argPos, argString, format.getColumnSize(), argString.charAt(0));
+                  String adjustArgString = formatString(argPos+1, argString, format.getColumnSize(), String.valueOf(argString.charAt(0)));
                   sb.append(adjustArgString);
                } else {
                   argString = "\"\"";

@@ -637,14 +637,14 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       this.reference = null;
       this.organization = null;
       this.contact = null;
-      for(Import im:imports){
-         if(im.getImport().isPresent()){
-            im.getImport().get().removeDependentBy(this);
-         }
-      }
-      for(Module dependent:getDependentBys()){
-         dependent.clear();
-      }
+//      for(Import im:imports){
+//         if(im.getImport().isPresent()){
+//            im.getImport().get().removeDependentBy(this);
+//         }
+//      }
+//      for(Module dependent:getDependentBys()){
+//         dependent.clear();
+//      }
       this.imports.clear();
       this.includes.clear();
       this.revisions.clear();

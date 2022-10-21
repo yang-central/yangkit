@@ -234,7 +234,13 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    private void clear(Module module){
-      module.clear();
+      try {
+         module.clear();
+      } catch (RuntimeException e){
+         System.out.println("clear module:"+ module.getArgStr() + " failed. detail:"+e.getMessage());
+      }
+
+
 
    }
    /**

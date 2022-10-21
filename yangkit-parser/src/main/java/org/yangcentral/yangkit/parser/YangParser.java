@@ -311,17 +311,33 @@ public class YangParser {
       }
    }
 
+   private static String trimRight(String str){
+      int rightIndex = str.length();
+      for(int i = str.length() -1; i >=0;i--){
+         char ch = str.charAt(i);
+         if(ch == ' '|| ch == '\t'){
+            rightIndex--;
+         } else {
+            break;
+         }
+      }
+      return str.substring(0,rightIndex);
+   }
+
    private String interpretDoubleQuotesValue(String value, YangParserEnv env) {
       if (null == value) {
          return null;
       } else {
          StringBuffer sb = new StringBuffer();
-         int valueBeginColumn = env.getCurColumn() + 1;
+         int valueBeginColumn = env.getCurColumn();
          String[] lineValues = value.split("\n");
          int size = lineValues.length;
 
          for(int i = 0; i < size; ++i) {
             String lineValue = lineValues[i];
+            if(i != (size-1)){
+               lineValue = trimRight(lineValue);
+            }
             lineValue = this.escapeProcess(lineValue);
             if (null != lineValue) {
                if (0 != i) {
@@ -387,7 +403,7 @@ public class YangParser {
 
                   doubleQuoteBeginPos = i;
                } else if (-1 != doubleQuoteBeginPos && value.charAt(i - 1) != '\\') {
-                  env.setCurPos(curPos + doubleQuoteBeginPos + 1);
+                  env.setCurPos(curPos + doubleQuoteBeginPos);
                   str = this.interpretDoubleQuotesValue(value.substring(doubleQuoteBeginPos + 1, i), env);
                   env.setCurPos(curPos);
                   values.add(str);

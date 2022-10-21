@@ -140,6 +140,9 @@ public class MustSupportImpl implements MustSupport {
       while(mustIterator.hasNext()) {
          Must must = mustIterator.next();
          YangXPath xpath = must.getXPathExpression();
+         if(xpath == null){
+            continue;
+         }
          Object contextNode = XPathUtil.getXPathContextNode(self);
          YangXPathContext yangXPathContext = new YangXPathContext(must.getContext(), contextNode, this.self);
          xpath.setXPathContext(yangXPathContext);

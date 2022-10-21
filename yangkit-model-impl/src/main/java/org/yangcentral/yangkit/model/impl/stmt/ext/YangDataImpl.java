@@ -106,7 +106,14 @@ public class  YangDataImpl extends YangStatementImpl implements YangData  {
 
     @Override
     public Extension getExtension() {
-        return extension;
+        if(extension != null){
+            return extension;
+        }
+        List<Module> modules = getContext().getSchemaContext().getModule(getYangKeyword().getNamespace());
+        if(modules.isEmpty()){
+            return null;
+        }
+        return modules.get(0).getExtension(getYangKeyword().getLocalName());
     }
 
     @Override
@@ -222,13 +229,9 @@ public class  YangDataImpl extends YangStatementImpl implements YangData  {
         switch (phase) {
             case GRAMMAR:{
                 Module curModule = getContext().getCurModule();
-                List<Module> extensionModule = getContext().getSchemaContext().getModule(YANG_KEYWORD.getNamespace());
-                if(extensionModule.isEmpty()){
-                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.UNKNOWN_EXTENSION.getFieldName()));
-                    return validatorResultBuilder.build();
-                }
+                Module extModule = getExtension().getContext().getCurModule();
                 for(Import im:curModule.getImports()){
-                    if(im.getArgStr().equals(extensionModule.get(0).getMainModule().getArgStr())){
+                    if(im.getArgStr().equals(extModule.getMainModule().getArgStr())){
                         im.addReference(this);
                     }
                 }

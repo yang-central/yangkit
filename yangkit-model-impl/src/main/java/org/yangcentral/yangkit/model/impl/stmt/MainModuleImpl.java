@@ -72,7 +72,13 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
    }
 
    public boolean isSelfPrefix(String prefix) {
-      return this.getPrefix().getArgStr().equals(prefix);
+      String selfPrefix = getSelfPrefix();
+      if(selfPrefix == null){
+         assert false;
+         return false;
+      }
+      return selfPrefix.equals(prefix);
+
    }
 
    public String getSelfPrefix() {
