@@ -296,6 +296,14 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
                           ErrorCode.DEFAULT_CASE_IS_OPTIONAL.getFieldName()));
                }
             }
+            iterator = this.cases.iterator();
+
+            while(iterator.hasNext()) {
+               c = (Case)iterator.next();
+               if (c.evaluateFeatures() && c.isShortCase()) {
+                  validatorResultBuilder.merge(c.build(phase));
+               }
+            }
             break;
          case SCHEMA_BUILD:
             iterator = this.cases.iterator();
