@@ -76,11 +76,22 @@ public class Section {
          return false;
       } else {
          Section another = (Section)obj;
-         if (!this.getMin().getClass().equals(another.getMin().getClass())) {
-            return false;
+         Comparable thisMin = null;
+         Comparable anotherMin = null;
+         Comparable thisMax = null;
+         Comparable anotherMax = null;
+         if (!(this.min instanceof BigDecimal) && !(another.getMin() instanceof BigDecimal)) {
+            thisMin = new BigInteger(this.min.toString());
+            anotherMin = new BigInteger(another.getMin().toString());
+            thisMax = new BigInteger(this.max.toString());
+            anotherMax = new BigInteger(another.getMax().toString());
          } else {
-            return this.getMin().compareTo(another.getMin()) == 0 && this.getMax().compareTo(another.getMax()) == 0;
+            thisMin = new BigDecimal(this.min.toString());
+            anotherMin = new BigDecimal(another.getMin().toString());
+            thisMax = new BigDecimal(this.max.toString());
+            anotherMax = new BigDecimal(another.getMax().toString());
          }
+         return (thisMin.compareTo(anotherMin) == 0) && (thisMax.compareTo(anotherMax) ==0);
       }
    }
 }
