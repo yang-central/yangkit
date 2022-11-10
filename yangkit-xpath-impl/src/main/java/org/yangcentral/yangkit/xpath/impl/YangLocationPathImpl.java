@@ -5,6 +5,7 @@ import org.jaxen.JaxenException;
 import org.jaxen.expr.Expr;
 import org.jaxen.expr.NameStep;
 import org.jaxen.expr.Step;
+import org.jaxen.saxpath.Axis;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.Severity;
@@ -107,20 +108,20 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
          }
       }
 
-      Iterator var4 = steps.iterator();
+      Iterator iterator = steps.iterator();
 
       while(true) {
-         while(var4.hasNext()) {
-            Object o = var4.next();
+         while(iterator.hasNext()) {
+            Object o = iterator.next();
             Step step = (Step)o;
-            if (step.getAxis() == 3) {
+            if (step.getAxis() == Axis.PARENT) {
                if (current instanceof SchemaNodeContainer && ((SchemaNodeContainer)current).isSchemaTreeRoot()) {
-                  throw new ModelException(Severity.ERROR, xPathContext.getDefineNode(), ErrorCode.INVALID_XPATH.getFieldName());
+                  throw new ModelException(Severity.WARNING, xPathContext.getDefineNode(), ErrorCode.INVALID_XPATH.getFieldName());
                }
 
                SchemaNodeContainer parent = getXPathSchemaParent((SchemaNode)current);
                current = parent;
-            } else if (step.getAxis() == 1) {
+            } else if (step.getAxis() == Axis.CHILD) {
                NameStep nameStep = (NameStep)step;
                String prefix = nameStep.getPrefix();
                String localName = nameStep.getLocalName();
@@ -128,7 +129,7 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
                if (prefix != null && prefix.length() > 0) {
                   Module module = ModelUtil.findModuleByPrefix(xPathContext.getYangContext(), prefix);
                   if (null == module) {
-                     throw new ModelException(Severity.ERROR, xPathContext.getDefineNode(), ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + prefix}));
+                     throw new ModelException(Severity.WARNING, xPathContext.getDefineNode(), ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + prefix}));
                   }
 
                   namespace = module.getMainModule().getNamespace().getUri();
@@ -146,13 +147,13 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
 
                QName childQName = new QName(namespace, prefix, localName);
                if (!(current instanceof SchemaNodeContainer)) {
-                  throw new ModelException(Severity.ERROR, xPathContext.getDefineNode(), ErrorCode.INVALID_XPATH_TERMIANL_HAS_CHILD.toString(new String[]{"xpath=" + this.simplify().getText(), "nodename=" + ((SchemaNode)current).getIdentifier().getQualifiedName(), "keyword=" + ((SchemaNode)current).getYangKeyword().getLocalName()}));
+                  throw new ModelException(Severity.WARNING, xPathContext.getDefineNode(), ErrorCode.INVALID_XPATH_TERMIANL_HAS_CHILD.toString(new String[]{"xpath=" + this.simplify().getText(), "nodename=" + ((SchemaNode)current).getIdentifier().getQualifiedName(), "keyword=" + ((SchemaNode)current).getYangKeyword().getLocalName()}));
                }
 
                SchemaNodeContainer parent = (SchemaNodeContainer)current;
                SchemaNode child = getXPathSchemaChild(parent, childQName);
                if (child == null) {
-                  throw new ModelException(Severity.ERROR, xPathContext.getDefineNode(), ErrorCode.INVALID_XPATH_UNRECOGNIZED_CHILD.toString(new String[]{"xpath=" + this.simplify().getText(), "nodename=" + (!parent.isSchemaTreeRoot() ? ((SchemaNode)current).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
+                  throw new ModelException(Severity.WARNING, xPathContext.getDefineNode(), ErrorCode.INVALID_XPATH_UNRECOGNIZED_CHILD.toString(new String[]{"xpath=" + this.simplify().getText(), "nodename=" + (!parent.isSchemaTreeRoot() ? ((SchemaNode)current).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
                }
 
                if (xPathContext.getDefineNode().isActive() && !child.isActive()) {
@@ -198,10 +199,10 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
                }
             }
 
-            Iterator var15 = dummyNodes.iterator();
+            Iterator iterator = dummyNodes.iterator();
 
-            while(var15.hasNext()) {
-               YangData dummyNode = (YangData)var15.next();
+            while(iterator.hasNext()) {
+               YangData dummyNode = (YangData)iterator.next();
                ((List)contextNodeSet).remove(dummyNode);
             }
          }

@@ -270,13 +270,14 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
             return validatorResultBuilder.build();
       }
    }
-
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
-      statements.addAll(this.actionContainer.getActions());
-      statements.addAll(this.dataDefContainer.getDataDefChildren());
+      statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(this.groupingDefContainer.getGroupings());
-      statements.addAll(this.notificationContainer.getNotifications());
       statements.addAll(this.typedefContainer.getTypedefs());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;

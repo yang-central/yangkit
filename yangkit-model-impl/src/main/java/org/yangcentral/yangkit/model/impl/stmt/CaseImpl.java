@@ -211,10 +211,13 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
          return this.identifier;
       }
    }
-
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
-      statements.addAll(this.dataDefContainer.getDataDefChildren());
+      statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

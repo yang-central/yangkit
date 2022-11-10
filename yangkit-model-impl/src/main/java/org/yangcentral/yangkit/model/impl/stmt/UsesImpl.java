@@ -390,11 +390,13 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
    public YangStatement getReferenceStatement() {
       return this.refGrouping;
    }
-
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return this.schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
-      statements.addAll(this.augments);
-      statements.addAll(this.refines);
+      statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

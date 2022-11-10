@@ -294,10 +294,14 @@ public class InputImpl extends SchemaNodeImpl implements Input {
          return this.identifier;
       }
    }
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
 
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
-      statements.addAll(this.dataDefContainer.getDataDefChildren());
+      statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(this.groupingDefContainer.getGroupings());
       statements.addAll(this.typedefContainer.getTypedefs());
       statements.addAll(this.mustSupport.getMusts());

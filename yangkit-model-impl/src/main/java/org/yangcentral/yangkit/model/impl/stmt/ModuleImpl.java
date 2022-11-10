@@ -10,35 +10,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
-import org.yangcentral.yangkit.model.api.stmt.Augment;
-import org.yangcentral.yangkit.model.api.stmt.Augmentable;
-import org.yangcentral.yangkit.model.api.stmt.Contact;
-import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
-import org.yangcentral.yangkit.model.api.stmt.Description;
-import org.yangcentral.yangkit.model.api.stmt.Deviation;
-import org.yangcentral.yangkit.model.api.stmt.Extension;
-import org.yangcentral.yangkit.model.api.stmt.Feature;
-import org.yangcentral.yangkit.model.api.stmt.Grouping;
-import org.yangcentral.yangkit.model.api.stmt.Identity;
-import org.yangcentral.yangkit.model.api.stmt.Import;
-import org.yangcentral.yangkit.model.api.stmt.Include;
-import org.yangcentral.yangkit.model.api.stmt.MainModule;
-import org.yangcentral.yangkit.model.api.stmt.ModelException;
-import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.Notification;
-import org.yangcentral.yangkit.model.api.stmt.Organization;
-import org.yangcentral.yangkit.model.api.stmt.Reference;
-import org.yangcentral.yangkit.model.api.stmt.Revision;
-import org.yangcentral.yangkit.model.api.stmt.Rpc;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
-import org.yangcentral.yangkit.model.api.stmt.SubModule;
-import org.yangcentral.yangkit.model.api.stmt.Typedef;
-import org.yangcentral.yangkit.model.api.stmt.Uses;
-import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangVersion;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
@@ -984,7 +956,10 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    public List<DataNode> getDataNodeChildren() {
       return this.schemaNodeContainer.getDataNodeChildren();
    }
-
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
    public void removeSchemaNodeChild(QName identifier) {
       this.schemaNodeContainer.removeSchemaNodeChild(identifier);
    }
@@ -1062,7 +1037,18 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       statements.addAll(this.getContext().getIdentityCache().values());
       statements.addAll(this.getContext().getTypedefIdentifierCache().values());
       statements.addAll(this.getContext().getGroupingIdentifierCache().values());
-      statements.addAll(this.getContext().getSchemaNodeIdentifierCache().values());
+      for(SchemaNode schemaNode:this.getContext().getSchemaNodeIdentifierCache().values()){
+         if(!schemaNode.isActive()){
+            continue;
+         }
+         if(schemaNode instanceof VirtualSchemaNode){
+            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
+            statements.addAll(virtualSchemaNode.getEffectiveSchemaNodeChildren());
+         } else {
+            statements.add(schemaNode);
+         }
+      }
+
       statements.addAll(this.augments);
       return statements;
    }

@@ -325,7 +325,15 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    public List<DataNode> getDataNodeChildren() {
       return this.schemaNodeContainer.getDataNodeChildren();
    }
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
 
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren() {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(true);
+   }
    public void removeSchemaNodeChild(QName identifier) {
       this.schemaNodeContainer.removeSchemaNodeChild(identifier);
    }

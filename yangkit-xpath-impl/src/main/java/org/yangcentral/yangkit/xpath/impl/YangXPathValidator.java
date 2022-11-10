@@ -103,14 +103,14 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
                   builder.merge(validatorResultBuilder.build());
                }
             } catch (ModelException e) {
-               validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(e.getElement());
-               validatorRecordBuilder.setErrorPath(e.getElement().getElementPosition());
-               validatorRecordBuilder.setSeverity(e.getSeverity());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(e.getDescription()));
-               ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               builder.merge(validatorResultBuilder.build());
+//               validatorRecordBuilder = new ValidatorRecordBuilder();
+//               validatorRecordBuilder.setBadElement(e.getElement());
+//               validatorRecordBuilder.setErrorPath(e.getElement().getElementPosition());
+//               validatorRecordBuilder.setSeverity(e.getSeverity());
+//               validatorRecordBuilder.setErrorMessage(new ErrorMessage(e.getDescription()));
+//               ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+//               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+//               builder.merge(validatorResultBuilder.build());
                return (ValidatorResult)builder.build();
             }
 

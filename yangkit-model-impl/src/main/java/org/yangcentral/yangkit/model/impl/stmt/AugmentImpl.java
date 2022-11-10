@@ -100,6 +100,10 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
       return this.schemaNodeContainer.getDataNodeChildren();
    }
 
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
    public void removeSchemaNodeChild(QName identifier) {
       this.schemaNodeContainer.removeSchemaNodeChild(identifier);
    }
@@ -347,9 +351,7 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
 
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
-      statements.addAll(this.actionContainer.getActions());
-      statements.addAll(this.dataDefContainer.getDataDefChildren());
-      statements.addAll(this.notificationContainer.getNotifications());
+      statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

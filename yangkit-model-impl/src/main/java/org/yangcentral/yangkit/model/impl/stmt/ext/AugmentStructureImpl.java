@@ -328,8 +328,13 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
 
     public List<YangStatement> getEffectiveSubStatements() {
         List<YangStatement> statements = new ArrayList();
-        statements.addAll(this.dataDefContainer.getDataDefChildren());
+        statements.addAll(getEffectiveSchemaNodeChildren());
         statements.addAll(super.getEffectiveSubStatements());
         return statements;
     }
+    @Override
+    public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+        return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+    }
+
 }

@@ -15,7 +15,22 @@ public interface SchemaNodeContainer {
 
    DataNode getDataNodeChild(QName identifier);
 
+   /**
+    * get all data node children including the augmented data nodes
+    * @return
+    */
    List<DataNode> getDataNodeChildren();
+
+   /**
+    * get all schema node children except augmented schema nodes from other modules, inactive schema nodes, and uses should be expanded
+    * @param ignoreNamespace whether ignore namespace
+    * @return
+    */
+   List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace);
+
+   default List<SchemaNode> getEffectiveSchemaNodeChildren(){
+      return getEffectiveSchemaNodeChildren(false);
+   }
 
    default boolean isSchemaTreeRoot() {
       return false;

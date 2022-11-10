@@ -290,10 +290,14 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStr
                 return validatorResultBuilder.build();
         }
     }
+    @Override
+    public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+        return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+    }
 
     public List<YangStatement> getEffectiveSubStatements() {
         List<YangStatement> statements = new ArrayList();
-        statements.addAll(this.dataDefContainer.getDataDefChildren());
+        statements.addAll(getEffectiveSchemaNodeChildren());
         statements.addAll(this.groupingDefContainer.getGroupings());
         statements.addAll(this.mustSupport.getMusts());
         statements.addAll(this.typedefContainer.getTypedefs());

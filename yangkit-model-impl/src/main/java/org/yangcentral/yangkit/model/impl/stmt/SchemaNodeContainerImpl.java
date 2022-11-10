@@ -189,6 +189,31 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       return dataNodeChildren;
 
    }
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      List<SchemaNode> effectiveSchemaNodes = new ArrayList<>();
+
+      for(SchemaNode schemaNode:schemaNodes){
+         if(!schemaNode.isActive()){
+            continue;
+         }
+         if(schemaNode.getContext().getNamespace() == null){
+            continue;
+         }
+         if(!ignoreNamespace && (this.getYangContext() != null) && (this.getYangContext().getNamespace() != null)
+                 && !this.getYangContext().getNamespace().equals(schemaNode.getContext().getNamespace())){
+            continue;
+         }
+         if(schemaNode instanceof VirtualSchemaNode){
+            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
+            effectiveSchemaNodes.addAll(virtualSchemaNode.getEffectiveSchemaNodeChildren(ignoreNamespace));
+            continue;
+         }
+         effectiveSchemaNodes.add(schemaNode);
+
+      }
+      return effectiveSchemaNodes;
+   }
 
    public void removeSchemaNodeChild(QName identifier) {
       SchemaNode target = null;

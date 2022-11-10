@@ -319,9 +319,13 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       }
    }
 
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
-      statements.addAll(this.dataDefContainer.getDataDefChildren());
+      statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(this.ifFeatureSupport.getIfFeatures());
       statements.addAll(this.groupingDefContainer.getGroupings());
       statements.addAll(this.typedefContainer.getTypedefs());

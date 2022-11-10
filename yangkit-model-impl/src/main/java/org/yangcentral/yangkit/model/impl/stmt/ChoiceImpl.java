@@ -397,7 +397,10 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
 
       return validatorResultBuilder.build();
    }
-
+   @Override
+   public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
+      return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
+   }
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList();
       if (this.mandatory != null) {
@@ -415,7 +418,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
          statements.add(this.aDefault);
       }
 
-      statements.addAll(this.dataDefinitions);
+      statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }
