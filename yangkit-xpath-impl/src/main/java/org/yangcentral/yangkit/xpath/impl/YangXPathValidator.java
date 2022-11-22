@@ -269,11 +269,11 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       Expr filterExpr = expr.getFilterExpr();
       if (filterExpr instanceof FunctionCallExpr) {
          FunctionCallExpr functionCallExpr = (FunctionCallExpr)filterExpr;
-         if (!functionCallExpr.getFunctionName().equals("current")) {
-            throw new IllegalArgumentException("un-support function.");
+         if (functionCallExpr.getFunctionName().equals("current")) {
+            locationContext = (this.getContext()).getContextNode();
+         } else {
+            builder.merge(this.visit(functionCallExpr,context));
          }
-
-         locationContext = (this.getContext()).getContextNode();
       }
 
       Expr locationExpr = expr.getLocationPath();

@@ -34,6 +34,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
    public boolean setDefault(Default aDefault) {
       if (null == aDefault) {
          this.aDefault = null;
+         return true;
       }
 
       Case defaultCase = this.getCase(aDefault.getArgStr());
