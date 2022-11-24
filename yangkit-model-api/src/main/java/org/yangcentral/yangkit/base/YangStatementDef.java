@@ -90,4 +90,12 @@ public class YangStatementDef {
    public YangSubStatementInfo getSubStatementInfo(QName subStatement) {
       return subStatementInfos.get(subStatement);
    }
+
+   public Cardinality getSubStatementCardinality(QName subStatement){
+      YangSubStatementInfo subStatementInfo = getSubStatementInfo(subStatement);
+      if(null == subStatementInfo){
+         return null;
+      }
+      return subStatementInfo.getCardinality();
+   }
 }

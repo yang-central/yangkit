@@ -370,7 +370,7 @@ public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
                YangStatementDef yangStatementDef = yangSpecification.getStatementDef(this.targetNode.getYangKeyword());
                for(YangUnknown unknown:this.getUnknowns()){
                   boolean isMultiInstance = true;
-                  Cardinality cardinality = yangStatementDef.getSubStatementInfo(unknown.getYangKeyword()).getCardinality();
+                  Cardinality cardinality = yangStatementDef.getSubStatementCardinality(unknown.getYangKeyword());
                   if(cardinality != null){
                      if(!cardinality.isUnbounded()&& cardinality.getMaxElements() <=1){
                         isMultiInstance = false;
