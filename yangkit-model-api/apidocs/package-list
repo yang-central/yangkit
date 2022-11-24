@@ -1,9 +1,0 @@
-org.yangcentral.yangkit.base
-org.yangcentral.yangkit.model.api.codec
-org.yangcentral.yangkit.model.api.restriction
-org.yangcentral.yangkit.model.api.schema
-org.yangcentral.yangkit.model.api.schema.mount
-org.yangcentral.yangkit.model.api.stmt
-org.yangcentral.yangkit.model.api.stmt.type
-org.yangcentral.yangkit.register
-org.yangcentral.yangkit.util
