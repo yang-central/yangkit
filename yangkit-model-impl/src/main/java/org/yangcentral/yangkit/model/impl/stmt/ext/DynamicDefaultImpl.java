@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.model.impl.stmt.ext;
 import org.yangcentral.yangkit.base.Cardinality;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangStatementDef;
+import org.yangcentral.yangkit.base.YangSubStatementInfo;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.model.api.stmt.Extension;
 import org.yangcentral.yangkit.model.api.stmt.Import;
@@ -20,8 +21,8 @@ public class DynamicDefaultImpl extends YangStatementImpl implements DynamicDefa
     public static void register(){
         YangUnknownParserPolicy unknownParserPolicy = new YangUnknownParserPolicy(YANG_KEYWORD, DynamicDefaultImpl.class);
         YangStatementDef yangStatementDef = new YangStatementDef(YANG_KEYWORD,null,false);
-        yangStatementDef.addSubStatementInfo(DynamicDefault.YANG_KEYWORD,new Cardinality());
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.DESCRIPTION.getQName(), new Cardinality(0,1));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(DynamicDefault.YANG_KEYWORD,new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.DESCRIPTION.getQName(), new Cardinality(0,1)));
         unknownParserPolicy.setStatementDef(yangStatementDef);
         unknownParserPolicy.addParentStatementInfo(new YangParentStatementInfo(YangBuiltinKeyword.LEAF.getQName(), new Cardinality(0,1)));
         unknownParserPolicy.addParentStatementInfo(new YangParentStatementInfo(YangBuiltinKeyword.LEAFLIST.getQName(), new Cardinality()));

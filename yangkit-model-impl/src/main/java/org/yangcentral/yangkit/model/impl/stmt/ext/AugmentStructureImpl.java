@@ -10,20 +10,46 @@ import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
+import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.model.impl.stmt.*;
+import org.yangcentral.yangkit.register.YangParentStatementInfo;
+import org.yangcentral.yangkit.register.YangUnknownParserPolicy;
+import org.yangcentral.yangkit.register.YangUnknownRegister;
 import org.yangcentral.yangkit.util.ModelUtil;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStructure {
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
     private SchemaPath targetPath;
     private SchemaNode target;
+    private Extension extension;
+    public static void register(){
+        YangUnknownParserPolicy unknownParserPolicy = new YangUnknownParserPolicy(YANG_KEYWORD, AugmentStructureImpl.class,
+                Arrays.asList(BuildPhase.GRAMMAR,BuildPhase.SCHEMA_BUILD,BuildPhase.SCHEMA_EXPAND,BuildPhase.SCHEMA_TREE));
+        YangStatementDef yangStatementDef = new YangStatementDef(YANG_KEYWORD,"path",true);
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.STATUS.getQName(),new Cardinality(0,1)));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.DESCRIPTION.getQName(),new Cardinality(0,1)));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.REFERENCE.getQName(),new Cardinality(0,1)));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.CONTAINER.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.LEAF.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.LEAFLIST.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.CHOICE.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.ANYDATA.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.ANYXML.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.USES.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.CASE.getQName(),new Cardinality()));
+        unknownParserPolicy.setStatementDef(yangStatementDef);
+        YangParentStatementInfo moduleParentInfo = new YangParentStatementInfo(YangBuiltinKeyword.MODULE.getQName(),
+                new Cardinality());
+        YangParentStatementInfo submoduleParentInfo = new YangParentStatementInfo(YangBuiltinKeyword.SUBMODULE.getQName(),
+                new Cardinality());
+        unknownParserPolicy.addParentStatementInfo(moduleParentInfo);
+        unknownParserPolicy.addParentStatementInfo(submoduleParentInfo);
 
+        YangUnknownRegister.getInstance().register(unknownParserPolicy);
+    }
     public AugmentStructureImpl(String argStr) {
         super(argStr);
     }
@@ -144,12 +170,12 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
 
     @Override
     public Extension getExtension() {
-        return null;
+        return extension;
     }
 
     @Override
     public void setExtension(Extension extension) {
-
+        this.extension = extension;
     }
 
     @Override
@@ -221,7 +247,22 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
         Iterator iterator;
         SchemaNode child;
         switch (phase) {
-            case SCHEMA_BUILD:
+            case GRAMMAR:{
+                try {
+                    SchemaPath targetPath = SchemaPathImpl.from(getContext().getCurModule(),getContext().getCurModule(),this,this.getArgStr());
+                    if (targetPath instanceof SchemaPath.Descendant) {
+                        validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                                ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
+                    } else {
+                        this.setTargetPath(targetPath);
+                    }
+                } catch (ModelException e) {
+                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                            e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
+                }
+                break;
+            }
+            case SCHEMA_BUILD:{
                 List<DataDefinition> dataDefChildren = this.getDataDefChildren();
                 Iterator schemaChildrenIt = dataDefChildren.iterator();
 
@@ -229,9 +270,20 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                     DataDefinition dataDefinition = (DataDefinition)schemaChildrenIt.next();
                     validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
                 }
+                break;
+            }
+            case SCHEMA_EXPAND:{
+                SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
+                if (target == null) {
+                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                            ErrorCode.MISSING_TARGET.getFieldName()));
+                }
 
-                return validatorResultBuilder.build();
-            case SCHEMA_EXPAND:
+                if (!(target instanceof Augmentable) &&(target.getSchemaTreeType() != SchemaTreeType.YANGDATATREE)) {
+                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                            ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
+                }
+                this.setTarget(target);
                 iterator = this.getSchemaNodeChildren().iterator();
                 while(iterator.hasNext()) {
                     child = (SchemaNode)iterator.next();
@@ -267,9 +319,12 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                         }
                     }
                 }
+                SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) this.getTarget();
+                schemaNodeContainer.addSchemaNodeChild(this);
+                break;
+            }
 
-                return validatorResultBuilder.build();
-            case SCHEMA_TREE:
+            case SCHEMA_TREE:{
                 iterator = this.getSchemaNodeChildren().iterator();
 
                 while(iterator.hasNext()) {
@@ -278,6 +333,9 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                         validatorResultBuilder.merge(child.build(phase));
                     }
                 }
+                break;
+            }
+
         }
 
         return validatorResultBuilder.build();

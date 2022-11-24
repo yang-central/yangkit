@@ -1,17 +1,18 @@
 package org.yangcentral.yangkit.model.impl.stmt.ext;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
 import org.yangcentral.yangkit.model.impl.stmt.*;
+import org.yangcentral.yangkit.register.YangParentStatementInfo;
+import org.yangcentral.yangkit.register.YangUnknownParserPolicy;
+import org.yangcentral.yangkit.register.YangUnknownRegister;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,6 +23,34 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStr
     private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
     private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
     private MustSupportImpl mustSupport = new MustSupportImpl();
+
+    public static void register(){
+        YangUnknownParserPolicy unknownParserPolicy = new YangUnknownParserPolicy(YANG_KEYWORD, YangDataStructureImpl.class,
+                Arrays.asList(BuildPhase.GRAMMAR,BuildPhase.SCHEMA_BUILD));
+        YangStatementDef yangStatementDef = new YangStatementDef(YANG_KEYWORD,"name",true);
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.MUST.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.STATUS.getQName(),new Cardinality(0,1)));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.DESCRIPTION.getQName(),new Cardinality(0,1)));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.REFERENCE.getQName(),new Cardinality(0,1)));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.TYPEDEF.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.GROUPING.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.CONTAINER.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.LEAF.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.LEAFLIST.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.CHOICE.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.ANYDATA.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.ANYXML.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.USES.getQName(),new Cardinality()));
+        unknownParserPolicy.setStatementDef(yangStatementDef);
+        YangParentStatementInfo moduleParentInfo = new YangParentStatementInfo(YangBuiltinKeyword.MODULE.getQName(),
+                new Cardinality(),YangDataStructureChecker.class);
+        YangParentStatementInfo submoduleParentInfo = new YangParentStatementInfo(YangBuiltinKeyword.SUBMODULE.getQName(),
+                new Cardinality(),YangDataStructureChecker.class);
+        unknownParserPolicy.addParentStatementInfo(moduleParentInfo);
+        unknownParserPolicy.addParentStatementInfo(submoduleParentInfo);
+
+        YangUnknownRegister.getInstance().register(unknownParserPolicy);
+    }
 
     public YangDataStructureImpl(String argStr) {
         super(argStr);

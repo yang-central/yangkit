@@ -5,8 +5,9 @@ import org.yangcentral.yangkit.model.api.stmt.*;
 
 public interface YangDataStructure extends MustSupport, GroupingDefContainer,SchemaNode,
         TypedefContainer, DataDefContainer, SchemaNodeContainer,Augmentable,YangUnknown{
+    QName YANG_KEYWORD = new QName("urn:ietf:params:xml:ns:yang:ietf-yang-structure-ext","sx","structure");
     @Override
     default QName getYangKeyword() {
-        return new QName("urn:ietf:params:xml:ns:yang:ietf-yang-structure-ext","sx","structure");
+        return YANG_KEYWORD;
     }
 }

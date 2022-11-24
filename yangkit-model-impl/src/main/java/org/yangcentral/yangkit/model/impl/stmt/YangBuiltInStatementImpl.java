@@ -44,13 +44,13 @@ public abstract class YangBuiltInStatementImpl extends YangStatementImpl {
       }
 
 
-      Map<QName, Cardinality> subStatementInfos = statementDef.getSubStatementInfos();
+      Map<QName, YangSubStatementInfo> subStatementInfos = statementDef.getSubStatementInfos();
       Iterator<QName> keys = subStatementInfos.keySet().iterator();
 
       while(keys.hasNext()) {
          QName key = keys.next();
          List<YangStatement> filteredStatements = this.getSubStatement(key);
-         Cardinality cardinality = subStatementInfos.get(key);
+         Cardinality cardinality = subStatementInfos.get(key).getCardinality();
          if (!cardinality.isValid(filteredStatements.size())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                     ErrorCode.CARDINALITY_BROKEN.getFieldName() + " sub-statement:" + key.getLocalName() + "'s cardinality is:" + cardinality ));

@@ -14,14 +14,14 @@ public class YangStatementDef {
    private QName keyword;
    private String argument;
    private boolean yinElement;
-   private Map<QName, Cardinality> subStatementInfos;
+   private Map<QName, YangSubStatementInfo> subStatementInfos;
 
-   public YangStatementDef(QName keyword, String argument, Map<QName, Cardinality> subStatementInfos) {
+   public YangStatementDef(QName keyword, String argument, Map<QName, YangSubStatementInfo> subStatementInfos) {
       this(keyword, argument);
       this.subStatementInfos = subStatementInfos;
    }
 
-   public YangStatementDef(QName keyword, String argument, boolean yinElement, Map<QName, Cardinality> subStatementInfos) {
+   public YangStatementDef(QName keyword, String argument, boolean yinElement, Map<QName, YangSubStatementInfo> subStatementInfos) {
       this(keyword, argument, yinElement);
       this.subStatementInfos = subStatementInfos;
    }
@@ -39,27 +39,24 @@ public class YangStatementDef {
       this.argument = argument;
       this.yinElement = yinElement;
    }
-/**
- * add sub statement info including keyword and cardinality
- * @param subStatement the qname of sub statment's keyword
- * @param cardinality  the cardinality of sub statement
- * @version 1.0.0
- * @throws
- * @return boolean
- * @author frank feng
- * @since 7/8/2022
- */
-   public boolean addSubStatementInfo(QName subStatement, Cardinality cardinality) {
-      if (null != subStatement && cardinality != null) {
-         if (null != this.getSubStatementCardinality(subStatement)) {
-            return false;
-         } else {
-            this.subStatementInfos.put(subStatement, cardinality);
-            return true;
-         }
-      } else {
+   /**
+    * add sub statement info including keyword and cardinality
+    * @param subStatementInfo the information of sub statement
+    * @version 1.1.0
+    * @throws
+    * @return boolean
+    * @author frank feng
+    * @since 7/8/2022
+    */
+   public boolean addSubStatementInfo(YangSubStatementInfo subStatementInfo) {
+      if(subStatementInfo == null){
          return false;
       }
+      if(subStatementInfos.containsKey(subStatementInfo.getKeyword())){
+         return false;
+      }
+      subStatementInfos.put(subStatementInfo.getKeyword(), subStatementInfo);
+      return true;
    }
 
    public void removeSubStatementInfo(QName subStatement) {
@@ -78,30 +75,19 @@ public class YangStatementDef {
       return this.yinElement;
    }
 
-   public Map<QName, Cardinality> getSubStatementInfos() {
+   public Map<QName, YangSubStatementInfo> getSubStatementInfos() {
       return this.subStatementInfos;
    }
 /**
- * get substatement cardinality according keyword
- * @param subStatement qname of sub statement's keyword
+ * get sub-statement information according keyword
+ * @param subStatement qualified name of sub statement's keyword
  * @version 1.0.0
  * @throws
- * @return org.yangcentral.yangkit.base.Cardinality
+ * @return org.yangcentral.yangkit.base.YangSubStatementInfo
  * @author frank feng
  * @since 7/8/2022
  */
-   public Cardinality getSubStatementCardinality(QName subStatement) {
-      Iterator<Map.Entry<QName, Cardinality>> it = this.subStatementInfos.entrySet().iterator();
-
-      Map.Entry entry;
-      do {
-         if (!it.hasNext()) {
-            return null;
-         }
-
-         entry = (Map.Entry)it.next();
-      } while(!((QName)entry.getKey()).equals(subStatement));
-
-      return (Cardinality)entry.getValue();
+   public YangSubStatementInfo getSubStatementInfo(QName subStatement) {
+      return subStatementInfos.get(subStatement);
    }
 }

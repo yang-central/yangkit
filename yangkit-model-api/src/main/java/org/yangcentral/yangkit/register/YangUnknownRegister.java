@@ -2,6 +2,7 @@ package org.yangcentral.yangkit.register;
 
 import org.yangcentral.yangkit.base.YangSpecification;
 import org.yangcentral.yangkit.base.YangStatementDef;
+import org.yangcentral.yangkit.base.YangSubStatementInfo;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
 
@@ -37,14 +38,16 @@ public class YangUnknownRegister {
 
             while(parentStatementInfoIterator.hasNext()) {
                YangParentStatementInfo parentStatementInfo = (YangParentStatementInfo)parentStatementInfoIterator.next();
+               YangSubStatementInfo yangSubStatementInfo = new YangSubStatementInfo(yangUnknownParserPolicy.getKeyword(),
+                       parentStatementInfo.getCardinality(), parentStatementInfo.getChecker());
                YangStatementDef parentStatementDefVer11 = YangSpecification.getVersion11Spec().getStatementDef(parentStatementInfo.getParentYangKeyword());
                if (parentStatementDefVer11 != null) {
-                  parentStatementDefVer11.addSubStatementInfo(yangUnknownParserPolicy.getKeyword(), parentStatementInfo.getCardinality());
+                  parentStatementDefVer11.addSubStatementInfo(yangSubStatementInfo);
                }
 
                YangStatementDef parentStatementDefVer1 = YangSpecification.getVersion1Spec().getStatementDef(parentStatementInfo.getParentYangKeyword());
                if (parentStatementDefVer1 != null) {
-                  parentStatementDefVer1.addSubStatementInfo(yangUnknownParserPolicy.getKeyword(), parentStatementInfo.getCardinality());
+                  parentStatementDefVer1.addSubStatementInfo(yangSubStatementInfo);
                }
             }
          }

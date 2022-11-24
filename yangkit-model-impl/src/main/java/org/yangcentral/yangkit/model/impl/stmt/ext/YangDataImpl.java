@@ -31,13 +31,14 @@ public class  YangDataImpl extends YangStatementImpl implements YangData  {
         YangUnknownParserPolicy unknownParserPolicy = new YangUnknownParserPolicy(YANG_KEYWORD, YangDataImpl.class,
                 Arrays.asList(BuildPhase.GRAMMAR,BuildPhase.SCHEMA_BUILD));
         YangStatementDef yangStatementDef = new YangStatementDef(YANG_KEYWORD,"name",true);
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.CONTAINER.getQName(),new Cardinality());
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.LEAF.getQName(),new Cardinality());
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.LEAFLIST.getQName(),new Cardinality());
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.CHOICE.getQName(),new Cardinality());
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.ANYDATA.getQName(),new Cardinality());
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.ANYXML.getQName(),new Cardinality());
-        yangStatementDef.addSubStatementInfo(YangBuiltinKeyword.USES.getQName(),new Cardinality());
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.CONTAINER.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.LEAF.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.LEAFLIST.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.CHOICE.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.ANYDATA.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.ANYXML.getQName(),new Cardinality()));
+        yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.USES.getQName(),new Cardinality()));
+
         unknownParserPolicy.setStatementDef(yangStatementDef);
         unknownParserPolicy.addParentStatementInfo(new YangParentStatementInfo(YangBuiltinKeyword.MODULE.getQName(),new Cardinality()));
         unknownParserPolicy.addParentStatementInfo(new YangParentStatementInfo(YangBuiltinKeyword.SUBMODULE.getQName(),new Cardinality()));

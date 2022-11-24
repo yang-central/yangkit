@@ -252,6 +252,31 @@ public abstract class YangStatementImpl implements YangStatement {
    }
    protected ValidatorResult validateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      YangStatementDef yangStatementDef = context.getYangSpecification().getStatementDef(this.getYangKeyword());
+      if(yangStatementDef == null){
+         return validatorResultBuilder.build();
+      }
+      for(YangElement subElement:subElements){
+         if(subElement instanceof YangStatement){
+            YangStatement subStatement = (YangStatement) subElement;
+            YangSubStatementInfo subStatementInfo = yangStatementDef.getSubStatementInfo(subStatement.getYangKeyword());
+            if(subStatementInfo == null){
+               continue;
+            }
+            Class<? extends YangStatementChecker> checkerClazz = subStatementInfo.getChecker();
+            if(checkerClazz != null){
+               try {
+                  YangStatementChecker checker = checkerClazz.newInstance();
+                  validatorResultBuilder.merge(checker.validateChecker(this,subStatement));
+               } catch (InstantiationException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(subStatement,ErrorCode.COMMON_ERROR.getFieldName()));
+               } catch (IllegalAccessException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(subStatement,ErrorCode.COMMON_ERROR.getFieldName()));
+               }
+            }
+
+         }
+      }
       return validatorResultBuilder.build();
    }
 
@@ -367,7 +392,33 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
-      return (new ValidatorResultBuilder()).build();
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      YangStatementDef yangStatementDef = context.getYangSpecification().getStatementDef(this.getYangKeyword());
+      if(yangStatementDef == null){
+         return validatorResultBuilder.build();
+      }
+      for(YangElement subElement:subElements){
+         if(subElement instanceof YangStatement){
+            YangStatement subStatement = (YangStatement) subElement;
+            YangSubStatementInfo subStatementInfo = yangStatementDef.getSubStatementInfo(subStatement.getYangKeyword());
+            if(subStatementInfo == null){
+               continue;
+            }
+            Class<? extends YangStatementChecker> checkerClazz = subStatementInfo.getChecker();
+            if(checkerClazz != null){
+               try {
+                  YangStatementChecker checker = checkerClazz.newInstance();
+                  validatorResultBuilder.merge(checker.buildChecker(this,subStatement,phase));
+               } catch (InstantiationException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(subStatement,ErrorCode.COMMON_ERROR.getFieldName()));
+               } catch (IllegalAccessException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(subStatement,ErrorCode.COMMON_ERROR.getFieldName()));
+               }
+            }
+
+         }
+      }
+      return validatorResultBuilder.build();
    }
 
    protected ValidatorResult buildChildren(BuildPhase phase) {
@@ -492,17 +543,33 @@ public abstract class YangStatementImpl implements YangStatement {
       if(subStatement instanceof DefaultYangUnknown){
          return true;
       }
-      Cardinality cardinality = statementDef.getSubStatementCardinality(subStatement.getYangKeyword());
+      YangSubStatementInfo subStatementInfo = statementDef.getSubStatementInfo(subStatement.getYangKeyword());
+      if(subStatementInfo == null){
+         return false;
+      }
+      Cardinality cardinality = subStatementInfo.getCardinality();
       if(cardinality == null){
          return false;
       }
-      if(cardinality.isUnbounded()){
-         return true;
+      if(!cardinality.isUnbounded()){
+         List<YangStatement> matched = this.getSubStatement(subStatement.getYangKeyword());
+         if((matched.size() +1) > cardinality.getMaxElements()){
+            return false;
+         }
       }
-      List<YangStatement> matched = this.getSubStatement(subStatement.getYangKeyword());
-      if((matched.size() +1) > cardinality.getMaxElements()){
-         return false;
+      Class<? extends YangStatementChecker> checkerClazz = subStatementInfo.getChecker();
+      if(checkerClazz != null){
+         try {
+            YangStatementChecker checker = checkerClazz.newInstance();
+            return checker.check(this,subStatement);
+         } catch (InstantiationException e) {
+            return false;
+         } catch (IllegalAccessException e) {
+            return false;
+         }
       }
+
+
       return true;
    }
    public boolean addChild(YangElement yangElement) {
@@ -714,6 +781,33 @@ public abstract class YangStatementImpl implements YangStatement {
             unknowns.add((YangUnknown) subElement);
          }
       }
+
+      YangStatementDef yangStatementDef = context.getYangSpecification().getStatementDef(this.getYangKeyword());
+      if(yangStatementDef == null){
+         return validatorResultBuilder.build();
+      }
+      for(YangElement subElement:subElements){
+         if(subElement instanceof YangStatement){
+            YangStatement subStatement = (YangStatement) subElement;
+            YangSubStatementInfo subStatementInfo = yangStatementDef.getSubStatementInfo(subStatement.getYangKeyword());
+            if(subStatementInfo == null){
+               continue;
+            }
+            Class<? extends YangStatementChecker> checkerClazz = subStatementInfo.getChecker();
+            if(checkerClazz != null){
+               try {
+                  YangStatementChecker checker = checkerClazz.newInstance();
+                  validatorResultBuilder.merge(checker.initChecker(this,subStatement));
+               } catch (InstantiationException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(subStatement,ErrorCode.COMMON_ERROR.getFieldName()));
+               } catch (IllegalAccessException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(subStatement,ErrorCode.COMMON_ERROR.getFieldName()));
+               }
+            }
+
+         }
+      }
+
       return validatorResultBuilder.build();
    }
 
@@ -858,6 +952,21 @@ public abstract class YangStatementImpl implements YangStatement {
          newUnknown.setExtension(extension);
          newUnknown.setContext(yangUnknown.getContext());
          newUnknown.setChildren(yangUnknown.getSubElements());
+         MainModule extensionModule = extension.getContext().getCurModule().getMainModule();
+         Module curModule = this.getContext().getCurModule();
+         List<Import> imports = curModule.getImports();
+         for(Import im:imports){
+            if(im.getArgStr().equals(extensionModule.getArgStr())){
+               if(im.getRevisionDate() != null){
+                  if(extensionModule.getCurRevisionDate().isPresent() && im.getRevisionDate().getArgStr()
+                          .equals(extensionModule.getCurRevisionDate().get())){
+                     im.addReference(newUnknown);
+                  }
+               } else {
+                  im.addReference(newUnknown);
+               }
+            }
+         }
          return newUnknown;
       }
       return yangUnknown;

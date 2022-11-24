@@ -694,7 +694,7 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
          boolean isMultiInstance = true;
          YangSpecification yangSpecification = this.target.getContext().getYangSpecification();
          YangStatementDef yangStatementDef = yangSpecification.getStatementDef(this.target.getYangKeyword());
-         Cardinality cardinality = yangStatementDef.getSubStatementCardinality(yangUnknown.getYangKeyword());
+         Cardinality cardinality = yangStatementDef.getSubStatementInfo(yangUnknown.getYangKeyword()).getCardinality();
          if(cardinality != null){
             if(cardinality.getMaxElements() <=1){
                isMultiInstance = false;

@@ -5,9 +5,7 @@ import org.yangcentral.yangkit.base.Yang;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.model.impl.schema.YangSchemaContextImpl;
 import org.yangcentral.yangkit.model.impl.stmt.*;
-import org.yangcentral.yangkit.model.impl.stmt.ext.DefaultValueImpl;
-import org.yangcentral.yangkit.model.impl.stmt.ext.DynamicDefaultImpl;
-import org.yangcentral.yangkit.model.impl.stmt.ext.YangDataImpl;
+import org.yangcentral.yangkit.model.impl.stmt.ext.*;
 import org.yangcentral.yangkit.model.impl.stmt.type.*;
 
 import java.util.ArrayList;
@@ -20,6 +18,8 @@ public class YangStatementImplRegister {
       YangStatementRegister.getInstance().registerDefaultUnknown(DefaultYangUnknown.class);
       builtinKeywordRegister();
       YangDataImpl.register();
+      YangDataStructureImpl.register();
+      AugmentStructureImpl.register();
       DynamicDefaultImpl.register();
       DefaultValueImpl.register();
    }
