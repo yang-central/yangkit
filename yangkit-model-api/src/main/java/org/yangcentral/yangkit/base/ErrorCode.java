@@ -101,7 +101,8 @@ public enum ErrorCode {
    UNVERIFIED("this statement hasn't been verified."),
    WRONG_PATH("the path points to incompatible node or unrecognized node."),
    WRONG_TYPE_DEPENDECE_MODULE("The type of dependence module is wrong."),
-   WRONG_USING_EXTENSION("using extension error, it should be {prefix}:{extension} style.");
+   WRONG_USING_EXTENSION("using extension error, it should be {prefix}:{extension} style."),
+   MISSINg_PREDICATES("The xpath may point to a node set, please add suitable predicts after listNode ${listNode}. xpath:${xpath}.");
 
    private String fieldName;
    private Severity severity;
