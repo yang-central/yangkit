@@ -231,7 +231,11 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
    public ValidatorResult visitLocationExpr(LocationPath expr, Object context) {
       Builder<ValidatorResult> builder = this.getBuilderFactory().getBuilder();
       Object currentNode = context;
+      boolean isNeedPridicates = false;
       if (expr.isAbsolute()) {
+         if(this.validateType == VALIDATE_TYPE_WHEN || this.validateType == VALIDATE_TYPE_MUST) {
+            isNeedPridicates = true;
+         }
          if (context instanceof Module) {
             currentNode = new YangXPathRoot((Module)context);
          } else {
