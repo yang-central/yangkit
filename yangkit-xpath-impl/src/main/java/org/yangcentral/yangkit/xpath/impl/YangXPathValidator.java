@@ -119,7 +119,7 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       }
    }
 
-   private Object visitStep(Step step, Object context, Object currentNode) throws ModelException {
+   private Object visitStep(Step step, Object context, Object currentNode, boolean isNeedPridicates) throws ModelException {
       if(currentNode == null){
          throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
                  ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().getRootExpr().simplify().getText());
@@ -192,6 +192,15 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
          throw new IllegalArgumentException("un-support axis.");
       }
 
+      if(isNeedPridicates && currentNode instanceof YangList){
+         YangList listNode = (YangList) currentNode;
+         List keys = listNode.getKey().getkeyNodes();
+         List predicts = step.getPredicates();
+         if (keys.size() > predicts.size()) {
+            throw new ModelException(Severity.WARNING, ((YangXPathContext)this.getContext()).getDefineNode(), ErrorCode.MISSINg_PREDICATES.toString(new String[]{"xpath=" + this.getYangXPath().getRootExpr().simplify().getText(), "listNode=" + listNode.getIdentifier().getQualifiedName()}));
+         }
+      }
+
       if (step instanceof Predicated) {
          List predicates = step.getPredicates();
          if (predicates.size() > 0) {
@@ -222,7 +231,11 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
    public ValidatorResult visitLocationExpr(LocationPath expr, Object context) {
       Builder<ValidatorResult> builder = this.getBuilderFactory().getBuilder();
       Object currentNode = context;
+      boolean isNeedPridicates = false;
       if (expr.isAbsolute()) {
+         if(this.validateType == VALIDATE_TYPE_WHEN || this.validateType == VALIDATE_TYPE_MUST) {
+            isNeedPridicates = true;
+         }
          if (context instanceof Module) {
             currentNode = new YangXPathRoot((Module)context);
          } else {
@@ -238,7 +251,7 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
          Step step = (Step)o;
 
          try {
-            currentNode = this.visitStep(step, context, currentNode);
+            currentNode = this.visitStep(step, context, currentNode, isNeedPridicates);
          } catch (ModelException e) {
             ValidatorResultBuilder stepValidatorResultBuilder = new ValidatorResultBuilder();
             stepValidatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
