@@ -4,6 +4,7 @@ import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.Attribute;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.data.api.base.YangDataContext;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import java.util.List;
@@ -14,19 +15,15 @@ public interface YangData<S extends SchemaNode> extends Comparable<YangData>, Cl
 
    S getSchemaNode();
 
-   YangDataContainer getParent();
+   YangDataContext getContext();
 
-   YangDataContainer getDataParent();
 
-   void setParent(YangDataContainer var1);
 
-   YangDataDocument getDocument();
+   void setContext(YangDataContext context);
 
-   void setDocument(YangDataDocument var1);
 
    boolean isRoot();
 
-   void setRoot(boolean var1);
 
    void detach();
 
@@ -36,17 +33,17 @@ public interface YangData<S extends SchemaNode> extends Comparable<YangData>, Cl
       return false;
    }
 
-   void addAttribute(Attribute var1);
+   void addAttribute(Attribute attribute);
 
-   Attribute getAttribute(QName var1);
+   Attribute getAttribute(QName qName);
 
-   List<Attribute> getAttributes(String var1);
+   List<Attribute> getAttributes(String name);
 
-   void deleteAttribute(QName var1);
+   void deleteAttribute(QName qName);
 
    List<Attribute> getAttributes();
 
-   void setAttributes(List<Attribute> var1);
+   void setAttributes(List<Attribute> attributes);
 
    DataIdentifier getIdentifier();
 
@@ -66,15 +63,10 @@ public interface YangData<S extends SchemaNode> extends Comparable<YangData>, Cl
 
    List<YangCompareResult> compare(YangData<?> var1);
 
-   void merge(YangData<?> var1, boolean var2) throws YangDataException;
-
-   default void merge(YangData<?> candidate) throws YangDataException {
-      this.merge(candidate, true);
-   }
 
    boolean isConfig();
 
    boolean isDummyNode();
 
-   void setDummyNode(boolean var1);
+   void setDummyNode(boolean bool);
 }

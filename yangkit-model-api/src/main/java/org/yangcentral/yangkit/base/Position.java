@@ -1,4 +1,7 @@
 package org.yangcentral.yangkit.base;
+
+import java.util.Objects;
+
 /**
  * Position class, it can be used to edit/get position information
  * @version 1.0.0
@@ -29,5 +32,18 @@ public class Position {
       sb.append(" ");
       sb.append(this.location.getLocation());
       return sb.toString();
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Position position = (Position) o;
+      return source.equals(position.source) && location.equals(position.location);
+   }
+
+   @Override
+   public int hashCode() {
+      return Objects.hash(source, location);
    }
 }

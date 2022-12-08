@@ -61,6 +61,7 @@ public enum ErrorCode {
    INVALID_XPATH_WHEN_ACCESS_CHILD(Severity.WARNING, "invalid xpath:${xpath}. xpath for when MUST NOT access the children of context node."),
    KEY_CONFIG_ATTRIBUTE_DIFF_WITH_LIST("the key node's config attribute MUST be the same with list's config attribute."),
    KEY_NODE_NOT_FOUND("can not find the leaf node:${name} defined in key statement."),
+   KEY_NODE_SHOULD_NOT_EMPTY_TYPE(Severity.ERROR,"the type of key node should not be empty type."),
    KEY_NODE_INACTIVE("the leaf node:${name} defined in key statement is inactive,it may be un-supported by deviation or if-features are evaluated to be false."),
    LEAFREF_CANNOT_RESTRICTED_BY_PATH(Severity.WARNING, "derived leafref type can not be restricted by path statement."),
    LEAFREF_SHOULD_NO_DEFAULT(Severity.WARNING, "The data node with leafref type should not define default value."),

@@ -1,12 +1,10 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.model.api.restriction.Empty;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.stmt.Key;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
@@ -195,13 +193,21 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          if (keyStr.length() != 0) {
             SchemaNode child = this.getSchemaNodeChild(new QName(this.getContext().getNamespace(), keyStr));
             if (null != child && child instanceof Leaf) {
-               boolean bool = this.getKey().addKeyNode((Leaf)child);
-               if (!bool) {
+               Leaf keyLef = (Leaf) child;
+               if(getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)
+               && (keyLef.getType().getRestriction() instanceof Empty)){
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this.getKey(),
-                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                          ErrorCode.KEY_NODE_SHOULD_NOT_EMPTY_TYPE.getFieldName()));
                } else {
-                  ((Leaf)child).setKey(true);
+                  boolean bool = this.getKey().addKeyNode((Leaf)child);
+                  if (!bool) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(this.getKey(),
+                             ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                  } else {
+                     ((Leaf)child).setKey(true);
+                  }
                }
+
             } else {
                validatorResultBuilder.addRecord(ModelUtil.reportError(this.getKey(),
                        ErrorCode.KEY_NODE_NOT_FOUND.toString(new String[]{"name=" + keyStr})));
@@ -306,6 +312,12 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
             } else if (this.isActive() && !keyNode.isActive()) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(keyNode,
                        ErrorCode.KEY_NODE_INACTIVE.toString(new String[]{"name=" + keyNode.getArgStr()})));
+            } else {
+               if(getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)
+                       && (keyNode.getType().getRestriction() instanceof Empty)){
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this.getKey(),
+                          ErrorCode.KEY_NODE_SHOULD_NOT_EMPTY_TYPE.getFieldName()));
+               }
             }
          }
       }

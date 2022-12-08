@@ -13,6 +13,7 @@
         <module>yangkit-xpath-impl</module>
         <module>yangkit-model-impl</module>
         <module>yangkit-parser</module>
+        <module>yangkit-data-impl</module>
     </modules>
     <packaging>pom</packaging>
     <name>yangkit</name>
@@ -121,7 +122,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                 </plugins>
             </build>
 

@@ -2,6 +2,7 @@ package org.yangcentral.yangkit.base;
 
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
+import java.util.Objects;
 import java.util.Stack;
 
 /**
@@ -32,5 +33,18 @@ public class YangStatementLocation implements Location<String>{
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        YangStatementLocation that = (YangStatementLocation) o;
+        return yangStatement.equals(that.yangStatement);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(yangStatement);
     }
 }

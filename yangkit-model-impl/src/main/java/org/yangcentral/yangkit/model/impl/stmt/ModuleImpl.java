@@ -102,7 +102,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public String getEffectiveYangVersion() {
-      return null == this.getYangVersion() ? "1" : this.getYangVersion().getArgStr();
+      return null == this.getYangVersion() ? Yang.VERSION_1 : this.getYangVersion().getArgStr();
    }
 
    public List<Include> getIncludes() {

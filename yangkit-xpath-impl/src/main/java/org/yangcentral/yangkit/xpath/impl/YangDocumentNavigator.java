@@ -149,8 +149,8 @@ public class YangDocumentNavigator extends DefaultNavigator implements NamedAcce
          throw new UnsupportedAxisException("un-supported context node.");
       } else {
          YangData<?> context = (YangData)contextNode;
-         YangDataContainer parent = context.getDataParent();
-         return parent instanceof YangDataDocument ? Arrays.asList(context.getDocument()).iterator() : Arrays.asList(parent).iterator();
+         YangDataContainer parent = context.getContext().getDataParent();
+         return parent instanceof YangDataDocument ? Arrays.asList(context.getContext().getDocument()).iterator() : Arrays.asList(parent).iterator();
       }
    }
 
@@ -198,7 +198,7 @@ public class YangDocumentNavigator extends DefaultNavigator implements NamedAcce
 
    public Object getDocumentNode(Object contextNode) {
       YangData<?> context = (YangData)contextNode;
-      return context.getDocument();
+      return context.getContext().getDocument();
    }
 
    public String translateNamespacePrefixToUri(String prefix, Object element) {

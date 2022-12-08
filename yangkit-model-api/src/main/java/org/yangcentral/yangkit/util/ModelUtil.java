@@ -226,7 +226,7 @@ public class ModelUtil {
 
    public static ValidatorRecord<Position,YangStatement> reportError(YangStatement badElement,Severity severity,
                                                                      ErrorTag errorTag,String errorMsg){
-      ValidatorRecordBuilder  validatorRecordBuilder = new ValidatorRecordBuilder();
+      ValidatorRecordBuilder<Position,YangStatement>  validatorRecordBuilder = new ValidatorRecordBuilder();
       validatorRecordBuilder.setBadElement(badElement);
       validatorRecordBuilder.setSeverity(severity);
       validatorRecordBuilder.setErrorPath(badElement.getElementPosition());
