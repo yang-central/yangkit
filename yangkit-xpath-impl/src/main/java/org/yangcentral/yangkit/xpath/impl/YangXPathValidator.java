@@ -3,13 +3,13 @@ package org.yangcentral.yangkit.xpath.impl;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
+
 import org.jaxen.expr.AdditiveExpr;
 import org.jaxen.expr.BinaryExpr;
 import org.jaxen.expr.EqualityExpr;
 import org.jaxen.expr.Expr;
 import org.jaxen.expr.FunctionCallExpr;
 import org.jaxen.expr.LocationPath;
-import org.jaxen.expr.LogicalExpr;
 import org.jaxen.expr.MultiplicativeExpr;
 import org.jaxen.expr.NameStep;
 import org.jaxen.expr.PathExpr;
@@ -17,7 +17,6 @@ import org.jaxen.expr.Predicate;
 import org.jaxen.expr.Predicated;
 import org.jaxen.expr.RelationalExpr;
 import org.jaxen.expr.Step;
-import org.jaxen.expr.UnionExpr;
 import org.jaxen.saxpath.Axis;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.base.Position;
@@ -218,10 +217,14 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
                      throw new ModelException(Severity.WARNING, ((YangXPathContext)this.getContext()).getDefineNode(), predicateResult.toString());
                   }
                }
-
                predicateResult = (ValidatorResult)this.visit(predicate.getExpr(), currentNode);
                if (!predicateResult.isOk()) {
                   throw new ModelException(Severity.WARNING, ((YangXPathContext)this.getContext()).getDefineNode(), predicateResult.toString());
+               }
+               if(predicate.getExpr() instanceof FunctionCallExpr && ((FunctionCallExpr) predicate.getExpr()).getFunctionName().equals("current")){
+                  throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                          ErrorCode.PREDICATES_MUST_EXPRESSION.toString(new String[]{"xpath=" + this.getYangXPath().getRootExpr().simplify().getText()})
+                  );
                }
             }
          }
@@ -257,9 +260,9 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
                if (keys.size() > predicts.size()) {
                   ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
                   validatorRecordBuilder.setBadElement(((YangXPathContext)this.getContext()).getDefineNode());
-                  validatorRecordBuilder.setSeverity(ErrorCode.MISSINg_PREDICATES.getSeverity());
+                  validatorRecordBuilder.setSeverity(ErrorCode.MISSING_PREDICATES.getSeverity());
                   validatorRecordBuilder.setErrorPath(((YangXPathContext)this.getContext()).getDefineNode().getElementPosition());
-                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSINg_PREDICATES.toString(new String[]{"xpath=" + this.getYangXPath().getRootExpr().simplify().getText(), "listNode=" + listNode.getIdentifier().getQualifiedName()})));
+                  validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_PREDICATES.toString(new String[]{"xpath=" + this.getYangXPath().getRootExpr().simplify().getText(), "listNode=" + listNode.getIdentifier().getQualifiedName()})));
                   ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
                   validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                   builder.merge(validatorResultBuilder.build());
@@ -321,11 +324,9 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       return (ValidatorResult)builder.build();
    }
    public ValidatorResult visitBinaryExpr(BinaryExpr expr, Object context) {
-      ValidatorResult left = this.visit(expr.getLHS(), context);
-      ValidatorResult right = this.visit(expr.getRHS(), context);
+      ValidatorResult father = super.visitBinaryExpr(expr,context);
       Builder<ValidatorResult> builder = this.getBuilderFactory().getBuilder();
-      builder.merge(left);
-      builder.merge(right);
+      builder.merge(father);
       if(this.validateType ==VALIDATE_TYPE_MUST ||this.validateType==VALIDATE_TYPE_WHEN){
          if(expr instanceof AdditiveExpr ||expr instanceof EqualityExpr || expr instanceof MultiplicativeExpr|| expr instanceof RelationalExpr) {
             if (expr.getLHS() instanceof LocationPath && ((LocationPath) expr.getLHS()).isAbsolute()) {
@@ -338,25 +339,6 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
             }
          }
       }
-
-      if (expr instanceof AdditiveExpr) {
-         builder.merge(this.visitAdditiveExpr((AdditiveExpr)expr, context));
-      } else if (expr instanceof EqualityExpr) {
-         builder.merge(this.visitEqualityExpr((EqualityExpr)expr, context));
-      } else if (expr instanceof LogicalExpr) {
-         builder.merge(this.visitLogicalExpr((LogicalExpr)expr, context));
-      } else if (expr instanceof MultiplicativeExpr) {
-         builder.merge(this.visitMultiplicativeExpr((MultiplicativeExpr)expr, context));
-      } else if (expr instanceof RelationalExpr) {
-         builder.merge(this.visitRelationalExpr((RelationalExpr)expr, context));
-      } else {
-         if (!(expr instanceof UnionExpr)) {
-            throw new IllegalArgumentException("unrecognized expr type.");
-         }
-
-         builder.merge(this.visitUnionExpr((UnionExpr)expr, context));
-      }
-
       return builder.build();
    }
    public ValidatorResult visitPathExpr(PathExpr expr, Object context) {
