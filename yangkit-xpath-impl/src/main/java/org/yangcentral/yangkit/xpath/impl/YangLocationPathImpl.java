@@ -22,7 +22,7 @@ import java.util.*;
 
 public abstract class YangLocationPathImpl implements YangLocationPath {
    private List<Step> steps = new LinkedList();
-   private boolean isStrictPath = false;
+   private boolean isStrictPath = true;
 
    public void setStrictPath(boolean strictPath) {
       this.isStrictPath = strictPath;
