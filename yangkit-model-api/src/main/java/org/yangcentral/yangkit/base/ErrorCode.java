@@ -103,7 +103,7 @@ public enum ErrorCode {
    WRONG_PATH("the path points to incompatible node or unrecognized node."),
    WRONG_TYPE_DEPENDECE_MODULE("The type of dependence module is wrong."),
    WRONG_USING_EXTENSION("using extension error, it should be {prefix}:{extension} style."),
-   MISSING_PREDICATES(Severity.WARNING, "The xpath may point to a node set, please add suitable predicts after listNode ${listNode}. xpath:${xpath}."),
+   MISSING_PREDICATES(Severity.WARNING, "The xpath may point to a node set, please add suitable predicts. xpath:${xpath}."),
    PREDICATES_MUST_EXPRESSION(Severity.WARNING, "invalid xpath:${xpath}. The predicate containing the current function should be an expression.");
 
    private String fieldName;
