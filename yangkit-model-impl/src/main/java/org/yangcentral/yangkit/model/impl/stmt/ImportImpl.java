@@ -1,9 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.YangBuiltinKeyword;
-import org.yangcentral.yangkit.base.YangContext;
+import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
@@ -118,9 +115,13 @@ public class ImportImpl extends YangStatementImpl implements Import {
                  ErrorCode.WRONG_TYPE_DEPENDECE_MODULE.getFieldName() + " It should be a module, but get a submodule."));
          return validatorResultBuilder.build();
       } else {
-         if (this.importedModule.getEffectiveYangVersion().equals("1.1") && this.getContext().getCurModule().getEffectiveYangVersion().equals("1")) {
-            validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.WARNING,
-                    ErrorTag.BAD_ELEMENT,ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
+         if (this.importedModule.getEffectiveYangVersion().equals(Yang.VERSION_11) && this.getContext().getCurModule()
+                 .getEffectiveYangVersion().equals(Yang.VERSION_1)) {
+            if(this.getRevisionDate() != null){
+               validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.WARNING,
+                       ErrorTag.BAD_ELEMENT,ErrorCode.INCOMPATIBLE_YANG_VERSION.getFieldName()));
+            }
+
          }
          //importedModule.addDependentBy(this.getContext().getCurModule());
          ValidatorResult importModuleResult;
