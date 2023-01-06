@@ -87,18 +87,13 @@ public class ImportImpl extends YangStatementImpl implements Import {
       boolean wrongType = false;
 
       if (this.revisionDate == null) {
-         List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
-         if (null != moduleList && moduleList.size() != 0) {
-            if (moduleList.size() > 1) {
-               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                       ErrorCode.TOO_MANY_DEPENDECE_MODULES.getFieldName()));
-               return validatorResultBuilder.build();
-            }
-
-            if (!(moduleList.get(0) instanceof MainModule)) {
+         Optional<Module> moduleOp = schemaContext.getLatestModule(this.getArgStr());
+         if(moduleOp.isPresent()){
+            Module imp = moduleOp.get();
+            if(!(imp instanceof MainModule)){
                wrongType = true;
             } else {
-               this.importedModule = (MainModule)moduleList.get(0);
+               this.importedModule = (MainModule)imp;
             }
          } else {
             notFound = true;

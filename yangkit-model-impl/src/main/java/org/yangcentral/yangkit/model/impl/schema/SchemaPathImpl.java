@@ -73,7 +73,7 @@ public abstract class SchemaPathImpl implements SchemaPath {
       return sb.toString();
    }
 
-   public static SchemaPath from(Module module, SchemaNodeContainer contextNode, YangStatement yangStatement,String path) throws ModelException {
+   public static SchemaPath from(SchemaNodeContainer contextNode, YangStatement yangStatement,String path) throws ModelException {
       boolean isAbsolute = false;
       if (path.startsWith("/")) {
          isAbsolute = true;
@@ -91,10 +91,22 @@ public abstract class SchemaPathImpl implements SchemaPath {
             String prefix = fName.getPrefix();
             String localName = fName.getLocalName();
             URI namespace = null;
-            Module sourceModule = null;
             if (prefix == null) {
-               sourceModule = module;
+               if(contextNode instanceof SchemaNode){
+                  SchemaNode schemaNode = (SchemaNode) contextNode;
+                  namespace = schemaNode.getContext().getNamespace().getUri();
+               } else {
+                  Module curModule = (Module) contextNode;
+                  namespace = curModule.getMainModule().getNamespace().getUri();
+               }
             } else {
+               Module module = null;
+               if(contextNode instanceof SchemaNode){
+                  SchemaNode schemaNode = (SchemaNode) contextNode;
+                  module = schemaNode.getContext().getCurModule();
+               } else {
+                  module = (Module) contextNode;
+               }
                Import im = module.getImportByPrefix(prefix);
                if (im != null) {
                   im.addReference(yangStatement);
@@ -110,21 +122,8 @@ public abstract class SchemaPathImpl implements SchemaPath {
                   throw new ModelException(Severity.ERROR, (isAbsolute ? module : (YangStatement)contextNode), "can't find the module which prefix:" + prefix + " points to");
                }
 
-               sourceModule = moduleOp.get();
-            }
-
-            if (sourceModule instanceof MainModule) {
-               namespace = ((MainModule)sourceModule).getNamespace().getUri();
-               if (null == prefix) {
-                  prefix = ((MainModule)sourceModule).getPrefix().getArgStr();
-               }
-            } else {
-               SubModule sb = (SubModule)sourceModule;
-               MainModule mainModule = sb.getBelongsto().getMainModules().get(0);
-               namespace = mainModule.getNamespace().getUri();
-               if (null == prefix) {
-                  prefix = sb.getBelongsto().getPrefix().getArgStr();
-               }
+               Module sourceModule = moduleOp.get();
+               namespace = sourceModule.getMainModule().getNamespace().getUri();
             }
 
             QName qName = new QName(namespace, prefix, localName);

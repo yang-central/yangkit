@@ -51,27 +51,43 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    public Optional<Module> getModule(ModuleId moduleId) {
       if (!this.moduleMap.containsKey(moduleId.getModuleName())) {
          return Optional.empty();
-      } else {
-         List<Module> matched = (List)this.moduleMap.get(moduleId.getModuleName());
-         Iterator iterator = matched.iterator();
-
-         while(iterator.hasNext()) {
-            Module module = (Module)iterator.next();
-            if (moduleId.getRevision() == null || moduleId.getRevision().equals("")) {
-               if (module.getArgStr().equals(moduleId.getModuleName())) {
-                  return Optional.of(module);
-               }
-            } else if (module.getModuleId().equals(moduleId)) {
-               return Optional.of(module);
-            }
-         }
-
-         return Optional.empty();
       }
+      if(moduleId.getRevision() == null || moduleId.getRevision().equals("")){
+         return getLatestModule(moduleId.getModuleName());
+      }
+      return getModule(moduleId.getModuleName(), moduleId.getRevision());
    }
 
    public List<Module> getModule(String name) {
-      return (List)this.moduleMap.get(name);
+      return this.moduleMap.get(name);
+   }
+
+   @Override
+   public Optional<Module> getLatestModule(String name) {
+      List<Module> modules = getModule(name);
+      if(modules.isEmpty()){
+         return Optional.empty();
+      }
+      Module latestModule = null;
+      for(Module module:modules){
+         if(latestModule == null){
+            latestModule = module;
+            continue;
+         }
+         if(!latestModule.getCurRevisionDate().isPresent()){
+            latestModule = module;
+            continue;
+         }
+         if(!module.getCurRevisionDate().isPresent()){
+            continue;
+         }
+
+         if(module.getCurRevisionDate().get().compareTo(latestModule.getCurRevisionDate().get())>0){
+            latestModule = module;
+         }
+
+      }
+      return Optional.of(latestModule);
    }
 
    public List<Module> getModule(URI namespace) {

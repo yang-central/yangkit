@@ -248,18 +248,7 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
         SchemaNode child;
         switch (phase) {
             case GRAMMAR:{
-                try {
-                    SchemaPath targetPath = SchemaPathImpl.from(getContext().getCurModule(),getContext().getCurModule(),this,this.getArgStr());
-                    if (targetPath instanceof SchemaPath.Descendant) {
-                        validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                                ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
-                    } else {
-                        this.setTargetPath(targetPath);
-                    }
-                } catch (ModelException e) {
-                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                            e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
-                }
+
                 break;
             }
             case SCHEMA_BUILD:{
@@ -273,54 +262,67 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                 break;
             }
             case SCHEMA_EXPAND:{
-                SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
-                if (target == null) {
-                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                            ErrorCode.MISSING_TARGET.getFieldName()));
-                }
+                try {
+                    SchemaPath targetPath = SchemaPathImpl.from(getContext().getCurModule(),this,this.getArgStr());
+                    if (targetPath instanceof SchemaPath.Descendant) {
+                        validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                                ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
+                    } else {
+                        this.setTargetPath(targetPath);
+                        SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
+                        if (target == null) {
+                            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                                    ErrorCode.MISSING_TARGET.getFieldName()));
+                        }
 
-                if (!(target instanceof Augmentable) &&(target.getSchemaTreeType() != SchemaTreeType.YANGDATATREE)) {
-                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                            ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
-                }
-                this.setTarget(target);
-                iterator = this.getSchemaNodeChildren().iterator();
-                while(iterator.hasNext()) {
-                    child = (SchemaNode)iterator.next();
-                    if (child instanceof DataDefinition) {
-                        if (!(this.target instanceof DataDefContainer)) {
-                            validatorResultBuilder.addRecord(
-                                    ModelUtil.reportError(child, ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                        } else if (this.target instanceof Choice && child instanceof Uses) {
-                            validatorResultBuilder.addRecord(
-                                    ModelUtil.reportError(child,ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
-                        } else if (this.target instanceof Choice) {
-                            ChoiceImpl choice = (ChoiceImpl)this.target;
-                            Case ch = null;
-                            if (child instanceof Case) {
-                                ch = (Case)child;
-                            } else {
-                                ch = new CaseImpl(child.getArgStr());
-                                ch.setContext(new YangContext(this.getContext()));
-                                ch.setShortCase(true);
-                                ch.addDataDefChild((DataDefinition)child);
-                                ch.addSchemaNodeChild(child);
-                                this.removeSchemaNodeChild(child);
-                                this.removeSchemaNodeChild(ch);//remove the old if it's built
-                                this.addSchemaNodeChild(ch);
-                                ch.init();
-                                ch.build();
-                            }
-                            choice.removeCase(ch.getIdentifier());//remove the old if it's built
-                            if (!choice.addCase(ch)) {
-                                validatorResultBuilder.addRecord(
-                                        ModelUtil.reportError(child,ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                        if (!(target instanceof Augmentable) &&(target.getSchemaTreeType() != SchemaTreeType.YANGDATATREE)) {
+                            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                                    ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
+                        }
+                        this.setTarget(target);
+                        iterator = this.getSchemaNodeChildren().iterator();
+                        while(iterator.hasNext()) {
+                            child = (SchemaNode)iterator.next();
+                            if (child instanceof DataDefinition) {
+                                if (!(this.target instanceof DataDefContainer)) {
+                                    validatorResultBuilder.addRecord(
+                                            ModelUtil.reportError(child, ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+                                } else if (this.target instanceof Choice && child instanceof Uses) {
+                                    validatorResultBuilder.addRecord(
+                                            ModelUtil.reportError(child,ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
+                                } else if (this.target instanceof Choice) {
+                                    ChoiceImpl choice = (ChoiceImpl)this.target;
+                                    Case ch = null;
+                                    if (child instanceof Case) {
+                                        ch = (Case)child;
+                                    } else {
+                                        ch = new CaseImpl(child.getArgStr());
+                                        ch.setContext(new YangContext(this.getContext()));
+                                        ch.setShortCase(true);
+                                        ch.addDataDefChild((DataDefinition)child);
+                                        ch.addSchemaNodeChild(child);
+                                        this.removeSchemaNodeChild(child);
+                                        this.removeSchemaNodeChild(ch);//remove the old if it's built
+                                        this.addSchemaNodeChild(ch);
+                                        ch.init();
+                                        ch.build();
+                                    }
+                                    choice.removeCase(ch.getIdentifier());//remove the old if it's built
+                                    if (!choice.addCase(ch)) {
+                                        validatorResultBuilder.addRecord(
+                                                ModelUtil.reportError(child,ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                                    }
+                                }
                             }
                         }
+                        SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) this.getTarget();
+                        schemaNodeContainer.addSchemaNodeChild(this);
                     }
+                } catch (ModelException e) {
+                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                            e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
                 }
-                SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) this.getTarget();
-                schemaNodeContainer.addSchemaNodeChild(this);
+
                 break;
             }
 

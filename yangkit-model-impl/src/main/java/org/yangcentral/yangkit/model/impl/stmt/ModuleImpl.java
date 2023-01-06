@@ -468,23 +468,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                //validatorResultBuilder.merge(this.validateSubModules());
             }
 
-            Iterator<Augment> augmentIterator = this.augments.iterator();
 
-            while(augmentIterator.hasNext()) {
-               Augment augment = augmentIterator.next();
-               try {
-                  SchemaPath targetPath = SchemaPathImpl.from(this, this, augment,augment.getArgStr());
-                  if (targetPath instanceof SchemaPath.Descendant) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
-                             ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
-                  } else {
-                     augment.setTargetPath(targetPath);
-                  }
-               } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
-                          e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
-               }
-            }
 
             return validatorResultBuilder.build();
          }
@@ -544,7 +528,23 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
                while(augmentCacheIt.hasNext()) {
                   Augment augment = augmentCacheIt.next();
-                  SchemaPath targetPath = augment.getTargetPath();
+                  SchemaPath targetPath = null;
+                  try {
+                     targetPath = SchemaPathImpl.from(this, augment,augment.getArgStr());
+
+                  } catch (ModelException e) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
+                             e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
+                     continue;
+                  }
+                  if (targetPath instanceof SchemaPath.Descendant) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
+                             ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
+                     continue;
+                  } else {
+                     augment.setTargetPath(targetPath);
+                  }
+
                   SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
                   if (target == null) {
                      subResultBuilder.addRecord(ModelUtil.reportError(augment,

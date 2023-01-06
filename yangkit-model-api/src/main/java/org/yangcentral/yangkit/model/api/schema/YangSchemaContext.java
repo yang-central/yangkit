@@ -25,25 +25,27 @@ public interface YangSchemaContext extends SchemaNodeContainer {
 
    List<Module> getImportOnlyModules();
 
-   Optional<Module> getModule(String var1, String var2);
+   Optional<Module> getModule(String name, String revision);
 
-   Optional<Module> getModule(ModuleId var1);
+   Optional<Module> getModule(ModuleId moduleId);
 
-   List<Module> getModule(String var1);
+   List<Module> getModule(String name);
 
-   List<Module> getModule(URI var1);
+   Optional<Module> getLatestModule(String name);
 
-   Optional<? extends SchemaNode> getSchemaNode(SchemaPath.Absolute var1);
+   List<Module> getModule(URI uri);
+
+   Optional<? extends SchemaNode> getSchemaNode(SchemaPath.Absolute path);
 
    YangSchema getYangSchema();
 
-   void addModule(Module var1);
+   void addModule(Module module);
 
-   void addImportOnlyModule(Module var1);
+   void addImportOnlyModule(Module module);
 
-   boolean isImportOnly(Module var1);
+   boolean isImportOnly(Module module);
 
-   Module removeModule(ModuleId var1);
+   Module removeModule(ModuleId moduleId);
 
    Map<String, List<YangElement>> getParseResult();
 

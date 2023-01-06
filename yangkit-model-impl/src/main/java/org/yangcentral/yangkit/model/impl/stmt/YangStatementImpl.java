@@ -946,6 +946,9 @@ public abstract class YangStatementImpl implements YangStatement {
          return yangUnknown;
       }
       Namespace namespace = extension.getContext().getNamespace();
+      if(namespace == null){
+         return yangUnknown;
+      }
       YangUnknown newUnknown = (YangUnknown) YangStatementRegister.getInstance().getYangStatementInstance(
               new QName(namespace, extension.getArgStr()), yangUnknown.getArgStr());
       if(newUnknown != null){

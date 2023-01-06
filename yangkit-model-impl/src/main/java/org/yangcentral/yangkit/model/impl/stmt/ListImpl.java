@@ -142,7 +142,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       //clear
       unique.removeUniqueNodes();
-      String[] uniStrs = unique.getArgStr().split(" ");
+      String[] uniStrs = unique.getArgStr().split("\\s");
       int length = uniStrs.length;
 
       for(int i = 0; i < length; ++i) {
@@ -150,7 +150,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          uniStr = uniStr.trim();
          if (uniStr.length() != 0) {
             try {
-               SchemaPath path = SchemaPathImpl.from(this.getContext().getCurModule(), this, unique,uniStr);
+               SchemaPath path = SchemaPathImpl.from( this, unique,uniStr);
                if (!(path instanceof SchemaPath.Descendant)) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(unique,ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
                } else {
@@ -184,7 +184,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          key.removeKeyNodes();
       }
 
-      String[] keys = key.getArgStr().split(" ");
+      String[] keys = key.getArgStr().split("\\s");
       int length = keys.length;
 
       for(int i = 0; i < length; ++i) {

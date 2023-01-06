@@ -182,37 +182,6 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                return validatorResultBuilder.build();
             }
 
-            //build augments
-            Iterator<Augment> augmentIterator = this.augments.iterator();
-            while(augmentIterator.hasNext()) {
-               Augment augment = augmentIterator.next();
-               augment.setTargetPath(null);
-               try {
-                  SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(),
-                          this, augment,augment.getArgStr());
-                  augment.setTargetPath(targetPath);
-               } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,e.getSeverity(),
-                          ErrorTag.BAD_ELEMENT,e.getDescription()));
-                  continue;
-               }
-            }
-
-            Iterator<Refine> refineIterator = this.refines.iterator();
-
-            while(refineIterator.hasNext()) {
-               Refine refine = refineIterator.next();
-               //refine.setTargetPath(null);
-               try {
-                  SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), this, refine,refine.getArgStr());
-                  refine.setTargetPath(targetPath);
-               } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(refine,e.getSeverity(),
-                          ErrorTag.BAD_ELEMENT,e.getDescription()));
-                  continue;
-               }
-            }
-
             break;
          }
 
@@ -224,7 +193,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
             while(dataDefinitionIterator.hasNext()) {
                DataDefinition dataDefinition = dataDefinitionIterator.next();
                DataDefinition clonedDataDefiniton = (DataDefinition)dataDefinition.clone();
-               YangContext newYangContext = new YangContext(dataDefinition.getContext());
+               YangContext newYangContext = dataDefinition.getContext().clone();
                newYangContext.setCurGrouping(this.getContext().getCurGrouping());
                clonedDataDefiniton.setContext(newYangContext);
                clonedDataDefiniton.getContext().setNamespace(this.getContext().getNamespace());
@@ -247,8 +216,9 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
             while(actionIterator.hasNext()) {
                Action action = actionIterator.next();
                Action clonedAction = (Action)action.clone();
-               clonedAction.setContext(new YangContext(action.getContext()));
+               clonedAction.setContext(action.getContext().clone());
                clonedAction.getContext().setNamespace(this.getContext().getNamespace());
+               clonedAction.getContext().setCurGrouping(this.getContext().getCurGrouping());
                clonedAction.init();
 
 
@@ -267,8 +237,9 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
             while(notificationIterator.hasNext()) {
                Notification notification = notificationIterator.next();
                Notification clonedNotification = (Notification)notification.clone();
-               clonedNotification.setContext(new YangContext(notification.getContext()));
+               clonedNotification.setContext(notification.getContext().clone());
                clonedNotification.getContext().setNamespace(this.getContext().getNamespace());
+               clonedNotification.getContext().setCurGrouping(this.getContext().getCurGrouping());
                clonedNotification.init();
                for(BuildPhase buildPhase:BuildPhase.values()) {
                   if (buildPhase.compareTo(phase) < 0) {
@@ -279,31 +250,54 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(clonedNotification.build(phase));
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedNotification));
             }
-
+            //build augments
             Iterator<Augment> augmentIterator = this.augments.iterator();
             while(augmentIterator.hasNext()) {
                Augment augment = augmentIterator.next();
-               SchemaPath targetPath = augment.getTargetPath();
-               SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
-               if (!(target instanceof Augmentable)) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
-                          ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
+               augment.setTargetPath(null);
+               try {
+                  SchemaPath targetPath = SchemaPathImpl.from(
+                          this, augment,augment.getArgStr());
+                  augment.setTargetPath(targetPath);
+                  SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
+                  if(target == null){
+                     continue;
+                  }
+                  if (!(target instanceof Augmentable)) {
+                     validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
+                             ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
+                     continue;
+                  }
+                  augment.setTarget(target);
+                  SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)target;
+                  validatorResultBuilder.merge(schemaNodeContainer.addSchemaNodeChild(augment));
+               } catch (ModelException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,e.getSeverity(),
+                          ErrorTag.BAD_ELEMENT,e.getDescription()));
                   continue;
                }
-               augment.setTarget(target);
-               SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)target;
-               validatorResultBuilder.merge(schemaNodeContainer.addSchemaNodeChild(augment));
             }
+
 
             Iterator<Refine> refineIterator = this.refines.iterator();
 
             while(refineIterator.hasNext()) {
                Refine refine = refineIterator.next();
-               SchemaPath targetPath = refine.getTargetPath();
-               SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
-               refine.setTarget(target);
+               //refine.setTargetPath(null);
+               try {
+                  SchemaPath targetPath = SchemaPathImpl.from( this, refine,refine.getArgStr());
+                  refine.setTargetPath(targetPath);
+                  SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
+                  if(null == target){
+                     continue;
+                  }
+                  refine.setTarget(target);
+               } catch (ModelException e) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(refine,e.getSeverity(),
+                          ErrorTag.BAD_ELEMENT,e.getDescription()));
+                  continue;
+               }
             }
-
             break;
          }
 

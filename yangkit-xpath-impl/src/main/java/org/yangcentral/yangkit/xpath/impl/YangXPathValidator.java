@@ -255,11 +255,14 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
             currentNode = this.visitStep(step, context, currentNode);
             if (currentNode instanceof YangList) {
                YangList listNode = (YangList) currentNode;
-               List keys = listNode.getKey().getkeyNodes();
-               List predicts = step.getPredicates();
-               if (keys.size() > predicts.size()) {
-                  ((YangLocationPathImpl) expr).setStrictPath(false);
+               if(listNode.getKey() != null){
+                  List keys = listNode.getKey().getkeyNodes();
+                  List predicts = step.getPredicates();
+                  if (keys.size() > predicts.size()) {
+                     ((YangLocationPathImpl) expr).setStrictPath(false);
+                  }
                }
+
             }
          } catch (ModelException e) {
             ValidatorResultBuilder stepValidatorResultBuilder = new ValidatorResultBuilder();

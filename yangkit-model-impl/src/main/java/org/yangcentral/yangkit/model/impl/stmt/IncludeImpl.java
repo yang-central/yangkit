@@ -71,18 +71,13 @@ public class IncludeImpl extends YangStatementImpl implements Include {
       boolean incompatiableVersion = false;
 
       if (this.revisionDate == null) {
-         List<org.yangcentral.yangkit.model.api.stmt.Module> moduleList = schemaContext.getModule(this.getArgStr());
-         if (null != moduleList && moduleList.size() != 0) {
-            if (moduleList.size() > 1) {
-               validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                       ErrorCode.TOO_MANY_DEPENDECE_MODULES.getFieldName()));
-               return validatorResultBuilder.build();
-            }
-
-            if (!(moduleList.get(0) instanceof SubModule)) {
+         Optional<Module> moduleOp = schemaContext.getLatestModule(this.getArgStr());
+         if(moduleOp.isPresent()){
+            Module imp = moduleOp.get();
+            if(!(imp instanceof SubModule)){
                wrongType = true;
             } else {
-               this.includeModule = (SubModule)moduleList.get(0);
+               this.includeModule = (SubModule) imp;
             }
          } else {
             notFound = true;

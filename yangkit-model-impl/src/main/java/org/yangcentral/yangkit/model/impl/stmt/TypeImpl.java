@@ -274,7 +274,6 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
          YangEnum yangEnum = (YangEnum)builtinStatement;
          find = true;
-         ValidatorRecordBuilder validatorRecordBuilder;
          if (this.isDerivedType()) {
             String yangVersion = this.getContext().getCurModule().getEffectiveYangVersion();
             if (!yangVersion.equals(Yang.VERSION_11)) {
@@ -283,7 +282,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                continue;
             }
 
-            Enumeration base = (Enumeration)this.getBaseType();
+            Enumeration base = (Enumeration)(this.getBaseType().getRestriction());
             Map<String, YangEnum> baseYangEnumMap = (Map)base.getEnums().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
             if (!baseYangEnumMap.containsKey(builtinStatement.getArgStr())) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
@@ -578,12 +577,6 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
       }
 
       if (null == this.derived) {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-         validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-         validatorRecordBuilder.setSeverity(Severity.ERROR);
-         validatorRecordBuilder.setErrorPath(this.getElementPosition());
-         validatorRecordBuilder.setBadElement(this);
-         validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_TYPE.getFieldName()));
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.UNRECOGNIZED_TYPE.getFieldName()));
          return validatorResultBuilder.build();
       } else {

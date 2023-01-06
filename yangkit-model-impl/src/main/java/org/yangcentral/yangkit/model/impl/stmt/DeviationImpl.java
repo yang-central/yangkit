@@ -139,8 +139,13 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
       switch (phase) {
          case GRAMMAR:{
 
+
+            break;
+         }
+
+         case SCHEMA_MODIFIER:{
             try {
-               SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(), null, this,this.getArgStr());
+               SchemaPath targetPath = SchemaPathImpl.from(this.getContext().getCurModule(),  this,this.getArgStr());
                if (targetPath instanceof SchemaPath.Descendant) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                           ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
@@ -148,30 +153,26 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
                }
 
                this.setTargetPath(targetPath);
-               break;
+               SchemaNode targetNode = this.targetPath.getSchemaNode(this.getContext().getSchemaContext());
+               if (targetNode == null) {
+                  this.targetPath.getSchemaNode(this.getContext().getSchemaContext());
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.MISSING_TARGET.getFieldName()));
+                  return validatorResultBuilder.build();
+               }
+
+               this.setTarget(targetNode);
+               Iterator deviateIterator = this.deviates.iterator();
+
+               while(deviateIterator.hasNext()) {
+                  Deviate deviate = (Deviate)deviateIterator.next();
+                  deviate.setTarget(targetNode);
+               }
             } catch (ModelException e) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                        e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
-               break;
-            }
-         }
 
-         case SCHEMA_MODIFIER:{
-
-            SchemaNode targetNode = this.targetPath.getSchemaNode(this.getContext().getSchemaContext());
-            if (targetNode == null) {
-               this.targetPath.getSchemaNode(this.getContext().getSchemaContext());
-               validatorResultBuilder.addRecord(ModelUtil.reportError(this,ErrorCode.MISSING_TARGET.getFieldName()));
-               return validatorResultBuilder.build();
             }
 
-            this.setTarget(targetNode);
-            Iterator deviateIterator = this.deviates.iterator();
-
-            while(deviateIterator.hasNext()) {
-               Deviate deviate = (Deviate)deviateIterator.next();
-               deviate.setTarget(targetNode);
-            }
             break;
          }
 

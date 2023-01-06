@@ -52,6 +52,14 @@ public class YangContext {
       this.merge(parent);
    }
 
+   public YangContext clone(){
+      YangContext clonedContext = new YangContext(this.getSchemaContext(),this.getCurModule());
+      for(YangContext yc: this.mergedContexts){
+         clonedContext.mergedContexts.add(yc);
+      }
+      return clonedContext;
+   }
+
    public YangSchemaContext getSchemaContext() {
       return this.schemaContext;
    }

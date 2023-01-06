@@ -340,6 +340,9 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
                severity = Severity.WARNING;
             }
          }
+         if(this.getWhen() != null){
+            severity = Severity.WARNING;
+         }
          validatorResultBuilder.addRecord(
                  ModelUtil.reportError(mandatoryDescendant,severity, ErrorTag.BAD_ELEMENT,
                          ErrorCode.AUGMENT_MANDATORY_NODE.getFieldName()));
