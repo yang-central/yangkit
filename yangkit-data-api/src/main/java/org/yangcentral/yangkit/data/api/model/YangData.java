@@ -5,7 +5,6 @@ import org.yangcentral.yangkit.common.api.Attribute;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.data.api.base.YangDataContext;
-import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import java.util.List;
 import org.jaxen.JaxenException;
@@ -61,7 +60,7 @@ public interface YangData<S extends SchemaNode> extends Comparable<YangData>, Cl
 
    YangData<S> clone() throws CloneNotSupportedException;
 
-   List<YangCompareResult> compare(YangData<?> var1);
+   List<YangDataCompareResult> compare(YangData<?> var1);
 
 
    boolean isConfig();

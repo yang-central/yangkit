@@ -69,7 +69,7 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
          this.range.setBound(this.getHighBound(), this.getLowBound());
          validatorResultBuilder.merge(this.range.build(BuildPhase.GRAMMAR));
 
-         if (this.getDerived() != null && !this.range.isSubSet(((Decimal64)this.getDerived().getType().getRestriction()).getRange())) {
+         if (this.getDerived() != null && !this.range.isSubSet(((Decimal64)this.getDerived().getType().getRestriction()).getEffectiveRange())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(range,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),
                     ErrorTag.BAD_ELEMENT,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
             return validatorResultBuilder.build();

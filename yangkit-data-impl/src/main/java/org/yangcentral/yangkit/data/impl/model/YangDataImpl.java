@@ -11,7 +11,6 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.base.YangDataContext;
-import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.restriction.LeafRef;
@@ -426,11 +425,11 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
     }
 
     @Override
-    public List<YangCompareResult> compare(YangData<?> data) {
+    public List<YangDataCompareResult> compare(YangData<?> data) {
         if (!getIdentifier().equals(data.getIdentifier())) {
             throw new IllegalArgumentException("the candidate data must have same identifier.");
         }
-        List<YangCompareResult> results = new ArrayList<>();
+        List<YangDataCompareResult> results = new ArrayList<>();
         if (this instanceof TypedData) {
             if (!equals(data)) {
                 results.add(new YangCompareResultImpl(getPath(), DifferenceType.CHANGED, data));
@@ -470,7 +469,7 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
                         if (child.getIdentifier().equals(candidateChild.getIdentifier())) {
                             matchArray[i] = true;
                             matchCandidateArray[j] = true;
-                            List<YangCompareResult> childResults = child.compare(candidateChild);
+                            List<YangDataCompareResult> childResults = child.compare(candidateChild);
                             if (0 != childResults.size()) {
                                 results.addAll(childResults);
                             }

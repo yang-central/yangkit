@@ -31,7 +31,7 @@ public interface YangDataDocument extends YangDataContainer, Cloneable {
 
    void setAttributes(List<Attribute> var1);
 
-   List<YangCompareResult> compare(YangDataDocument var1);
+   List<YangDataCompareResult> compare(YangDataDocument var1);
 
    DataChangeNotifier getDataChangeNotifier();
 

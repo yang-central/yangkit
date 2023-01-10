@@ -63,7 +63,7 @@ public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionI
          validatorResultBuilder.merge(range.build(BuildPhase.GRAMMAR));
 
          if (this.getDerived() != null) {
-            Range derivedRange = ((YangInteger)this.getDerived().getType().getRestriction()).getRange();
+            Range derivedRange = ((YangInteger)this.getDerived().getType().getRestriction()).getEffectiveRange();
             if (derivedRange != null && !range.isSubSet(derivedRange)) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(range,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),
                        ErrorTag.BAD_ELEMENT,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));

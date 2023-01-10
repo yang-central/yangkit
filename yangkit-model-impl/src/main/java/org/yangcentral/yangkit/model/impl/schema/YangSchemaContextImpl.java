@@ -55,7 +55,13 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       if(moduleId.getRevision() == null || moduleId.getRevision().equals("")){
          return getLatestModule(moduleId.getModuleName());
       }
-      return getModule(moduleId.getModuleName(), moduleId.getRevision());
+      List<Module> modules = getModule(moduleId.getModuleName());
+      for (Module module:modules) {
+         if(module.getModuleId().equals(moduleId)){
+            return Optional.of(module);
+         }
+      }
+      return Optional.empty();
    }
 
    public List<Module> getModule(String name) {
