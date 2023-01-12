@@ -71,7 +71,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    @Override
    public Optional<Module> getLatestModule(String name) {
       List<Module> modules = getModule(name);
-      if(modules.isEmpty()){
+      if(modules == null || modules.isEmpty()){
          return Optional.empty();
       }
       Module latestModule = null;
