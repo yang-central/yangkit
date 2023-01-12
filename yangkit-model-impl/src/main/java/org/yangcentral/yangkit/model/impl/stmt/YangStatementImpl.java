@@ -289,6 +289,9 @@ public abstract class YangStatementImpl implements YangStatement {
          if (subElement instanceof YangStatement) {
             YangStatement statement = (YangStatement)subElement;
             if (!statement.isErrorStatement()) {
+               if(statement instanceof SchemaNode && !((SchemaNode) statement).isActive()){
+                   continue;
+               }
                validatorResultBuilder.merge(statement.validate());
             }
          }
