@@ -33,7 +33,7 @@ public class DeRefFunction implements Function {
                   YangXPath yangXPath = leafRef.getEffectivePath().getXPathExpression();
 
                   try {
-                     if(yangXPath != null) {
+                     if (yangXPath != null) {
                         return yangXPath.evaluate(node);
                      } else {
                         return Collections.EMPTY_LIST;
