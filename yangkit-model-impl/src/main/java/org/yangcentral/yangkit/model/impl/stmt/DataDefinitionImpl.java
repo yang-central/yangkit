@@ -78,11 +78,13 @@ public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataD
       } else {
          this.whenValidating = true;
          YangXPath xpath = this.when.getXPathExpression();
-         Object contextNode = XPathUtil.getXPathContextNode(this);
-         YangXPathContext yangXPathContext = new YangXPathContext(this.when.getContext(), contextNode, this);
-         xpath.setXPathContext(yangXPathContext);
-         YangXPathValidator yangXPathValidator = new YangXPathValidator(xpath, yangXPathContext, new ValidatorResultBuilderFactory(), 1);
-         validatorResultBuilder.merge(yangXPathValidator.visit(xpath.getRootExpr(), contextNode));
+         if(xpath != null) {
+            Object contextNode = XPathUtil.getXPathContextNode(this);
+            YangXPathContext yangXPathContext = new YangXPathContext(this.when.getContext(), contextNode, this);
+            xpath.setXPathContext(yangXPathContext);
+            YangXPathValidator yangXPathValidator = new YangXPathValidator(xpath, yangXPathContext, new ValidatorResultBuilderFactory(), 1);
+            validatorResultBuilder.merge(yangXPathValidator.visit(xpath.getRootExpr(), contextNode));
+         }
          this.whenValidating = false;
          return validatorResultBuilder.build();
       }
