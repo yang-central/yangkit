@@ -103,7 +103,7 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
          LeafRef leafRef = (LeafRef)this.getType().getRestriction();
          Path effectivePath = leafRef.getEffectivePath();
          YangXPath xpath = effectivePath.getXPathExpression();
-         if( xpath != null) {
+         if (xpath != null) {
             YangLocationPathImpl path = (YangLocationPathImpl) xpath.getRootExpr();
             YangXPathContext yangXPathContext = new YangXPathContext(effectivePath.getContext(), this, this);
             xpath.setXPathContext(yangXPathContext);
