@@ -58,8 +58,8 @@
         <com.google.code.gson.version>2.10.1</com.google.code.gson.version>
         <jaxen.jaxen.version>2.0.0</jaxen.jaxen.version>
 
-        <io.github.yang-central.yangkit.yangkit-common.version>1.1.1</io.github.yang-central.yangkit.yangkit-common.version>
-        <io.github.yang-central.yangkit.yangkit-common-utils.version>1.0.1</io.github.yang-central.yangkit.yangkit-common-utils.version>
+        <io.github.yang-central.yangkit.yangkit-common.version>1.1.2</io.github.yang-central.yangkit.yangkit-common.version>
+        <io.github.yang-central.yangkit.yangkit-common-utils.version>1.0.2</io.github.yang-central.yangkit.yangkit-common-utils.version>
 
         <io.github.yang-central.yangkit.yangkit-model-api.version>${project.version}</io.github.yang-central.yangkit.yangkit-model-api.version>
         <io.github.yang-central.yangkit.yangkit-model-impl.version>${project.version}</io.github.yang-central.yangkit.yangkit-model-impl.version>
