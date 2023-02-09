@@ -273,6 +273,7 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                         if (target == null) {
                             validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                                     ErrorCode.MISSING_TARGET.getFieldName()));
+                            break;
                         }
 
                         if (!(target instanceof Augmentable) &&(target.getSchemaTreeType() != SchemaTreeType.YANGDATATREE)) {
