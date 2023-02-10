@@ -7,7 +7,7 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import java.util.List;
 /**
  * the interface for schema path, like ‘if:interfaces/if:interface/if:name’
- * @version 1.0.0
+ * * @version 1.0.0
  * @author frank feng
  * @since 7/8/2022
  */
