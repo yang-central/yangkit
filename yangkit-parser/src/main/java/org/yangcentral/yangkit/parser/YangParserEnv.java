@@ -149,15 +149,6 @@ public class YangParserEnv implements Cloneable {
       return env;
    }
 
-   public static void main(String[] args) {
-      String str = "abc\ndef\nghijk\nmn\n";
-      YangParserEnv env = new YangParserEnv();
-      env.setYangStr(str);
-      env.setCurPos(4);
-      System.out.println("Curline:" + env.getCurLine());
-      System.out.println("Curcolumn:" + env.getCurColumn());
-   }
-
    public static enum ParseStatus {
       UNPARSE,
       PARSING,

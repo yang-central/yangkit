@@ -759,7 +759,4 @@ public class YangParser {
 
       return elements;
    }
-
-   public static void main(String[] args) {
-   }
 }
