@@ -17,7 +17,7 @@ public class YangWriter {
          return null;
       } else {
 
-         StringBuffer sb = new StringBuffer();
+         StringBuilder sb = new StringBuilder();
          sb.append("\"");
          int length = value.length();
 
@@ -45,7 +45,7 @@ public class YangWriter {
    }
 
    private static String buildLinePrefix(int size) {
-      StringBuffer sBuffer = new StringBuffer();
+      StringBuilder sBuffer = new StringBuilder();
 
       for(int i = 0; i < size; ++i) {
          sBuffer.append(" ");
@@ -173,7 +173,7 @@ public class YangWriter {
    }
 
    public static String toYangString(YangElement element, YangFormatter format, String curIndentation) {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       if (null == element) {
          return null;
       } else {

@@ -10,7 +10,7 @@ public class YangNameStep extends DefaultNameStep {
    }
 
    public String getText() {
-      StringBuffer buf = new StringBuffer(64);
+      StringBuilder buf = new StringBuilder(64);
       if (this.getAxis() != 1) {
          buf.append(this.getAxisName()).append("::");
       }

@@ -40,7 +40,7 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
    }
 
    public String getText() {
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       Iterator stepIter = this.getSteps().iterator();
 
       while(stepIter.hasNext()) {
@@ -228,7 +228,7 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
    }
 
    public String toString() {
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       Iterator stepIter = this.getSteps().iterator();
 
       while(stepIter.hasNext()) {
