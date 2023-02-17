@@ -112,7 +112,7 @@ public class YangParser {
          boolean isInMultiComments = false;
          boolean isInDQuotes = false;
          boolean isInSQuotes = false;
-         StringBuffer sb = new StringBuffer();
+         StringBuilder sb = new StringBuilder();
 
          for(int i = 0; i < size; ++i) {
             char c = str.charAt(i);
@@ -276,7 +276,7 @@ public class YangParser {
       if (null == value) {
          return null;
       } else {
-         StringBuffer sb = new StringBuffer();
+         StringBuilder sb = new StringBuilder();
          int length = value.length();
 
          for(int i = 0; i < length; ++i) {
@@ -328,7 +328,7 @@ public class YangParser {
       if (null == value) {
          return null;
       } else {
-         StringBuffer sb = new StringBuffer();
+         StringBuilder sb = new StringBuilder();
          int valueBeginColumn = env.getCurColumn();
          String[] lineValues = value.split("\n");
          int size = lineValues.length;
@@ -445,7 +445,7 @@ public class YangParser {
             if (0 == values.size()) {
                return null;
             } else {
-               StringBuffer sb = new StringBuffer();
+               StringBuilder sb = new StringBuilder();
 
                for(int i = 0; i < values.size(); ++i) {
                   str = values.get(i);

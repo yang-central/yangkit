@@ -73,7 +73,7 @@ public class ModuleSupportCapability extends Capability {
    }
 
    public String toString() {
-      StringBuffer sb = new StringBuffer(this.getUri().toString());
+      StringBuilder sb = new StringBuilder(this.getUri().toString());
       sb.append("?");
       sb.append("module=");
       sb.append(this.module);

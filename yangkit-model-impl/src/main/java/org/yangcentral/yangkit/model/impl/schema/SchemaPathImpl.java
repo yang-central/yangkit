@@ -53,7 +53,7 @@ public abstract class SchemaPathImpl implements SchemaPath {
    }
 
    public String toString() {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       if (this.isAbsolute()) {
          sb.append("/");
       }

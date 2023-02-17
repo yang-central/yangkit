@@ -160,7 +160,7 @@ public enum ErrorCode {
    }
 
    public String toString(String[] args) {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       sb.append(this.formatFieldName(args));
       if (null != this.reference) {
          sb.append(" reference:");

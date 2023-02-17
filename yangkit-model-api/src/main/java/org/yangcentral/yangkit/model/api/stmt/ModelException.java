@@ -36,7 +36,6 @@ public class ModelException extends Exception {
    }
 
    public String toString() {
-      StringBuffer sb = new StringBuffer();
-      return sb.toString();
+      return "";
    }
 }

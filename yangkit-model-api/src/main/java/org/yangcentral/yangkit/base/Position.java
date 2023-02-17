@@ -26,7 +26,7 @@ public class Position {
    }
 
    public String toString() {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       sb.append("source:");
       sb.append(this.source);
       sb.append(" ");

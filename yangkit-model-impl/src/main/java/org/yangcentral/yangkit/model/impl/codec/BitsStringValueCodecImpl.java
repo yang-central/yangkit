@@ -36,7 +36,7 @@ public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>>
       if (!bool) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
-         StringBuffer sb = new StringBuffer();
+         StringBuilder sb = new StringBuilder();
          Iterator iterator = output.iterator();
 
          while(iterator.hasNext()) {

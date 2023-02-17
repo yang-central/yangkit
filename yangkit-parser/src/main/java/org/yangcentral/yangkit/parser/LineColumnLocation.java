@@ -22,7 +22,7 @@ public class LineColumnLocation implements Location<String> {
    }
 
    public String getLocation() {
-      StringBuffer sb = new StringBuffer(" line:");
+      StringBuilder sb = new StringBuilder(" line:");
       sb.append(this.line);
       sb.append(" column:");
       sb.append(this.column);

@@ -889,7 +889,7 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    public String toString() {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       QName keyword = this.getYangKeyword();
       if (keyword.getNamespace().equals(Yang.NAMESPACE.getUri())) {
          sb.append(keyword.getLocalName());
