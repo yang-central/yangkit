@@ -789,149 +789,181 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       ValidatorResult superValidatorResult = super.initSelf();
       validatorResultBuilder.merge(superValidatorResult);
       List<YangElement> subElements = this.getSubElements();
-      Iterator elementIterator = subElements.iterator();
 
-      while(true) {
-         while(true) {
-            YangElement subElement;
-            do {
-               if (!elementIterator.hasNext()) {
-                  return validatorResultBuilder.build();
-               }
+      for (YangElement subElement: subElements){
+         if(subElement == null){
+            continue;
+         }
+         if(subElement instanceof YangBuiltinStatement){
+            continue;
+         }
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
+         switch (builtinKeyword) {
+            case YANGVERSION:{
+               this.yangVersion = (YangVersion)builtinStatement;
+               break;
+            }
 
-               subElement = (YangElement)elementIterator.next();
-            } while(!(subElement instanceof YangBuiltinStatement));
+            case DESCRIPTION:{
+               this.description = (Description)builtinStatement;
+               break;
+            }
 
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
-            YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
-            switch (builtinKeyword) {
-               case YANGVERSION:
-                  this.yangVersion = (YangVersion)builtinStatement;
-                  break;
-               case DESCRIPTION:
-                  this.description = (Description)builtinStatement;
-                  break;
-               case REFERENCE:
-                  this.reference = (Reference)builtinStatement;
-                  break;
-               case ORGANIZATION:
-                  this.organization = (Organization)builtinStatement;
-                  break;
-               case CONTACT:
-                  this.contact = (Contact)builtinStatement;
-                  break;
-               case IMPORT:
-                  Import newImport = (Import)builtinStatement;
-                  Import imp = ModelUtil.checkConflict(newImport, this.imports);
-                  if (null != imp) {
-                     if (imp.getRevisionDate() != null && newImport.getRevisionDate() != null) {
-                        if (imp.getRevisionDate().getArgStr().equals(newImport.getRevisionDate().getArgStr())) {
-                           validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(imp, newImport));
-                           newImport.setErrorStatement(true);
-                        } else {
-                           this.imports.add((Import)builtinStatement);
-                        }
-                        break;
+            case REFERENCE: {
+               this.reference = (Reference)builtinStatement;
+               break;
+            }
+
+            case ORGANIZATION:{
+               this.organization = (Organization)builtinStatement;
+               break;
+            }
+
+            case CONTACT:{
+               this.contact = (Contact)builtinStatement;
+               break;
+            }
+
+            case IMPORT:{
+               Import newImport = (Import)builtinStatement;
+               Import imp = ModelUtil.checkConflict(newImport, this.imports);
+               if (null != imp) {
+                  if (imp.getRevisionDate() != null && newImport.getRevisionDate() != null) {
+                     if (imp.getRevisionDate().getArgStr().equals(newImport.getRevisionDate().getArgStr())) {
+                        validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(imp, newImport));
+                        newImport.setErrorStatement(true);
+                     } else {
+                        this.imports.add((Import)builtinStatement);
                      }
-
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(imp, newImport));
-                     newImport.setErrorStatement(true);
                      break;
                   }
 
-                  this.imports.add(newImport);
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(imp, newImport));
+                  newImport.setErrorStatement(true);
                   break;
-               case INCLUDE:
-                  Include newInclude = (Include)builtinStatement;
-                  Include include = (Include)ModelUtil.checkConflict(newInclude, this.includes);
-                  if (null != include) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(include, newInclude));
-                     newInclude.setErrorStatement(true);
-                  } else {
-                     this.includes.add(newInclude);
-                  }
-                  break;
-               case REVISION:
-                  Revision newRevision = (Revision)builtinStatement;
-                  Revision revision = (Revision)ModelUtil.checkConflict(newRevision, this.revisions);
-                  if (null != revision) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(revision, newRevision, Severity.WARNING));
-                  } else {
-                     this.revisions.add(newRevision);
-                  }
-                  break;
-               case EXTENSION:
-                  Extension newExtension = (Extension)builtinStatement;
-                  if (this.getContext().getExtensionCache().containsKey(builtinStatement.getArgStr())) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getExtensionCache().get(builtinStatement.getArgStr()), newExtension));
-                     newExtension.setErrorStatement(true);
-                  } else {
-                     this.extensions.add(newExtension);
-                     this.getContext().getExtensionCache().put(builtinStatement.getArgStr(), newExtension);
-                  }
-                  break;
-               case FEATURE:
-                  Feature newFeature = (Feature)builtinStatement;
-                  if (this.getContext().getFeatureCache().containsKey(builtinStatement.getArgStr())) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getFeatureCache().get(builtinStatement.getArgStr()), newFeature));
-                     newFeature.setErrorStatement(true);
-                  } else {
-                     this.features.add(newFeature);
-                     this.getContext().getFeatureCache().put(builtinStatement.getArgStr(), newFeature);
-                  }
-                  break;
-               case IDENTITY:
-                  Identity newIdentity = (Identity)builtinStatement;
-                  if (this.getContext().getIdentityCache().containsKey(newIdentity.getArgStr())) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getIdentityCache().get(newIdentity.getArgStr()), newIdentity));
-                     newIdentity.setErrorStatement(true);
-                  } else {
-                     this.identities.add(newIdentity);
-                     this.getContext().getIdentityCache().put(newIdentity.getArgStr(), newIdentity);
-                  }
-                  break;
-               case TYPEDEF:
-                  Typedef newTypedef = (Typedef)builtinStatement;
-                  validatorResultBuilder.merge(this.typedefContainer.addTypedef(newTypedef));
-                  break;
-               case GROUPING:
-                  Grouping newGrouping = (Grouping)builtinStatement;
-                  validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(newGrouping));
-                  break;
-               case CONTAINER:
-               case LIST:
-               case LEAF:
-               case LEAFLIST:
-               case ANYDATA:
-               case ANYXML:
-               case CHOICE:
-               case USES:
-                  DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
-                  validatorResultBuilder.merge(this.dataDefContainer.addDataDefChild(newDataDefinition));
-                  break;
-               case RPC:
-                  Rpc newRpc = (Rpc)builtinStatement;
-                  if (this.getContext().getSchemaNodeIdentifierCache().containsKey(newRpc.getArgStr())) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getSchemaNodeIdentifierCache().get(newRpc.getArgStr()), newRpc));
-                     newRpc.setErrorStatement(true);
-                  } else {
-                     this.rpcs.add(newRpc);
-                     this.getContext().getSchemaNodeIdentifierCache().put(newRpc.getArgStr(), newRpc);
-                  }
-                  break;
-               case NOTIFICATION:
-                  Notification newNotification = (Notification)builtinStatement;
-                  validatorResultBuilder.merge(this.notificationContainer.addNotification(newNotification));
-                  break;
-               case AUGMENT:
-                  Augment augment = (Augment)builtinStatement;
-                  this.augments.add(augment);
-                  break;
-               case DEVIATION:
-                  this.deviations.add((Deviation)builtinStatement);
+               }
+
+               this.imports.add(newImport);
+               break;
             }
+
+            case INCLUDE:{
+               Include newInclude = (Include)builtinStatement;
+               Include include = ModelUtil.checkConflict(newInclude, this.includes);
+               if (null != include) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(include, newInclude));
+                  newInclude.setErrorStatement(true);
+               } else {
+                  this.includes.add(newInclude);
+               }
+               break;
+            }
+
+            case REVISION: {
+               Revision newRevision = (Revision)builtinStatement;
+               Revision revision = ModelUtil.checkConflict(newRevision, this.revisions);
+               if (null != revision) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(revision, newRevision, Severity.WARNING));
+               } else {
+                  this.revisions.add(newRevision);
+               }
+               break;
+            }
+
+            case EXTENSION:{
+               Extension newExtension = (Extension)builtinStatement;
+               if (this.getContext().getExtensionCache().containsKey(builtinStatement.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getExtensionCache().get(builtinStatement.getArgStr()), newExtension));
+                  newExtension.setErrorStatement(true);
+               } else {
+                  this.extensions.add(newExtension);
+                  this.getContext().getExtensionCache().put(builtinStatement.getArgStr(), newExtension);
+               }
+               break;
+            }
+
+            case FEATURE:{
+               Feature newFeature = (Feature)builtinStatement;
+               if (this.getContext().getFeatureCache().containsKey(builtinStatement.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getFeatureCache().get(builtinStatement.getArgStr()), newFeature));
+                  newFeature.setErrorStatement(true);
+               } else {
+                  this.features.add(newFeature);
+                  this.getContext().getFeatureCache().put(builtinStatement.getArgStr(), newFeature);
+               }
+               break;
+            }
+
+            case IDENTITY:{
+               Identity newIdentity = (Identity)builtinStatement;
+               if (this.getContext().getIdentityCache().containsKey(newIdentity.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getIdentityCache().get(newIdentity.getArgStr()), newIdentity));
+                  newIdentity.setErrorStatement(true);
+               } else {
+                  this.identities.add(newIdentity);
+                  this.getContext().getIdentityCache().put(newIdentity.getArgStr(), newIdentity);
+               }
+               break;
+            }
+
+            case TYPEDEF:{
+               Typedef newTypedef = (Typedef)builtinStatement;
+               validatorResultBuilder.merge(this.typedefContainer.addTypedef(newTypedef));
+               break;
+            }
+
+            case GROUPING:{
+               Grouping newGrouping = (Grouping)builtinStatement;
+               validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(newGrouping));
+               break;
+            }
+
+            case CONTAINER:
+            case LIST:
+            case LEAF:
+            case LEAFLIST:
+            case ANYDATA:
+            case ANYXML:
+            case CHOICE:
+            case USES:{
+               DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
+               validatorResultBuilder.merge(this.dataDefContainer.addDataDefChild(newDataDefinition));
+               break;
+            }
+
+            case RPC:{
+               Rpc newRpc = (Rpc)builtinStatement;
+               if (this.getContext().getSchemaNodeIdentifierCache().containsKey(newRpc.getArgStr())) {
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getSchemaNodeIdentifierCache().get(newRpc.getArgStr()), newRpc));
+                  newRpc.setErrorStatement(true);
+               } else {
+                  this.rpcs.add(newRpc);
+                  this.getContext().getSchemaNodeIdentifierCache().put(newRpc.getArgStr(), newRpc);
+               }
+               break;
+            }
+
+            case NOTIFICATION:{
+               Notification newNotification = (Notification)builtinStatement;
+               validatorResultBuilder.merge(this.notificationContainer.addNotification(newNotification));
+               break;
+            }
+
+            case AUGMENT:{
+               Augment augment = (Augment)builtinStatement;
+               this.augments.add(augment);
+               break;
+            }
+
+            case DEVIATION:{
+               this.deviations.add((Deviation)builtinStatement);
+               break;
+            }
+
          }
       }
+      return validatorResultBuilder.build();
    }
 
    public List<SchemaNode> getSchemaNodeChildren() {

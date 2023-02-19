@@ -736,6 +736,13 @@ public class YangParser {
 
 
       }
+      if(!env.getStatements().isEmpty()){
+         YangStatement stackedStatement = env.getStatements().peek();
+         throw new YangParserException(Severity.ERROR,
+                 stackedStatement.getElementPosition(),
+                 "wrong format, missing end character of statement:" + stackedStatement);
+
+      }
 
       if (null != elements){
          boolean findStatement = false;
@@ -759,4 +766,5 @@ public class YangParser {
 
       return elements;
    }
+
 }
