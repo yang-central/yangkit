@@ -31,7 +31,7 @@ public class FractionDigitsImpl extends YangBuiltInStatementImpl implements Frac
       if (this.value >= 1 && this.value <= 18) {
          return validatorResultBuilder.build();
       } else {
-         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
+         ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder<>();
          validatorRecordBuilder.setBadElement(this);
          validatorRecordBuilder.setErrorPath(this.getElementPosition());
          validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.FRACTIONDIGITS_ERROR.getFieldName()));

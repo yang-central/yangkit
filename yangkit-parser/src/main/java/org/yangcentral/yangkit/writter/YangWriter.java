@@ -9,7 +9,6 @@ import org.yangcentral.yangkit.model.api.stmt.Identifiable;
 import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
-import java.util.Iterator;
 
 public class YangWriter {
    private static String convert2DQValue(String value) {
@@ -64,9 +63,9 @@ public class YangWriter {
          int maxlineSize = columnSize - beginPos;
 
          if (-1 == lfPos) {
-            linebreakerPos = inlength < maxlineSize ? inlength : maxlineSize;
+            linebreakerPos = Math.min(inlength, maxlineSize);
          } else {
-            linebreakerPos = lfPos < maxlineSize ? lfPos : maxlineSize;
+            linebreakerPos = Math.min(lfPos, maxlineSize);
          }
 
          if (linebreakerPos == inlength) {
@@ -265,10 +264,7 @@ public class YangWriter {
                   nextIndentation = curIndentation + format.getIndentation();
                }
 
-               Iterator var18 = statement.getSubElements().iterator();
-
-               while(var18.hasNext()) {
-                  YangElement subElement = (YangElement)var18.next();
+               for (YangElement subElement : statement.getSubElements()) {
                   sb.append(toYangString(subElement, format, nextIndentation));
                }
 

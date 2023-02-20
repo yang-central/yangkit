@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityRef {
-   private List<Base> bases = new ArrayList();
+   private List<Base> bases = new ArrayList<>();
 
    public IdentityRefImpl(YangContext context, Typedef derived) {
       super(context, derived);
@@ -81,7 +81,7 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
          IdentityRef anotherResriction = (IdentityRef)this.getDerived().getType().getRestriction();
          return anotherResriction.getEffectiveBases();
       } else {
-         return new ArrayList();
+         return new ArrayList<>();
       }
    }
 

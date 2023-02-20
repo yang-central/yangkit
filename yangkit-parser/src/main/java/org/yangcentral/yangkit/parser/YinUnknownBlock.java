@@ -31,14 +31,14 @@ class YinUnknownBlock extends YangUnknownBlock<Element> {
    }
 
    public YangUnknown build(YangContext context) {
-      String keyword = ((Element)this.getBlock()).getQualifiedName();
-      String namespace = ((Element)this.getBlock()).getNamespaceURI();
+      String keyword = this.getBlock().getQualifiedName();
+      String namespace = this.getBlock().getNamespaceURI();
       FName fName = new FName(keyword);
       List<Module> moduleList = context.getSchemaContext().getModule(URI.create(namespace));
       if (moduleList.isEmpty()) {
          throw new IllegalArgumentException("no module's namespace is " + namespace);
       } else {
-         Extension extension = ((Module)moduleList.get(0)).getExtension(fName.getLocalName());
+         Extension extension = moduleList.get(0).getExtension(fName.getLocalName());
          if (null == extension) {
             throw new IllegalArgumentException("can not find a extension named:" + fName.getLocalName());
          } else {
@@ -48,9 +48,9 @@ class YinUnknownBlock extends YangUnknownBlock<Element> {
             if (extension.getArgument() != null) {
                isYinElement = extension.getArgument().isYinElement();
                if (isYinElement) {
-                  argStr = ((Element)this.getBlock()).elementText(extension.getArgument().getArgStr());
+                  argStr = this.getBlock().elementText(extension.getArgument().getArgStr());
                } else {
-                  argStr = ((Element)this.getBlock()).attributeValue(extension.getArgument().getArgStr());
+                  argStr = this.getBlock().attributeValue(extension.getArgument().getArgStr());
                }
             }
 
@@ -59,17 +59,17 @@ class YinUnknownBlock extends YangUnknownBlock<Element> {
                try {
                   Constructor<? extends YangStatement> constructor = parserPolicy.getClazz().getConstructor(String.class);
                   yangUnknown = (YangUnknown)constructor.newInstance(argStr);
-                  yangUnknown.setElementPosition(new Position(this.fileName, new XPathLocation(((Element)this.getBlock()).getUniquePath())));
+                  yangUnknown.setElementPosition(new Position(this.fileName, new XPathLocation(this.getBlock().getUniquePath())));
                } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException var19) {
-                  throw new IllegalArgumentException((new Position(this.fileName, new XPathLocation(((Element)this.getBlock()).getUniquePath()))).toString() + " can not create instance for this statement.");
+                  throw new IllegalArgumentException((new Position(this.fileName, new XPathLocation(this.getBlock().getUniquePath()))) + " can not create instance for this statement.");
                }
             } else {
-               yangUnknown = YangStatementRegister.getInstance().getDefaultUnknownInstance(((Element)this.getBlock()).getQualifiedName(), argStr);
-               yangUnknown.setElementPosition(new Position(this.fileName, new XPathLocation(((Element)this.getBlock()).getUniquePath())));
+               yangUnknown = YangStatementRegister.getInstance().getDefaultUnknownInstance(this.getBlock().getQualifiedName(), argStr);
+               yangUnknown.setElementPosition(new Position(this.fileName, new XPathLocation(this.getBlock().getUniquePath())));
             }
 
             boolean hasChildren = false;
-            Element root = (Element)this.getBlock();
+            Element root = this.getBlock();
             if (isYinElement) {
                if (root.nodeCount() > 1) {
                   hasChildren = true;

@@ -72,16 +72,14 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
          if (this.getDerived() != null && !this.range.isSubSet(((Decimal64)this.getDerived().getType().getRestriction()).getEffectiveRange())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(range,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),
                     ErrorTag.BAD_ELEMENT,ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
-            return validatorResultBuilder.build();
-         } else {
-            return validatorResultBuilder.build();
          }
+         return validatorResultBuilder.build();
       }
    }
 
    public boolean evaluated(BigDecimal value) {
       if (this.getRange() != null) {
-         Iterator iterator = this.getRange().getSections().iterator();
+         Iterator<Section> iterator = this.getRange().getSections().iterator();
 
          Section section;
          do {
@@ -89,7 +87,7 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
                return false;
             }
 
-            section = (Section)iterator.next();
+            section = iterator.next();
          } while(value.compareTo((BigDecimal)section.getMin()) < 0 || value.compareTo((BigDecimal)section.getMax()) > 0);
 
          return true;

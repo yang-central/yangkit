@@ -21,7 +21,7 @@ import java.net.URI;
 import java.util.*;
 
 public abstract class YangLocationPathImpl implements YangLocationPath {
-   private List<Step> steps = new LinkedList();
+   private List<Step> steps = new LinkedList<>();
    private boolean isStrictPath = true;
 
    public void setStrictPath(boolean strictPath) {
@@ -35,16 +35,17 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
       this.steps.add(step);
    }
 
-   public List getSteps() {
+   public List<Step> getSteps() {
       return this.steps;
    }
 
    public String getText() {
       StringBuilder buf = new StringBuilder();
-      Iterator stepIter = this.getSteps().iterator();
+
+      Iterator<Step> stepIter = this.getSteps().iterator();
 
       while(stepIter.hasNext()) {
-         Step step = (Step)stepIter.next();
+         Step step = stepIter.next();
          if (step.getAxis() == 3) {
             buf.append("..");
          } else if (step.getAxis() == 11) {
@@ -62,11 +63,7 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
    }
 
    public Expr simplify() {
-      Iterator stepIter = this.getSteps().iterator();
-      Step eachStep = null;
-
-      while(stepIter.hasNext()) {
-         eachStep = (Step)stepIter.next();
+      for (Step eachStep : this.getSteps()) {
          eachStep.simplify();
       }
 
@@ -106,7 +103,7 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
    }
 
    public SchemaNode getTargetSchemaNode(YangXPathContext xPathContext) throws ModelException {
-      List steps = this.getSteps();
+      List<Step> steps = this.getSteps();
       Object current = xPathContext.getCurrentNode();
       if (this.isAbsolute()) {
          if (current instanceof Module) {
@@ -116,12 +113,11 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
          }
       }
 
-      Iterator iterator = steps.iterator();
+      Iterator<Step> iterator = steps.iterator();
 
       while(true) {
          while(iterator.hasNext()) {
-            Object o = iterator.next();
-            Step step = (Step)o;
+            Step step = iterator.next();
             if (step.getAxis() == Axis.PARENT) {
                if (current instanceof SchemaNodeContainer && ((SchemaNodeContainer)current).isSchemaTreeRoot()) {
                   throw new ModelException(Severity.WARNING, xPathContext.getDefineNode(), ErrorCode.INVALID_XPATH.getFieldName());
@@ -177,22 +173,22 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
    }
 
    public Object evaluate(Context context) throws JaxenException {
-      List nodeSet = context.getNodeSet();
-      List contextNodeSet = new ArrayList(nodeSet);
+      List<Step> nodeSet = context.getNodeSet();
+      List<Step> contextNodeSet = new ArrayList<>(nodeSet);
       YangContextSupport support = (YangContextSupport)context.getContextSupport();
       Context stepContext = new Context(support);
-      Iterator stepIter = this.getSteps().iterator();
+      Iterator<Step> stepIter = this.getSteps().iterator();
 
       while(stepIter.hasNext()) {
-         Step eachStep = (Step)stepIter.next();
-         stepContext.setNodeSet((List)contextNodeSet);
+         Step eachStep = stepIter.next();
+         stepContext.setNodeSet(contextNodeSet);
          contextNodeSet = eachStep.evaluate(stepContext);
          if (support.getEvaluateType() == YangContextSupport.EvaluateType.NEST) {
-            int size = ((List)contextNodeSet).size();
-            List<YangData> dummyNodes = new ArrayList();
+            int size = contextNodeSet.size();
+            List<YangData> dummyNodes = new ArrayList<>();
 
             for(int i = 0; i < size; ++i) {
-               Object node = ((List)contextNodeSet).get(i);
+               Object node = contextNodeSet.get(i);
                if (node instanceof YangData) {
                   YangData<?> yangData = (YangData)node;
                   boolean result = yangData.checkWhen();
@@ -207,16 +203,13 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
                }
             }
 
-            Iterator iterator = dummyNodes.iterator();
-
-            while(iterator.hasNext()) {
-               YangData dummyNode = (YangData)iterator.next();
-               ((List)contextNodeSet).remove(dummyNode);
+            for (YangData dummyNode : dummyNodes) {
+               contextNodeSet.remove(dummyNode);
             }
          }
 
          if (this.isReverseAxis(eachStep)) {
-            Collections.reverse((List)contextNodeSet);
+            Collections.reverse(contextNodeSet);
          }
       }
 
@@ -229,7 +222,8 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
 
    public String toString() {
       StringBuilder buf = new StringBuilder();
-      Iterator stepIter = this.getSteps().iterator();
+
+      Iterator<Step> stepIter = this.getSteps().iterator();
 
       while(stepIter.hasNext()) {
          buf.append(stepIter.next().toString());

@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 class ActionContainerImpl implements ActionContainer {
-   private List<Action> actions = new ArrayList();
+   private List<Action> actions = new ArrayList<>();
    private YangContext yangContext;
 
    public YangContext getYangContext() {
@@ -26,7 +26,7 @@ class ActionContainerImpl implements ActionContainer {
    }
 
    public Action getAction(String actionName) {
-      Iterator iterator = this.actions.iterator();
+      Iterator<Action> iterator = this.actions.iterator();
 
       Action action;
       do {
@@ -34,7 +34,7 @@ class ActionContainerImpl implements ActionContainer {
             return null;
          }
 
-         action = (Action)iterator.next();
+         action = iterator.next();
       } while(!action.getArgStr().equals(actionName));
 
       return action;

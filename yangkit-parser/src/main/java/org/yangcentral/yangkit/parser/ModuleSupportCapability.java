@@ -3,14 +3,13 @@ package org.yangcentral.yangkit.parser;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class ModuleSupportCapability extends Capability {
    private String module;
    private String revision;
-   private List<String> features = new ArrayList();
-   private List<String> deviations = new ArrayList();
+   private List<String> features = new ArrayList<>();
+   private List<String> deviations = new ArrayList<>();
 
    public ModuleSupportCapability(URI uri) {
       super(uri);
@@ -43,7 +42,7 @@ public class ModuleSupportCapability extends Capability {
    public void addFeature(String feature) {
       if (null != feature) {
          if (null == this.features) {
-            this.features = new ArrayList();
+            this.features = new ArrayList<>();
          }
 
          if (!this.features.contains(feature)) {
@@ -63,7 +62,7 @@ public class ModuleSupportCapability extends Capability {
    public void addDeviation(String deviation) {
       if (null != deviation) {
          if (null == this.deviations) {
-            this.deviations = new ArrayList();
+            this.deviations = new ArrayList<>();
          }
 
          if (!this.deviations.contains(deviation)) {
@@ -78,7 +77,8 @@ public class ModuleSupportCapability extends Capability {
       sb.append("module=");
       sb.append(this.module);
       if (null != this.revision) {
-         sb.append("&revision=" + this.revision);
+         sb.append("&revision=");
+         sb.append(this.revision);
       }
 
       int size;
@@ -89,7 +89,7 @@ public class ModuleSupportCapability extends Capability {
          size = this.features.size();
 
          for(i = 0; i < size; ++i) {
-            deviation = (String)this.features.get(i);
+            deviation = this.features.get(i);
             sb.append(deviation);
             if (i != size - 1) {
                sb.append(",");
@@ -102,7 +102,7 @@ public class ModuleSupportCapability extends Capability {
          size = this.deviations.size();
 
          for(i = 0; i < size; ++i) {
-            deviation = (String)this.deviations.get(i);
+            deviation = this.deviations.get(i);
             sb.append(deviation);
             if (i != size - 1) {
                sb.append(",");
@@ -167,19 +167,14 @@ public class ModuleSupportCapability extends Capability {
    public boolean match(ModuleId moduleId) {
       if (this.getModule().equals(moduleId.getModuleName()) && this.getRevision().equals(moduleId.getRevision())) {
          return true;
-      } else {
-         if (this.deviations != null) {
-            Iterator var2 = this.deviations.iterator();
-
-            while(var2.hasNext()) {
-               String deviation = (String)var2.next();
-               if (deviation.equals(moduleId.getModuleName())) {
-                  return true;
-               }
+      }
+      if (this.deviations != null) {
+         for (String deviation: this.deviations) {
+            if (deviation.equals(moduleId.getModuleName())) {
+               return true;
             }
          }
-
-         return false;
       }
+      return false;
    }
 }

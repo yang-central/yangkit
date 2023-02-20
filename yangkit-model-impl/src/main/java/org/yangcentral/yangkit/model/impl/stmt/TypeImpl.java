@@ -52,7 +52,6 @@ import org.yangcentral.yangkit.model.impl.restriction.YangStringImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -92,32 +91,30 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    private ValidatorResult buildBits(BitsImpl bits) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
-      while (elementIterator.hasNext()){
-         YangElement subElement = elementIterator.next();
-         if(!(subElement instanceof YangBuiltinStatement)){
+      for (YangElement subElement : this.getSubElements()) {
+         if (!(subElement instanceof YangBuiltinStatement)) {
             continue;
          }
-         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
          if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.BIT.getQName())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             continue;
          }
          Bit bit = (Bit) builtinStatement;
          find = true;
-         if(isDerivedType()){
+         if (isDerivedType()) {
             String yangVersion = this.getContext().getCurModule().getEffectiveYangVersion();
             if (!yangVersion.equals(Yang.VERSION_11)) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived bits can not be restricted."));
+                   ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived bits can not be restricted."));
                continue;
             }
-            Bits base = (Bits)this.getBaseType();
-            Map<String, Bit> baseBitMap = (Map)base.getBits().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
+            Bits base = (Bits) this.getBaseType();
+            Map<String, Bit> baseBitMap = base.getBits().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
             if (!baseBitMap.containsKey(bit.getArgStr())) {
-              validatorResultBuilder.addRecord(ModelUtil.reportError(bit,
-                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's bit set." ));
+               validatorResultBuilder.addRecord(ModelUtil.reportError(bit,
+                   ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's bit set."));
                continue;
             }
 
@@ -125,21 +122,21 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                Long baseActualPosition = base.getBitActualPosition(bit.getArgStr());
                if (bit.getPosition().getValue() != baseActualPosition) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The bit's position MUST not be changed." ));
+                      ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The bit's position MUST not be changed."));
                   continue;
                }
             }
          } else {
             if (bits.getBits().size() > 0 && bits.getMaxPosition() == Bits.MAX_POSITION && bit.getPosition() == null) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.BIT_NO_POSITION.getFieldName() ));
+                   ErrorCode.BIT_NO_POSITION.getFieldName()));
                continue;
             }
          }
-         boolean bool = bits.addBit((Bit)builtinStatement);
+         boolean bool = bits.addBit((Bit) builtinStatement);
          if (!bool) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
             continue;
          }
 
@@ -156,21 +153,19 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    private ValidatorResult buildBinary(BinaryImpl binary) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator elementIterator = this.getSubElements().iterator();
       binary.setLength(null);
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.LENGTH.getQName())) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                   ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             } else if (find) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                   ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
             } else {
                find = true;
-               binary.setLength((Length)builtinStatement);
+               binary.setLength((Length) builtinStatement);
             }
          }
       }
@@ -180,14 +175,12 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildBoolean(YangBooleanImpl aBoolean) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
          }
       }
 
@@ -198,33 +191,31 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean findfractionDigits = false;
       boolean findRange = false;
-      Iterator elementIterator = this.getSubElements().iterator();
       decimal64.setFractionDigits(null);
       decimal64.setRange(null);
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.FRACTIONDIGITS.getQName())) {
                if (findfractionDigits) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                      ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                } else {
                   findfractionDigits = true;
-                  decimal64.setFractionDigits((FractionDigits)builtinStatement);
+                  decimal64.setFractionDigits((FractionDigits) builtinStatement);
                }
             } else if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.RANGE.getQName())) {
                if (findRange) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                      ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                } else {
                   findRange = true;
-                  decimal64.setRange((Range)builtinStatement);
+                  decimal64.setRange((Range) builtinStatement);
                }
             } else {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                   ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             }
          }
       }
@@ -241,14 +232,12 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildEmpty(EmptyImpl empty) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
          }
       }
 
@@ -258,35 +247,33 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    private ValidatorResult buildEnumeration(EnumerationImpl enumeration) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
 
-      while (elementIterator.hasNext()){
-         YangElement subElement = elementIterator.next();
-         if(!(subElement instanceof YangBuiltinStatement)){
+      for (YangElement subElement : this.getSubElements()) {
+         if (!(subElement instanceof YangBuiltinStatement)) {
             continue;
          }
-         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
          if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.ENUM.getQName())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             continue;
          }
 
-         YangEnum yangEnum = (YangEnum)builtinStatement;
+         YangEnum yangEnum = (YangEnum) builtinStatement;
          find = true;
          if (this.isDerivedType()) {
             String yangVersion = this.getContext().getCurModule().getEffectiveYangVersion();
             if (!yangVersion.equals(Yang.VERSION_11)) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived enumeration can not be restricted."));
+                   ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived enumeration can not be restricted."));
                continue;
             }
 
-            Enumeration base = (Enumeration)(this.getBaseType().getRestriction());
-            Map<String, YangEnum> baseYangEnumMap = (Map)base.getEnums().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
+            Enumeration base = (Enumeration) (this.getBaseType().getRestriction());
+            Map<String, YangEnum> baseYangEnumMap = base.getEnums().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
             if (!baseYangEnumMap.containsKey(builtinStatement.getArgStr())) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's enum set."));
+                   ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " It should be in base-type's enum set."));
                continue;
             }
 
@@ -294,20 +281,20 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                Integer baseActualValue = base.getEnumActualValue(yangEnum.getArgStr());
                if (yangEnum.getValue().getValue() != baseActualValue) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The enum's value MUST not be changed." ));
+                      ErrorCode.INVALID_SUBSTATEMENT.getFieldName() + " The enum's value MUST not be changed."));
                   continue;
                }
             }
          } else if (enumeration.getEnums().size() > 0 && enumeration.getHighestValue() == Enumeration.MAX_VALUE && yangEnum.getValue() == null) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.ENUM_NO_VALUE.getFieldName()));
+                ErrorCode.ENUM_NO_VALUE.getFieldName()));
             continue;
          }
 
-         boolean bool = enumeration.addEnum((YangEnum)builtinStatement);
+         boolean bool = enumeration.addEnum((YangEnum) builtinStatement);
          if (!bool) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
             continue;
          }
 
@@ -324,37 +311,35 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    private ValidatorResult buildIdentityRef(IdentityRefImpl identityRef) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       boolean find = false;
-      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
-      while (elementIterator.hasNext()){
-         YangElement subElement = elementIterator.next();
-         if(!(subElement instanceof YangBuiltinStatement)){
+      for (YangElement subElement : this.getSubElements()) {
+         if (!(subElement instanceof YangBuiltinStatement)) {
             continue;
          }
-         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
          ValidatorRecordBuilder validatorRecordBuilder;
          if (this.isDerivedType()) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.IDENTITYREF_CANNOT_RESTRICTED.getFieldName()));
+                ErrorCode.IDENTITYREF_CANNOT_RESTRICTED.getFieldName()));
             continue;
          }
 
          if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.BASE.getQName())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             continue;
          }
          find = true;
-         Base newBase = (Base)builtinStatement;
+         Base newBase = (Base) builtinStatement;
          if (identityRef.getBases().size() > 0 && this.getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.CARDINALITY_BROKEN.getFieldName()));
+                ErrorCode.CARDINALITY_BROKEN.getFieldName()));
             continue;
          }
 
          boolean bool = identityRef.addBase(newBase);
          if (!bool) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
             continue;
          }
       }
@@ -370,25 +355,23 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    private ValidatorResult buildInstanceIdentifier(InstanceIdentifierImpl instanceIdentifier) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       instanceIdentifier.setRequireInstance(null);
-      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
-      while (elementIterator.hasNext()){
-         YangElement subElement = elementIterator.next();
-         if(!(subElement instanceof YangBuiltinStatement)){
+      for (YangElement subElement : this.getSubElements()) {
+         if (!(subElement instanceof YangBuiltinStatement)) {
             continue;
          }
-         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
          if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.REQUIREINSTANCE.getQName())) {
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             continue;
          }
-         RequireInstance newRequireInstance = (RequireInstance)builtinStatement;
+         RequireInstance newRequireInstance = (RequireInstance) builtinStatement;
          if (this.isDerivedType()) {
-            InstanceIdentifier baseInstanceIdentifier = (InstanceIdentifier)this.getBaseType().getRestriction();
+            InstanceIdentifier baseInstanceIdentifier = (InstanceIdentifier) this.getBaseType().getRestriction();
             if (baseInstanceIdentifier.isRequireInstance() && !newRequireInstance.value()) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),ErrorTag.BAD_ELEMENT,
-                       ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
+                   ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(), ErrorTag.BAD_ELEMENT,
+                   ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
                if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {
                   continue;
                }
@@ -403,17 +386,15 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildYangInteger(YangIntegerImpl integer) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator elementIterator = this.getSubElements().iterator();
       integer.setRange(null);
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.RANGE.getQName())) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                   ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             } else {
-               Range newRange = (Range)builtinStatement;
+               Range newRange = (Range) builtinStatement;
                validatorResultBuilder.merge(integer.setRange(newRange));
             }
          }
@@ -424,18 +405,16 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildLeafRef(LeafRefImpl leafRef) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator<YangElement> elementIterator = this.getSubElements().iterator();
-      while (elementIterator.hasNext()){
-         YangElement subElement = elementIterator.next();
-         if(!(subElement instanceof YangBuiltinStatement)){
+      for (YangElement subElement : this.getSubElements()) {
+         if (!(subElement instanceof YangBuiltinStatement)) {
             continue;
          }
-         YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+         YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
          ValidatorRecordBuilder validatorRecordBuilder;
          if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.REQUIREINSTANCE.getQName())) {
             if (this.getContext().getCurModule().getYangVersion().equals(Yang.VERSION_1)) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                   ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
                continue;
             }
 
@@ -444,8 +423,8 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                LeafRef baseLeafref = (LeafRef) this.getBaseType().getRestriction();
                if (baseLeafref.isRequireInstance() && !newRequireInstance.value()) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(),ErrorTag.BAD_ELEMENT,
-                          ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
+                      ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity(), ErrorTag.BAD_ELEMENT,
+                      ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getFieldName()));
                   if (ErrorCode.DERIVEDTYPE_EXPAND_VALUESPACE.getSeverity() == Severity.ERROR) {
                      continue;
                   }
@@ -453,7 +432,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
             }
             leafRef.setRequireInstance(newRequireInstance);
          } else if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.PATH.getQName())) {
-            Path newPath = (Path)builtinStatement;
+            Path newPath = (Path) builtinStatement;
             if (this.isDerivedType()) {
                validatorRecordBuilder = new ValidatorRecordBuilder();
                validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
@@ -462,7 +441,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                validatorRecordBuilder.setBadElement(builtinStatement);
                validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.LEAFREF_CANNOT_RESTRICTED_BY_PATH.getFieldName()));
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.LEAFREF_CANNOT_RESTRICTED_BY_PATH.getFieldName()));
+                   ErrorCode.LEAFREF_CANNOT_RESTRICTED_BY_PATH.getFieldName()));
                continue;
             }
             leafRef.setPath(newPath);
@@ -474,7 +453,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
             validatorRecordBuilder.setBadElement(builtinStatement);
             validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             continue;
          }
       }
@@ -483,30 +462,28 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildYangString(YangStringImpl string) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.LENGTH.getQName())) {
-               Length newLength = (Length)builtinStatement;
+               Length newLength = (Length) builtinStatement;
                if (string.getLength() != null) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.CARDINALITY_BROKEN.getFieldName()));
+                      ErrorCode.CARDINALITY_BROKEN.getFieldName()));
                } else {
                   validatorResultBuilder.merge(string.setLength(newLength));
                }
             } else if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.PATTERN.getQName())) {
-               Pattern pattern = (Pattern)builtinStatement;
+               Pattern pattern = (Pattern) builtinStatement;
                boolean bool = string.addPattern(pattern);
                if (!bool) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                      ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                }
             } else {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName() ));
+                   ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
             }
          }
       }
@@ -516,25 +493,23 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
 
    private ValidatorResult buildUnion(UnionImpl union) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
             YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             if (this.isDerivedType()) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                       ErrorCode.UNION_CANNOT_RESTRICTED.getFieldName()));
+                   ErrorCode.UNION_CANNOT_RESTRICTED.getFieldName()));
             } else {
                if (!builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.TYPE.getQName())) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                          ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
+                      ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
                } else {
-                  Type newType = (Type)builtinStatement;
+                  Type newType = (Type) builtinStatement;
                   boolean bool = union.addType(newType);
                   if (!bool) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
-                             ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
+                         ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
                   }
                }
             }
@@ -724,17 +699,15 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    }
 
    public static List<Typedef> getAllDerived(Type type) {
-      List<Typedef> typedefs = new ArrayList();
+      List<Typedef> typedefs = new ArrayList<>();
       if (type.isDerivedType()) {
          typedefs.add(type.getDerived());
          Typedef derived = type.getDerived();
          typedefs.addAll(getAllDerived(derived.getType()));
       } else if (type.getRestriction() instanceof Union) {
          Union union = (Union)type.getRestriction();
-         Iterator typeIterator = union.getTypes().iterator();
 
-         while(typeIterator.hasNext()) {
-            Type subtype = (Type)typeIterator.next();
+         for (Type subtype : union.getTypes()) {
             typedefs.addAll(getAllDerived(subtype));
          }
       }
@@ -763,10 +736,8 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                   lastResult = false;
                } else {
                   List<Typedef> typedefs = getAllDerived(this);
-                  Iterator typedefIterator = typedefs.iterator();
 
-                  while(typedefIterator.hasNext()) {
-                     Typedef typedef = (Typedef)typedefIterator.next();
+                  for (Typedef typedef : typedefs) {
                      typedef.addReference(this);
                   }
                }
@@ -787,7 +758,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.restriction instanceof YangInteger) {
          YangInteger yangInteger = (YangInteger)this.restriction;
          if (yangInteger.getEffectiveRange() != null) {

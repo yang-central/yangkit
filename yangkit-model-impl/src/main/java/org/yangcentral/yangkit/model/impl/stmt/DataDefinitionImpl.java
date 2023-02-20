@@ -17,7 +17,6 @@ import org.yangcentral.yangkit.xpath.impl.YangXPathContext;
 import org.yangcentral.yangkit.xpath.impl.YangXPathValidator;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataDefinition {
@@ -128,11 +127,9 @@ public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataD
       }
 
       matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
-      Iterator statementIterator = matched.iterator();
 
-      while(statementIterator.hasNext()) {
-         YangStatement statement = (YangStatement)statementIterator.next();
-         IfFeature ifFeature = (IfFeature)statement;
+      for (YangStatement statement : matched) {
+         IfFeature ifFeature = (IfFeature) statement;
          validatorResultBuilder.merge(this.ifFeatureSupport.addIfFeature(ifFeature));
       }
 
@@ -146,7 +143,7 @@ public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataD
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.when != null) {
          statements.add(this.when);
       }

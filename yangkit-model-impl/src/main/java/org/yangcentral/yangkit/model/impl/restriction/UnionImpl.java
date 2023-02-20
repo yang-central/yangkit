@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class UnionImpl extends RestrictionImpl<Object> implements Union {
-   private List<Type> types = new ArrayList();
+   private List<Type> types = new ArrayList<>();
 
    public UnionImpl(YangContext context, Typedef derived) {
       super(context, derived);
@@ -40,7 +40,7 @@ public class UnionImpl extends RestrictionImpl<Object> implements Union {
          UnionImpl derived = (UnionImpl)this.getDerived().getType().getRestriction();
          return derived.getActualTypes();
       } else {
-         return new ArrayList();
+         return new ArrayList<>();
       }
    }
 

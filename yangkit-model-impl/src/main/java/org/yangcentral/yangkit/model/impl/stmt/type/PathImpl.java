@@ -8,13 +8,11 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Import;
 import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.When;
 import org.yangcentral.yangkit.model.api.stmt.type.Path;
 import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.YangLocationPath;
 import org.yangcentral.yangkit.xpath.YangXPath;
-import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
 import org.yangcentral.yangkit.xpath.impl.YangXPathPrefixVisitor;
 

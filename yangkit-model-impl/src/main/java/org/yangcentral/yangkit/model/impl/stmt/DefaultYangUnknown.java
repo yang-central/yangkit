@@ -62,11 +62,11 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
          if (!optionalModule.isPresent()) {
             return null;
          } else {
-            Optional<Module> impModuleOp = schemaContext.getModule((ModuleId)optionalModule.get());
+            Optional<Module> impModuleOp = schemaContext.getModule(optionalModule.get());
             if (!impModuleOp.isPresent()) {
                return null;
             } else {
-               Module impModule = (Module)impModuleOp.get();
+               Module impModule = impModuleOp.get();
                return impModule.getExtension(extensionName);
             }
          }
@@ -139,13 +139,11 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
-      Iterator var2 = this.getSubElements().iterator();
+      List<YangStatement> statements = new ArrayList<>();
 
-      while(var2.hasNext()) {
-         YangElement element = (YangElement)var2.next();
+      for (YangElement element : this.getSubElements()) {
          if (element instanceof YangStatement) {
-            statements.add((YangStatement)element);
+            statements.add((YangStatement) element);
          }
       }
 

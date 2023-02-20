@@ -21,7 +21,7 @@ public class YangContext {
    private Module curModule;
    private Grouping curGrouping;
    private Namespace curNamespace;
-   private List<YangContext> mergedContexts = new ArrayList();
+   private List<YangContext> mergedContexts = new ArrayList<>();
    private YangStatement self;
    private Map<String, SchemaNode> SchemaNodeIdentifierCache = new ConcurrentHashMap();
    private Map<String, Grouping> groupingIdentifierCache = new ConcurrentHashMap();

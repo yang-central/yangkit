@@ -19,7 +19,6 @@ import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class NotificationImpl extends SchemaNodeImpl implements Notification {
@@ -209,22 +208,20 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator elementIterator = subElements.iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : subElements) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
             switch (builtinKeyword) {
                case TYPEDEF:
 
-                  Typedef newTypedef = (Typedef)builtinStatement;
+                  Typedef newTypedef = (Typedef) builtinStatement;
                   validatorResultBuilder.merge(this.typedefContainer.addTypedef(newTypedef));
                   break;
                case GROUPING:
 
-                  Grouping newGrouping = (Grouping)builtinStatement;
+                  Grouping newGrouping = (Grouping) builtinStatement;
                   validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(newGrouping));
                   break;
                case CONTAINER:
@@ -235,15 +232,15 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
                case ANYXML:
                case CHOICE:
                case USES:
-                  DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
+                  DataDefinition newDataDefinition = (DataDefinition) builtinStatement;
                   validatorResultBuilder.merge(this.addDataDefChild(newDataDefinition));
                   break;
                case IFFEATURE:
-                  IfFeature ifFeature = (IfFeature)builtinStatement;
+                  IfFeature ifFeature = (IfFeature) builtinStatement;
                   validatorResultBuilder.merge(this.addIfFeature(ifFeature));
                   break;
                case MUST:
-                  Must must = (Must)builtinStatement;
+                  Must must = (Must) builtinStatement;
                   validatorResultBuilder.merge(this.addMust(must));
             }
          }
@@ -294,11 +291,7 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-
-            Iterator dataDefinitionIterator = this.getDataDefChildren().iterator();
-
-            while(dataDefinitionIterator.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)dataDefinitionIterator.next();
+            for (DataDefinition dataDefinition : this.getDataDefChildren()) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
          default:
@@ -324,7 +317,7 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
    }
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(this.ifFeatureSupport.getIfFeatures());
       statements.addAll(this.groupingDefContainer.getGroupings());

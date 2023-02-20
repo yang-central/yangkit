@@ -71,7 +71,7 @@ public class RevisionImpl extends YangSimpleStatementImpl implements Revision {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.description != null) {
          statements.add(this.description);
       }

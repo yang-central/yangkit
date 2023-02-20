@@ -17,7 +17,7 @@ public class DataChangeNotifier {
 
    public void addListener(DataChangeListener listener) {
       if (null == this.listeners) {
-         this.listeners = new ArrayList();
+         this.listeners = new ArrayList<>();
          this.listeners.add(listener);
       } else {
          Iterator var2 = this.listeners.iterator();

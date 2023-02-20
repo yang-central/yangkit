@@ -1,13 +1,8 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
-import org.yangcentral.yangkit.common.api.exception.ErrorTag;
-import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
@@ -20,7 +15,7 @@ import org.yangcentral.yangkit.util.ModelUtil;
 import java.util.*;
 
 public class SchemaNodeContainerImpl implements SchemaNodeContainer {
-   private List<SchemaNode> schemaNodes = new ArrayList();
+   private List<SchemaNode> schemaNodes = new ArrayList<>();
    private YangContext yangContext;
    private SchemaNodeContainer self;
 
@@ -114,10 +109,8 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
 
    public ValidatorResult addSchemaNodeChildren(List<SchemaNode> schemaNodes) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator schemaNodeIterator = schemaNodes.iterator();
 
-      while(schemaNodeIterator.hasNext()) {
-         SchemaNode node = (SchemaNode)schemaNodeIterator.next();
+      for (SchemaNode node : schemaNodes) {
          ValidatorResult result = this.addSchemaNodeChild(node);
          validatorResultBuilder.merge(result);
       }
@@ -127,12 +120,9 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
 
    public SchemaNode getSchemaNodeChild(QName identifier) {
       try {
-         Iterator schemaNodeIterator = this.schemaNodes.iterator();
-
-         while(schemaNodeIterator.hasNext()) {
-            SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
+         for (SchemaNode schemaNode : this.schemaNodes) {
             if (schemaNode instanceof VirtualSchemaNode) {
-               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)schemaNode;
+               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
                SchemaNode node = virtualSchemaNode.getSchemaNodeChild(identifier);
                if (node != null) {
                   return node;
@@ -149,20 +139,18 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
    }
 
    public DataNode getDataNodeChild(QName identifier) {
-      Iterator<SchemaNode> schemaNodeIterator = this.schemaNodes.iterator();
-      while (schemaNodeIterator.hasNext()){
-         SchemaNode schemaNode = schemaNodeIterator.next();
+      for (SchemaNode schemaNode : this.schemaNodes) {
          if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
             if (schemaNode.getIdentifier().equals(identifier)) {
-               if(schemaNode instanceof DataNode){
+               if (schemaNode instanceof DataNode) {
                   return (DataNode) schemaNode;
                }
                return null;
             }
          } else {
-            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)schemaNode;
+            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
             DataNode node = schemaNodeContainer.getDataNodeChild(identifier);
-            if(node !=null){
+            if (node != null) {
                return node;
             }
          }
@@ -172,16 +160,14 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
    }
 
    public List<DataNode> getDataNodeChildren() {
-      List<DataNode> dataNodeChildren = new ArrayList();
-      Iterator<SchemaNode> schemaNodeIterator = this.schemaNodes.iterator();
-      while (schemaNodeIterator.hasNext()){
-         SchemaNode schemaNode = schemaNodeIterator.next();
+      List<DataNode> dataNodeChildren = new ArrayList<>();
+      for (SchemaNode schemaNode : this.schemaNodes) {
          if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
             if (schemaNode instanceof DataNode) {
-               dataNodeChildren.add((DataNode)schemaNode);
+               dataNodeChildren.add((DataNode) schemaNode);
             }
          } else {
-            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)schemaNode;
+            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
             dataNodeChildren.addAll(schemaNodeContainer.getDataNodeChildren());
          }
       }
@@ -217,12 +203,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
 
    public void removeSchemaNodeChild(QName identifier) {
       SchemaNode target = null;
-      Iterator iterator = this.schemaNodes.iterator();
 
-      while(iterator.hasNext()) {
-         SchemaNode schemaNode = (SchemaNode)iterator.next();
+      for (SchemaNode schemaNode : this.schemaNodes) {
          if (schemaNode instanceof VirtualSchemaNode) {
-            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)schemaNode;
+            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
             virtualSchemaNode.removeSchemaNodeChild(identifier);
          } else if (schemaNode.getIdentifier().equals(identifier)) {
             target = schemaNode;
@@ -239,12 +223,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       if (this.schemaNodes.contains(schemaNode)) {
          this.schemaNodes.remove(schemaNode);
       } else {
-         Iterator iterator = this.schemaNodes.iterator();
 
-         while(iterator.hasNext()) {
-            SchemaNode node = (SchemaNode)iterator.next();
+         for (SchemaNode node : this.schemaNodes) {
             if (node instanceof VirtualSchemaNode) {
-               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)node;
+               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) node;
                virtualSchemaNode.removeSchemaNodeChild(schemaNode);
             }
          }
@@ -257,13 +239,11 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
    }
 
    public SchemaNode getMandatoryDescendant() {
-      Iterator<SchemaNode> schemaNodeIterator = this.schemaNodes.iterator();
-      while(schemaNodeIterator.hasNext()) {
-         SchemaNode child = schemaNodeIterator.next();
+      for (SchemaNode child : this.schemaNodes) {
          if (!(child instanceof MandatorySupport) && !(child instanceof MultiInstancesDataNode)) {
             SchemaNode schemaNode;
             if (child instanceof Container) {
-               Container container = (Container)child;
+               Container container = (Container) child;
                if (container.getPresence() == null) {
                   schemaNode = container.getMandatoryDescendant();
                   if (schemaNode != null) {
@@ -271,7 +251,7 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
                   }
                }
             } else if (child instanceof SchemaNodeContainer) {
-               SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)child;
+               SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) child;
                schemaNode = schemaNodeContainer.getMandatoryDescendant();
                if (schemaNode != null) {
                   return schemaNode;

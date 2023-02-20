@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class YangStringImpl extends RestrictionImpl<String> implements YangString {
-   private List<Pattern> patterns = new ArrayList();
+   private List<Pattern> patterns = new ArrayList<>();
    private Length length;
 
    public YangStringImpl(YangContext context, Typedef derived) {
@@ -140,7 +140,7 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
    }
 
    public List<Pattern> getEffectivePatterns() {
-      List<Pattern> effectivePatterns = new ArrayList();
+      List<Pattern> effectivePatterns = new ArrayList<>();
       if (this.patterns.size() > 0) {
          effectivePatterns.addAll(this.patterns);
       }

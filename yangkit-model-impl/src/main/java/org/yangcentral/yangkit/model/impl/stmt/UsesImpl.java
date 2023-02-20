@@ -36,15 +36,14 @@ import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
 public class UsesImpl extends DataDefinitionImpl implements Uses {
    private Grouping refGrouping;
-   private List<Augment> augments = new ArrayList();
-   private List<Refine> refines = new ArrayList();
-   private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
+   private final List<Augment> augments = new ArrayList<>();
+   private final List<Refine> refines = new ArrayList<>();
+   private final SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
 
    public UsesImpl(String argStr) {
       super(argStr);
@@ -85,13 +84,8 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
       validatorResultBuilder.merge(super.initSelf());
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.AUGMENT.getQName());
-      Iterator iterator;
-      YangStatement child;
       if (matched.size() > 0) {
-         iterator = matched.iterator();
-
-         while(iterator.hasNext()) {
-            child = (YangStatement)iterator.next();
+         for (YangStatement child : matched) {
             Augment augment = (Augment)child;
             this.augments.add(augment);
          }
@@ -99,10 +93,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
 
       matched = this.getSubStatement(YangBuiltinKeyword.REFINE.getQName());
       if (matched.size() > 0) {
-         iterator = matched.iterator();
-
-         while(iterator.hasNext()) {
-            child = (YangStatement)iterator.next();
+         for (YangStatement child : matched) {
             Refine refine = (Refine)child;
             this.refines.add(refine);
          }
@@ -128,9 +119,9 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
             validatorRecordBuilder.setSeverity(Severity.ERROR);
             validatorRecordBuilder.setErrorPath(this.getElementPosition());
             validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + ((ModuleId) moduleIdOp.get()).getModuleName()})));
+            validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + moduleIdOp.get().getModuleName()})));
             validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                    ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + ((ModuleId) moduleIdOp.get()).getModuleName()}) ));
+                    ErrorCode.MISSING_DEPENDENCE_MODULE.toString(new String[]{"name=" + moduleIdOp.get().getModuleName()}) ));
             return null;
          }
          Module targetModule = moduleOptional.get();
@@ -189,20 +180,18 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
 
             //build datadef
             List<DataDefinition> dataDefChildren = this.refGrouping.getDataDefChildren();
-            Iterator<DataDefinition> dataDefinitionIterator = dataDefChildren.iterator();
-            while(dataDefinitionIterator.hasNext()) {
-               DataDefinition dataDefinition = dataDefinitionIterator.next();
-               DataDefinition clonedDataDefiniton = (DataDefinition)dataDefinition.clone();
+            for (DataDefinition dataDefinition : dataDefChildren) {
+               DataDefinition clonedDataDefiniton = (DataDefinition) dataDefinition.clone();
                YangContext newYangContext = dataDefinition.getContext().clone();
                newYangContext.setCurGrouping(this.getContext().getCurGrouping());
                clonedDataDefiniton.setContext(newYangContext);
                clonedDataDefiniton.getContext().setNamespace(this.getContext().getNamespace());
                clonedDataDefiniton.init();
-               for(BuildPhase buildPhase:BuildPhase.values()) {
+               for (BuildPhase buildPhase : BuildPhase.values()) {
                   if (buildPhase.compareTo(phase) <= 0) {
                      ValidatorResult phaseResult = clonedDataDefiniton.build(buildPhase);
                      validatorResultBuilder.merge(phaseResult);
-                     if(!phaseResult.isOk()){
+                     if (!phaseResult.isOk()) {
                         break;
                      }
                   }
@@ -212,17 +201,15 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedDataDefiniton));
             }
             //build action
-            Iterator<Action> actionIterator = this.refGrouping.getActions().iterator();
-            while(actionIterator.hasNext()) {
-               Action action = actionIterator.next();
-               Action clonedAction = (Action)action.clone();
+            for (Action action : this.refGrouping.getActions()) {
+               Action clonedAction = (Action) action.clone();
                clonedAction.setContext(action.getContext().clone());
                clonedAction.getContext().setNamespace(this.getContext().getNamespace());
                clonedAction.getContext().setCurGrouping(this.getContext().getCurGrouping());
                clonedAction.init();
 
 
-               for(BuildPhase buildPhase:BuildPhase.values()) {
+               for (BuildPhase buildPhase : BuildPhase.values()) {
                   if (buildPhase.compareTo(phase) < 0) {
                      clonedAction.build(buildPhase);
                   }
@@ -232,16 +219,13 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedAction));
             }
 
-            Iterator<Notification> notificationIterator = this.refGrouping.getNotifications().iterator();
-
-            while(notificationIterator.hasNext()) {
-               Notification notification = notificationIterator.next();
-               Notification clonedNotification = (Notification)notification.clone();
+            for (Notification notification : this.refGrouping.getNotifications()) {
+               Notification clonedNotification = (Notification) notification.clone();
                clonedNotification.setContext(notification.getContext().clone());
                clonedNotification.getContext().setNamespace(this.getContext().getNamespace());
                clonedNotification.getContext().setCurGrouping(this.getContext().getCurGrouping());
                clonedNotification.init();
-               for(BuildPhase buildPhase:BuildPhase.values()) {
+               for (BuildPhase buildPhase : BuildPhase.values()) {
                   if (buildPhase.compareTo(phase) < 0) {
                      clonedNotification.build(buildPhase);
                   }
@@ -251,50 +235,44 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
                validatorResultBuilder.merge(this.addSchemaNodeChild(clonedNotification));
             }
             //build augments
-            Iterator<Augment> augmentIterator = this.augments.iterator();
-            while(augmentIterator.hasNext()) {
-               Augment augment = augmentIterator.next();
+            for (Augment augment : this.augments) {
                augment.setTargetPath(null);
                try {
                   SchemaPath targetPath = SchemaPathImpl.from(
-                          this, augment,augment.getArgStr());
+                      this, augment, augment.getArgStr());
                   augment.setTargetPath(targetPath);
                   SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
-                  if(target == null){
+                  if (target == null) {
                      continue;
                   }
                   if (!(target instanceof Augmentable)) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
-                             ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
+                         ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
                      continue;
                   }
                   augment.setTarget(target);
-                  SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)target;
+                  SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) target;
                   validatorResultBuilder.merge(schemaNodeContainer.addSchemaNodeChild(augment));
                } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment,e.getSeverity(),
-                          ErrorTag.BAD_ELEMENT,e.getDescription()));
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(augment, e.getSeverity(),
+                      ErrorTag.BAD_ELEMENT, e.getDescription()));
                   continue;
                }
             }
 
-
-            Iterator<Refine> refineIterator = this.refines.iterator();
-
-            while(refineIterator.hasNext()) {
-               Refine refine = refineIterator.next();
+            for (Refine refine : this.refines) {
                //refine.setTargetPath(null);
                try {
-                  SchemaPath targetPath = SchemaPathImpl.from( this, refine,refine.getArgStr());
+                  SchemaPath targetPath = SchemaPathImpl.from(this, refine, refine.getArgStr());
                   refine.setTargetPath(targetPath);
                   SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
-                  if(null == target){
+                  if (null == target) {
                      continue;
                   }
                   refine.setTarget(target);
                } catch (ModelException e) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(refine,e.getSeverity(),
-                          ErrorTag.BAD_ELEMENT,e.getDescription()));
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(refine, e.getSeverity(),
+                      ErrorTag.BAD_ELEMENT, e.getDescription()));
                   continue;
                }
             }
@@ -302,10 +280,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
          }
 
          case SCHEMA_TREE:{
-            Iterator schemaNodeIterator = this.getSchemaNodeChildren().iterator();
-
-            while(schemaNodeIterator.hasNext()) {
-               SchemaNode child = (SchemaNode)schemaNodeIterator.next();
+            for (SchemaNode child : this.getSchemaNodeChildren()) {
                validatorResultBuilder.merge(child.build(phase));
             }
             break;
@@ -325,16 +300,14 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
          return false;
       } else {
          SchemaNodeContainer parent = this.getParentSchemaNode();
-         return parent instanceof SchemaNode ? ((SchemaNode)parent).isConfig() : true;
+         return !(parent instanceof SchemaNode) || ((SchemaNode) parent).isConfig();
       }
    }
 
    protected ValidatorResult validateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
-      Iterator schemaNodeIterator = this.getSchemaNodeChildren().iterator();
 
-      while(schemaNodeIterator.hasNext()) {
-         SchemaNode child = (SchemaNode)schemaNodeIterator.next();
+      for (SchemaNode child : this.getSchemaNodeChildren()) {
          validatorResultBuilder.merge(child.validate());
       }
 
@@ -389,7 +362,7 @@ public class UsesImpl extends DataDefinitionImpl implements Uses {
       return this.schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
    }
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;

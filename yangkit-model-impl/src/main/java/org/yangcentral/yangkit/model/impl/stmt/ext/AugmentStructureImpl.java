@@ -215,12 +215,10 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
     protected ValidatorResult initSelf() {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
         List<YangElement> subElements = this.getSubElements();
-        Iterator elementIterator = subElements.iterator();
 
-        while(elementIterator.hasNext()) {
-            YangElement subElement = (YangElement)elementIterator.next();
+        for (YangElement subElement : subElements) {
             if (subElement instanceof YangBuiltinStatement) {
-                YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+                YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
                 YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
                 switch (builtinKeyword) {
                     case CONTAINER:
@@ -232,7 +230,7 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                     case CHOICE:
                     case CASE:
                     case USES:
-                        DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
+                        DataDefinition newDataDefinition = (DataDefinition) builtinStatement;
                         validatorResultBuilder.merge(this.addDataDefChild(newDataDefinition));
                         break;
                 }
@@ -244,7 +242,7 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
 
     protected ValidatorResult buildSelf(BuildPhase phase) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
-        Iterator iterator;
+        Iterator<SchemaNode> iterator;
         SchemaNode child;
         switch (phase) {
             case GRAMMAR:{
@@ -253,10 +251,8 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
             }
             case SCHEMA_BUILD:{
                 List<DataDefinition> dataDefChildren = this.getDataDefChildren();
-                Iterator schemaChildrenIt = dataDefChildren.iterator();
 
-                while(schemaChildrenIt.hasNext()) {
-                    DataDefinition dataDefinition = (DataDefinition)schemaChildrenIt.next();
+                for (DataDefinition dataDefinition : dataDefChildren) {
                     validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
                 }
                 break;
@@ -283,7 +279,7 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                         this.setTarget(target);
                         iterator = this.getSchemaNodeChildren().iterator();
                         while(iterator.hasNext()) {
-                            child = (SchemaNode)iterator.next();
+                            child = iterator.next();
                             if (child instanceof DataDefinition) {
                                 if (!(this.target instanceof DataDefContainer)) {
                                     validatorResultBuilder.addRecord(
@@ -331,7 +327,7 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                 iterator = this.getSchemaNodeChildren().iterator();
 
                 while(iterator.hasNext()) {
-                    child = (SchemaNode)iterator.next();
+                    child = iterator.next();
                     if (child instanceof Case && ((Case)child).isShortCase()) {
                         validatorResultBuilder.merge(child.build(phase));
                     }
@@ -388,7 +384,7 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
     }
 
     public List<YangStatement> getEffectiveSubStatements() {
-        List<YangStatement> statements = new ArrayList();
+        List<YangStatement> statements = new ArrayList<>();
         statements.addAll(getEffectiveSchemaNodeChildren());
         statements.addAll(super.getEffectiveSubStatements());
         return statements;

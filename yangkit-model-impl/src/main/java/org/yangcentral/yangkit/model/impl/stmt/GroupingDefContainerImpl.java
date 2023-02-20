@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class GroupingDefContainerImpl implements GroupingDefContainer {
-   private List<Grouping> groupings = new ArrayList();
+   private List<Grouping> groupings = new ArrayList<>();
    private YangContext yangContext;
 
    public List<Grouping> getGroupings() {
@@ -53,11 +53,10 @@ public class GroupingDefContainerImpl implements GroupingDefContainer {
       if (orig != null) {
          validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(orig, grouping));
          grouping.setErrorStatement(true);
-         return validatorResultBuilder.build();
       } else {
          this.groupings.add(grouping);
          this.getYangContext().getGroupingIdentifierCache().put(grouping.getArgStr(), grouping);
-         return validatorResultBuilder.build();
       }
+      return validatorResultBuilder.build();
    }
 }

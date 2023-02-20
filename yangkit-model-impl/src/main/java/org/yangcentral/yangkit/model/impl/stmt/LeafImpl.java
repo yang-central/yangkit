@@ -102,7 +102,7 @@ public class LeafImpl extends TypedDataNodeImpl implements Leaf {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.mandatory != null) {
          statements.add(this.mandatory);
       } else {

@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo {
    private Prefix prefix;
-   private List<MainModule> mainModules = new ArrayList();
+   private List<MainModule> mainModules = new ArrayList<>();
 
    public BelongsToImpl(String argStr) {
       super(argStr);
@@ -43,16 +43,14 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
 
       List<Module> modules = this.getContext().getSchemaContext().getModule(moduleName);
       if (modules != null) {
-         Iterator moduleIterator = modules.iterator();
 
-         while(moduleIterator.hasNext()) {
-            Module module = (Module)moduleIterator.next();
+         for (Module module : modules) {
             if (module instanceof SubModule) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                       ErrorCode.WRONG_TYPE_DEPENDECE_MODULE.getFieldName()
-                               + " It MUST be module, but get a submodule."));
+                   ErrorCode.WRONG_TYPE_DEPENDECE_MODULE.getFieldName()
+                       + " It MUST be module, but get a submodule."));
             } else {
-               this.mainModules.add((MainModule)module);
+               this.mainModules.add((MainModule) module);
             }
          }
       }
@@ -100,7 +98,7 @@ public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.prefix != null) {
          statements.add(this.prefix);
       }

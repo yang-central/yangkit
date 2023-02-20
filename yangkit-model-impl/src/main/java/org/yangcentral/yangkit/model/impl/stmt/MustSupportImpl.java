@@ -1,17 +1,13 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.ErrorCode;
-import org.yangcentral.yangkit.base.Position;
-import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilderFactory;
 import org.yangcentral.yangkit.model.api.stmt.Must;
 import org.yangcentral.yangkit.model.api.stmt.MustSupport;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.YangXPath;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
@@ -23,16 +19,16 @@ import java.util.Iterator;
 import java.util.List;
 
 public class MustSupportImpl implements MustSupport {
-   private List<Must> musts = new ArrayList();
+   private List<Must> musts = new ArrayList<>();
    private Object contextNode;
    private SchemaNode self;
 
    public Must getMust(int index) {
-      return (Must)this.musts.get(index);
+      return this.musts.get(index);
    }
 
    public Must getMust(String condition) {
-      Iterator mustIterator = this.musts.iterator();
+      Iterator<Must> mustIterator = this.musts.iterator();
 
       Must must;
       do {
@@ -40,7 +36,7 @@ public class MustSupportImpl implements MustSupport {
             return null;
          }
 
-         must = (Must)mustIterator.next();
+         must = mustIterator.next();
       } while(!must.getArgStr().equals(condition));
 
       return must;
@@ -71,7 +67,7 @@ public class MustSupportImpl implements MustSupport {
       int index = -1;
 
       for(int i = 0; i < size; ++i) {
-         Must must = (Must)this.musts.get(i);
+         Must must = this.musts.get(i);
          if (must != null && must.getArgStr().equals(condition)) {
             index = i;
             break;
@@ -135,12 +131,10 @@ public class MustSupportImpl implements MustSupport {
 
    public ValidatorResult validateMusts() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator<Must> mustIterator = this.musts.iterator();
 
-      while(mustIterator.hasNext()) {
-         Must must = mustIterator.next();
+      for (Must must : this.musts) {
          YangXPath xpath = must.getXPathExpression();
-         if(xpath == null){
+         if (xpath == null) {
             continue;
          }
          Object contextNode = XPathUtil.getXPathContextNode(self);

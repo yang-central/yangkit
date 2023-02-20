@@ -58,7 +58,7 @@ public class SubModuleImpl extends ModuleImpl implements SubModule {
    }
 
    public List<YangStatement> getEffectiveLinkageStatement() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(super.getEffectiveLinkageStatement());
       if (this.belongsTo != null) {
          statements.add(this.belongsTo);

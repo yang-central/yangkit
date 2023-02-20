@@ -1,7 +1,6 @@
 package org.yangcentral.yangkit.register;
 
 import org.yangcentral.yangkit.base.BuildPhase;
-import org.yangcentral.yangkit.base.Yang;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.model.impl.schema.YangSchemaContextImpl;
 import org.yangcentral.yangkit.model.impl.stmt.*;
@@ -37,7 +36,7 @@ public class YangStatementImplRegister {
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.CONTACT.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.CONTACT.getQName(), ContactImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.REVISION.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.REVISION.getQName(), RevisionImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.SUBMODULE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.SUBMODULE.getQName(), SubModuleImpl.class, Arrays.asList(BuildPhase.GRAMMAR, BuildPhase.SCHEMA_BUILD, BuildPhase.SCHEMA_EXPAND, BuildPhase.SCHEMA_MODIFIER, BuildPhase.SCHEMA_TREE)));
-      YangStatementRegister.getInstance().register(YangBuiltinKeyword.BELONGSTO.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.BELONGSTO.getQName(), BelongsToImpl.class, new ArrayList(Arrays.asList(BuildPhase.LINKAGE))));
+      YangStatementRegister.getInstance().register(YangBuiltinKeyword.BELONGSTO.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.BELONGSTO.getQName(), BelongsToImpl.class, new ArrayList<>(Arrays.asList(BuildPhase.LINKAGE))));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.TYPEDEF.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.TYPEDEF.getQName(), TypedefImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.TYPE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.TYPE.getQName(), TypeImpl.class, Arrays.asList(BuildPhase.GRAMMAR)));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.CONTAINER.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.CONTAINER.getQName(), ContainerImpl.class, Arrays.asList(BuildPhase.GRAMMAR, BuildPhase.SCHEMA_BUILD, BuildPhase.SCHEMA_TREE)));

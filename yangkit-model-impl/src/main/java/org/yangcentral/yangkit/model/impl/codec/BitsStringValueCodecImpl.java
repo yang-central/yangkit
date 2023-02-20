@@ -6,13 +6,12 @@ import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>> implements BitsStringValueCodec {
    public List<String> deserialize(Restriction<List<String>> restriction, String input) throws YangCodecException {
       String[] splitStr = input.split(" ");
-      List<String> ret = new ArrayList();
+      List<String> ret = new ArrayList<>();
       int length = splitStr.length;
 
       for(int i = 0; i < length; ++i) {
@@ -37,10 +36,7 @@ public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>>
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          StringBuilder sb = new StringBuilder();
-         Iterator iterator = output.iterator();
-
-         while(iterator.hasNext()) {
-            String str = (String)iterator.next();
+         for (String str : output) {
             sb.append(str);
             sb.append(" ");
          }

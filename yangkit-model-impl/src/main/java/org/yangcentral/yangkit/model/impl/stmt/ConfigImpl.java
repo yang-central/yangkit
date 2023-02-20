@@ -14,7 +14,7 @@ public class ConfigImpl extends YangSimpleStatementImpl implements Config {
    }
 
    public boolean isConfig() {
-      return Boolean.valueOf(this.getArgStr());
+      return Boolean.parseBoolean(this.getArgStr());
    }
 
    public QName getYangKeyword() {

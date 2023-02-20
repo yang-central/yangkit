@@ -17,10 +17,10 @@ import java.util.List;
 public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
    private Default aDefault;
    private Case defaultCase;
-   private List<Case> cases = new ArrayList();
+   private List<Case> cases = new ArrayList<>();
    private Mandatory mandatory;
    private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
-   private List<DataDefinition> dataDefinitions = new ArrayList();
+   private List<DataDefinition> dataDefinitions = new ArrayList<>();
    private QName identifier;
 
    public ChoiceImpl(String argStr) {
@@ -205,12 +205,10 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator iterator = subElements.iterator();
 
-      while(iterator.hasNext()) {
-         YangElement subElement = (YangElement)iterator.next();
+      for (YangElement subElement : subElements) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
             switch (builtinKeyword) {
                case CASE:
@@ -221,7 +219,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
                case LEAF:
                case LEAFLIST:
                case LIST:
-                  validatorResultBuilder.merge(this.addDataDefChild((DataDefinition)builtinStatement));
+                  validatorResultBuilder.merge(this.addDataDefChild((DataDefinition) builtinStatement));
             }
          }
       }
@@ -282,8 +280,6 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       ValidatorResultBuilder validatorResultBuilder;
       validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.buildSelf(phase));
-      Iterator iterator;
-      Case c;
       label44:
       switch (phase) {
          case GRAMMAR:
@@ -297,24 +293,21 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
                           ErrorCode.DEFAULT_CASE_IS_OPTIONAL.getFieldName()));
                }
             }
-            iterator = this.cases.iterator();
-
-            while(iterator.hasNext()) {
-               c = (Case)iterator.next();
+            for (Case c: this.cases) {
                if (c.evaluateFeatures() && c.isShortCase()) {
                   validatorResultBuilder.merge(c.build(phase));
                }
             }
             break;
          case SCHEMA_BUILD:
-            iterator = this.cases.iterator();
+            Iterator<Case> iterator = this.cases.iterator();
 
             while(true) {
                if (!iterator.hasNext()) {
                   break label44;
                }
 
-               c = (Case)iterator.next();
+               Case c = iterator.next();
                if (c.evaluateFeatures()) {
                   this.addSchemaNodeChild(c);
                   if (c.isShortCase()) {
@@ -323,10 +316,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
                }
             }
          case SCHEMA_TREE:
-            iterator = this.cases.iterator();
-
-            while(iterator.hasNext()) {
-               c = (Case)iterator.next();
+            for (Case c: this.cases) {
                if (c.evaluateFeatures() && c.isShortCase()) {
                   validatorResultBuilder.merge(c.build(phase));
                }
@@ -355,7 +345,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
    }
 
    public DataDefinition getDataDefChild(String name) {
-      Iterator iterator = this.dataDefinitions.iterator();
+      Iterator<DataDefinition> iterator = this.dataDefinitions.iterator();
 
       DataDefinition dataDefinition;
       do {
@@ -363,7 +353,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
             return null;
          }
 
-         dataDefinition = (DataDefinition)iterator.next();
+         dataDefinition = iterator.next();
       } while(!dataDefinition.getArgStr().equals(name));
 
       return dataDefinition;
@@ -403,7 +393,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
       return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
    }
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.mandatory != null) {
          statements.add(this.mandatory);
       } else {

@@ -12,7 +12,6 @@ import org.yangcentral.yangkit.parser.YinParser;
 
 import javax.annotation.Nonnull;
 import java.net.URI;
-import java.util.Iterator;
 import java.util.List;
 
 public class YinWriter {
@@ -57,10 +56,7 @@ public class YinWriter {
             }
          }
 
-         Iterator var9 = yangStatement.getSubElements().iterator();
-
-         while(var9.hasNext()) {
-            YangElement childElement = (YangElement)var9.next();
+         for (YangElement childElement : yangStatement.getSubElements()) {
             Node childNode = serialize(childElement);
             if (childNode != null) {
                element.add(childNode);
@@ -75,10 +71,8 @@ public class YinWriter {
 
    public static Document serialize(List<YangElement> elements) {
       Document document = DocumentHelper.createDocument();
-      Iterator var2 = elements.iterator();
 
-      while(var2.hasNext()) {
-         YangElement yangElement = (YangElement)var2.next();
+      for (YangElement yangElement : elements) {
          Node node = serialize(yangElement);
          if (node != null) {
             document.add(node);

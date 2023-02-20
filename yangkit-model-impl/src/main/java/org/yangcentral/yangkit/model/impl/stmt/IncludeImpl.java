@@ -185,7 +185,7 @@ public class IncludeImpl extends YangStatementImpl implements Include {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.description != null) {
          statements.add(this.description);
       }

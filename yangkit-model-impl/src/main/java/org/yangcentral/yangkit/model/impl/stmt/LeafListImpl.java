@@ -4,7 +4,6 @@ import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Default;
@@ -20,7 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
-   private List<Default> defaults = new ArrayList();
+   private List<Default> defaults = new ArrayList<>();
    private MinElements minElements;
    private MaxElements maxElements;
    private OrderedBy orderedBy;
@@ -37,7 +36,7 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
       if (!this.getDefaults().isEmpty()) {
          return this.defaults;
       } else {
-         List<Default> effectiveDefaults = new ArrayList();
+         List<Default> effectiveDefaults = new ArrayList<>();
          if (this.getType().isDerivedType()) {
             Default effectiveDefault = this.getType().getDerived().getEffectiveDefault();
             if (effectiveDefault != null) {
@@ -54,7 +53,7 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
    }
 
    public Default getDefault(String value) {
-      Iterator defaultIterator = this.defaults.iterator();
+      Iterator<Default> defaultIterator = this.defaults.iterator();
 
       Default defl;
       do {
@@ -62,7 +61,7 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
             return null;
          }
 
-         defl = (Default)defaultIterator.next();
+         defl = defaultIterator.next();
       } while(!defl.getArgStr().equals(value));
 
       return defl;
@@ -183,7 +182,6 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
 
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() > 0) {
-         ValidatorRecordBuilder validatorRecordBuilder;
          if (this.minElements != null) {
             validatorResultBuilder.merge(this.minElements.init());
             if (this.minElements.getValue() > 0) {
@@ -200,11 +198,8 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
             }
          }
 
-         Iterator statementIterator = matched.iterator();
-
-         while(statementIterator.hasNext()) {
-            YangStatement subStatement = (YangStatement)statementIterator.next();
-            this.defaults.add((Default)subStatement);
+         for (YangStatement subStatement : matched) {
+            this.defaults.add((Default) subStatement);
          }
       }
 
@@ -214,10 +209,8 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
    protected ValidatorResult validateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
       List<Default> effectiveDefaults = this.getEffectiveDefaults();
-      Iterator defaultIterator = effectiveDefaults.iterator();
 
-      while(defaultIterator.hasNext()) {
-         Default deflt = (Default)defaultIterator.next();
+      for (Default deflt : effectiveDefaults) {
          validatorResultBuilder.merge(this.validateDefault(deflt));
       }
 
@@ -225,7 +218,7 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.defaults.size() > 0) {
          statements.addAll(this.defaults);
       } else if (this.getType().isDerivedType()) {

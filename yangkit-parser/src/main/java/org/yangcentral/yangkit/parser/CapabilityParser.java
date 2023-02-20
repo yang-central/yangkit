@@ -18,16 +18,14 @@ public class CapabilityParser {
    }
 
    List<Capability> parse() throws DocumentException {
-      List<Capability> capabilities = new ArrayList();
+      List<Capability> capabilities = new ArrayList<>();
       SAXReader reader = new SAXReader();
       Document capabilitiesDoc = reader.read(new File(this.capabilityFile));
       Element root = capabilitiesDoc.getRootElement();
       Element capabilitiesElement = root.element("capabilities");
-      Iterator var6 = capabilitiesElement.elements().iterator();
 
-      while(var6.hasNext()) {
-         Element capabilityElement = (Element)var6.next();
-         String text = capabilityElement.getTextTrim();
+      for (Element element: capabilitiesElement.elements()) {
+         String text = element.getTextTrim();
          if (text.contains("module=")) {
             ModuleSupportCapability capability = new ModuleSupportCapability(URI.create(text));
             capability.parse(text);

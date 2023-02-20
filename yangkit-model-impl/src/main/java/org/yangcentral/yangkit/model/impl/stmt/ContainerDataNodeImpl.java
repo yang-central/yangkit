@@ -21,14 +21,13 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 public abstract class ContainerDataNodeImpl extends DataNodeImpl implements ContainerDataNode {
    private ActionContainerImpl actionContainer = new ActionContainerImpl();
    private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
    private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
-   private List<MountPoint> mountPoints = new ArrayList();
+   private List<MountPoint> mountPoints = new ArrayList<>();
    private NotificationContainerImpl notificationContainer = new NotificationContainerImpl();
    private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
    private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
@@ -163,21 +162,17 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
 
-      List<YangElement> subElements = this.getSubElements();
-      Iterator iterator = subElements.iterator();
-
-      while(iterator.hasNext()) {
-         YangElement subElement = (YangElement)iterator.next();
+      for (YangElement subElement : getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
             switch (builtinKeyword) {
                case TYPEDEF:
-                  Typedef newTypedef = (Typedef)builtinStatement;
+                  Typedef newTypedef = (Typedef) builtinStatement;
                   validatorResultBuilder.merge(this.typedefContainer.addTypedef(newTypedef));
                   break;
                case GROUPING:
-                  Grouping newGrouping = (Grouping)builtinStatement;
+                  Grouping newGrouping = (Grouping) builtinStatement;
                   validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(newGrouping));
                   break;
                case CONTAINER:
@@ -188,15 +183,15 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
                case ANYXML:
                case CHOICE:
                case USES:
-                  DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
+                  DataDefinition newDataDefinition = (DataDefinition) builtinStatement;
                   validatorResultBuilder.merge(this.dataDefContainer.addDataDefChild(newDataDefinition));
                   break;
                case ACTION:
-                  Action newAction = (Action)builtinStatement;
+                  Action newAction = (Action) builtinStatement;
                   validatorResultBuilder.merge(this.actionContainer.addAction(newAction));
                   break;
                case NOTIFICATION:
-                  Notification newNotification = (Notification)builtinStatement;
+                  Notification newNotification = (Notification) builtinStatement;
                   validatorResultBuilder.merge(this.notificationContainer.addNotification(newNotification));
             }
          }
@@ -246,24 +241,13 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       validatorResultBuilder.merge(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            Iterator iterator = this.getDataDefChildren().iterator();
-
-            while(iterator.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)iterator.next();
+            for (DataDefinition dataDefinition: getDataDefChildren()) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
-
-            iterator = this.getActions().iterator();
-
-            while(iterator.hasNext()) {
-               Action action = (Action)iterator.next();
+            for (Action action: getActions()) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(action));
             }
-
-            iterator = this.getNotifications().iterator();
-
-            while(iterator.hasNext()) {
-               Notification notification = (Notification)iterator.next();
+            for (Notification notification: getNotifications()) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(notification));
             }
          default:
@@ -275,7 +259,7 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
       return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
    }
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(this.groupingDefContainer.getGroupings());
       statements.addAll(this.typedefContainer.getTypedefs());

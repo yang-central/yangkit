@@ -36,17 +36,17 @@ public class YangFunctionContext extends XPathFunctionContext {
    }
 
    private void registerYang10Functions() {
-      this.registerFunction((String)null, "current", new CurrentFunction());
+      this.registerFunction(null, "current", new CurrentFunction());
    }
 
    private void registerYang11Functions() {
-      this.registerFunction((String)null, "current", new CurrentFunction());
-      this.registerFunction((String)null, "deref", new DeRefFunction());
-      this.registerFunction((String)null, "re-match", new ReMatchFunction());
-      this.registerFunction((String)null, "derived-from", new DerivedFromFunction());
-      this.registerFunction((String)null, "derived-from-or-self", new DerivedFromOrSelfFunction());
-      this.registerFunction((String)null, "enum-value", new EnumValueFunction());
-      this.registerFunction((String)null, "bit-is-set", new BitIsSetFunction());
+      this.registerFunction(null, "current", new CurrentFunction());
+      this.registerFunction(null, "deref", new DeRefFunction());
+      this.registerFunction(null, "re-match", new ReMatchFunction());
+      this.registerFunction(null, "derived-from", new DerivedFromFunction());
+      this.registerFunction(null, "derived-from-or-self", new DerivedFromOrSelfFunction());
+      this.registerFunction(null, "enum-value", new EnumValueFunction());
+      this.registerFunction(null, "bit-is-set", new BitIsSetFunction());
    }
 
    public Function getFunction(String namespaceURI, String prefix, String localName) throws UnresolvableException {

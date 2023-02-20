@@ -6,15 +6,10 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
 import org.yangcentral.yangkit.base.YangStatementChecker;
 import org.yangcentral.yangkit.util.ModelUtil;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 功能描述
@@ -51,4 +46,3 @@ public class YangDataStructureChecker implements YangStatementChecker {
         return validatorResultBuilder.build();
     }
 }
-

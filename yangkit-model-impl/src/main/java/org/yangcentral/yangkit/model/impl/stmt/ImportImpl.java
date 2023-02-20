@@ -201,7 +201,7 @@ public class ImportImpl extends YangStatementImpl implements Import {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.prefix != null) {
          statements.add(this.prefix);
       }

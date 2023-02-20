@@ -7,7 +7,7 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangParserEnv implements Cloneable {
-   private Stack<YangStatement> statements = new Stack();
+   private Stack<YangStatement> statements = new Stack<>();
    private String filename;
    private String yangStr;
    private ParseStatus status;
@@ -22,7 +22,7 @@ public class YangParserEnv implements Cloneable {
       this.curLine = 1;
       this.curColumn = 1;
       this.curPos = -1;
-      this.positionMap = new ConcurrentHashMap();
+      this.positionMap = new ConcurrentHashMap<>();
    }
 
    public String getYangStr() {

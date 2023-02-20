@@ -2,7 +2,6 @@ package org.yangcentral.yangkit.xpath.impl;
 
 import org.yangcentral.yangkit.common.api.Builder;
 import org.yangcentral.yangkit.common.api.BuilderFactory;
-import java.util.Iterator;
 import java.util.List;
 import org.jaxen.expr.AdditiveExpr;
 import org.jaxen.expr.BinaryExpr;
@@ -112,11 +111,9 @@ public abstract class YangXPathBaseVisitor<T, C, Context extends YangXPathVisito
       Builder<T> builder = this.builderFactory.getBuilder();
       builder.merge(this.visit(otherExpr, context));
       List predicates = expr.getPredicates();
-      Iterator var6 = predicates.iterator();
 
-      while(var6.hasNext()) {
-         Object o = var6.next();
-         Predicate predicate = (Predicate)o;
+      for (Object o : predicates) {
+         Predicate predicate = (Predicate) o;
          builder.merge(this.visit(predicate.getExpr(), context));
       }
 
@@ -126,11 +123,9 @@ public abstract class YangXPathBaseVisitor<T, C, Context extends YangXPathVisito
    public T visitFunctionCallExpr(FunctionCallExpr expr, C context) {
       Builder<T> builder = this.builderFactory.getBuilder();
       List parameters = expr.getParameters();
-      Iterator var5 = parameters.iterator();
 
-      while(var5.hasNext()) {
-         Object o = var5.next();
-         Expr para = (Expr)o;
+      for (Object o : parameters) {
+         Expr para = (Expr) o;
          builder.merge(this.visit(para, context));
       }
 

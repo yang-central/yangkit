@@ -189,13 +189,8 @@ public abstract class OperationImpl extends SchemaNodeImpl implements Operation 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
 
         List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.GROUPING.getQName());
-        Iterator iterator;
-        YangStatement statement;
         if (matched.size() > 0) {
-            iterator = matched.iterator();
-
-            while(iterator.hasNext()) {
-                statement = (YangStatement)iterator.next();
+            for (YangStatement statement : matched) {
                 Grouping grouping = (Grouping)statement;
                 validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(grouping));
             }
@@ -203,10 +198,7 @@ public abstract class OperationImpl extends SchemaNodeImpl implements Operation 
 
         matched = this.getSubStatement(YangBuiltinKeyword.TYPEDEF.getQName());
         if (matched.size() > 0) {
-            iterator = matched.iterator();
-
-            while(iterator.hasNext()) {
-                statement = (YangStatement)iterator.next();
+            for (YangStatement statement : matched) {
                 Typedef typedef = (Typedef)statement;
                 validatorResultBuilder.merge(this.typedefContainer.addTypedef(typedef));
             }
@@ -214,10 +206,7 @@ public abstract class OperationImpl extends SchemaNodeImpl implements Operation 
 
         matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
         if (matched.size() > 0) {
-            iterator = matched.iterator();
-
-            while(iterator.hasNext()) {
-                statement = (YangStatement)iterator.next();
+            for (YangStatement statement : matched) {
                 IfFeature ifFeature = (IfFeature)statement;
                 validatorResultBuilder.merge(this.ifFeatureSupport.addIfFeature(ifFeature));
             }
@@ -285,7 +274,7 @@ public abstract class OperationImpl extends SchemaNodeImpl implements Operation 
     }
 
     public List<YangStatement> getEffectiveSubStatements() {
-        List<YangStatement> statements = new ArrayList();
+        List<YangStatement> statements = new ArrayList<>();
         statements.addAll(this.groupingDefContainer.getGroupings());
         statements.addAll(this.typedefContainer.getTypedefs());
         if (this.input != null && this.input.isActive()) {

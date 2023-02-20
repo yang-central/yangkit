@@ -2,7 +2,6 @@ package org.yangcentral.yangkit.model.impl.stmt;
 
 import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Choice;
@@ -33,20 +32,19 @@ import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private SchemaNode target;
    private DeviateType deviateType;
    private Config config;
-   private List<Default> defaults = new ArrayList();
+   private List<Default> defaults = new ArrayList<>();
    private Mandatory mandatory;
    private MaxElements maxElements;
    private MinElements minElements;
    private MustSupportImpl mustSupport = new MustSupportImpl();
    private Type type;
-   private List<Unique> uniques = new ArrayList();
+   private List<Unique> uniques = new ArrayList<>();
    private Units units;
 
    public DeviateImpl(String argStr) {
@@ -83,51 +81,48 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
          return validatorResultBuilder.build();
       }
 
-      Iterator elementIterator = this.getSubElements().iterator();
-
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(((YangBuiltinStatement)subElement).getYangKeyword());
+            YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(((YangBuiltinStatement) subElement).getYangKeyword());
             switch (builtinKeyword) {
                case CONFIG:
-                  this.config = (Config)subElement;
+                  this.config = (Config) subElement;
                   break;
                case MUST:
-                  validatorResultBuilder.merge(this.addMust((Must)subElement));
+                  validatorResultBuilder.merge(this.addMust((Must) subElement));
                   break;
                case DEFAULT:
-                  Default oldDefault = (Default) ModelUtil.checkConflict((Default)subElement, this.defaults);
+                  Default oldDefault = ModelUtil.checkConflict((Default) subElement, this.defaults);
                   if (oldDefault != null) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(oldDefault, (Default)subElement));
-                     ((Default)subElement).setErrorStatement(true);
+                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(oldDefault, (Default) subElement));
+                     ((Default) subElement).setErrorStatement(true);
                   } else {
-                     this.defaults.add((Default)subElement);
+                     this.defaults.add((Default) subElement);
                   }
                   break;
                case MANDATORY:
-                  this.mandatory = (Mandatory)subElement;
+                  this.mandatory = (Mandatory) subElement;
                   break;
                case MAXELEMENTS:
-                  this.maxElements = (MaxElements)subElement;
+                  this.maxElements = (MaxElements) subElement;
                   break;
                case MINELEMENTS:
-                  this.minElements = (MinElements)subElement;
+                  this.minElements = (MinElements) subElement;
                   break;
                case TYPE:
-                  this.type = (Type)subElement;
+                  this.type = (Type) subElement;
                   break;
                case UNIQUE:
-                  Unique oldUnique = (Unique)ModelUtil.checkConflict((Unique)subElement, this.uniques);
+                  Unique oldUnique = ModelUtil.checkConflict((Unique) subElement, this.uniques);
                   if (oldUnique != null) {
-                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(oldUnique, (Unique)subElement));
-                     ((Unique)subElement).setErrorStatement(true);
+                     validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(oldUnique, (Unique) subElement));
+                     ((Unique) subElement).setErrorStatement(true);
                   } else {
-                     this.uniques.add((Unique)subElement);
+                     this.uniques.add((Unique) subElement);
                   }
                   break;
                case UNITS:
-                  this.units = (Units)subElement;
+                  this.units = (Units) subElement;
             }
          }
       }
@@ -167,24 +162,22 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                  ErrorCode.INVALID_SUBSTATEMENT.getFieldName()));
       } else {
          MustSupport mustSupport = (MustSupport)this.target;
-         Iterator mustIterator = this.getMusts().iterator();
 
-         while(mustIterator.hasNext()) {
-            Must must = (Must)mustIterator.next();
+         for (Must must : this.getMusts()) {
             SchemaNode schemaNode;
             switch (this.deviateType) {
                case ADD: {
                   YangStatement matchedStatement = mustSupport.getMust(must.getArgStr());
                   if (matchedStatement != null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(must,
-                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=must"})));
+                         ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=must"})));
                   } else {
                      Must orig = mustSupport.getMust(must.getArgStr());
-                     if( orig != null){
+                     if (orig != null) {
                         mustSupport.removeMust(must.getArgStr());
                      }
                      validatorResultBuilder.merge(mustSupport.addMust(must));
-                     schemaNode = (SchemaNode)mustSupport;
+                     schemaNode = (SchemaNode) mustSupport;
                      schemaNode.setDeviated(true);
                   }
                   break;
@@ -194,23 +187,23 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                   YangStatement matchedStatement = mustSupport.getMust(must.getArgStr());
                   if (matchedStatement == null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(must,
-                             ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
+                         ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
                   } else {
                      mustSupport.removeMust(must.getArgStr());
-                     schemaNode = (SchemaNode)mustSupport;
+                     schemaNode = (SchemaNode) mustSupport;
                      schemaNode.setDeviated(true);
                   }
                   break;
                }
 
-               case REPLACE:{
+               case REPLACE: {
                   YangStatement matchedStatement = mustSupport.getMust(must.getArgStr());
                   if (matchedStatement == null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(must,
-                             ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
+                         ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=must"})));
                   } else {
                      mustSupport.updateMust(must);
-                     schemaNode = (SchemaNode)mustSupport;
+                     schemaNode = (SchemaNode) mustSupport;
                      schemaNode.setDeviated(true);
                   }
                   break;
@@ -226,7 +219,6 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateLeafDefault() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Leaf leaf = (Leaf)this.target;
-      ValidatorRecordBuilder validatorRecordBuilder;
       if (this.defaults.size() > 1) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(1),
                  ErrorCode.DUPLICATE_DEFINITION.getFieldName()));
@@ -291,10 +283,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
                        ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"}) ));
             } else {
-               bool = choice.setDefault((Default)this.defaults.get(0));
+               bool = choice.setDefault(this.defaults.get(0));
                if (!bool) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
-                          ErrorCode.MISSING_CASE.toString(new String[]{"name=" + ((Default)this.defaults.get(0)).getArgStr()})));
+                          ErrorCode.MISSING_CASE.toString(new String[]{"name=" + (this.defaults.get(0)).getArgStr()})));
                } else {
                   choice.setDeviated(true);
                }
@@ -319,10 +311,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
                        ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"}) ));
             } else {
-               bool = choice.setDefault((Default)this.defaults.get(0));
+               bool = choice.setDefault(this.defaults.get(0));
                if (!bool) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this.defaults.get(0),
-                          ErrorCode.MISSING_CASE.toString(new String[]{"name=" + ((Default)this.defaults.get(0)).getArgStr()})));
+                          ErrorCode.MISSING_CASE.toString(new String[]{"name=" + (this.defaults.get(0)).getArgStr()})));
                } else {
                   choice.setDeviated(true);
                }
@@ -335,16 +327,14 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    private ValidatorResult deviateLeafListDefault() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       LeafList leafList = (LeafList)this.target;
-      Iterator defaultIterator = this.defaults.iterator();
 
-      while(defaultIterator.hasNext()) {
-         Default defl = (Default)defaultIterator.next();
+      for (Default defl : this.defaults) {
          Default orig = leafList.getDefault(defl.getArgStr());
          switch (this.deviateType) {
-            case ADD:{
-               if ( orig != null) {
+            case ADD: {
+               if (orig != null) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(defl,
-                          ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"})));
+                      ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=default"})));
                } else {
                   validatorResultBuilder.merge(leafList.addDefault(defl));
                   leafList.setDeviated(true);
@@ -352,10 +342,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                break;
             }
 
-            case DELETE:{
+            case DELETE: {
                if (orig == null) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(defl,
-                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
+                      ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
                } else {
                   leafList.removeDefault(defl.getArgStr());
                   leafList.setDeviated(true);
@@ -363,10 +353,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                break;
             }
 
-            case REPLACE:{
+            case REPLACE: {
                if (orig == null) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(defl,
-                          ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
+                      ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=default"})));
                } else {
                   validatorResultBuilder.merge(leafList.updateDefault(defl));
                   leafList.setDeviated(true);
@@ -556,16 +546,14 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
          return validatorResultBuilder.build();
       } else {
          YangList list = (YangList)this.target;
-         Iterator uniqueIterator = this.uniques.iterator();
 
-         while(uniqueIterator.hasNext()) {
-            Unique unique = (Unique)uniqueIterator.next();
+         for (Unique unique : this.uniques) {
             Unique orig = list.getUnique(unique.getArgStr());
             switch (this.deviateType) {
-               case ADD:{
+               case ADD: {
                   if (orig != null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
-                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=unique"})));
+                         ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=unique"})));
                   } else {
                      validatorResultBuilder.merge(list.addUnique(unique));
                      list.setDeviated(true);
@@ -573,10 +561,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                   break;
                }
 
-               case DELETE:{
+               case DELETE: {
                   if (orig == null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
-                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
+                         ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
                   } else {
                      list.removeUnique(unique.getArgStr());
                      list.setDeviated(true);
@@ -584,10 +572,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                   break;
                }
 
-               case REPLACE:{
+               case REPLACE: {
                   if (orig == null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(unique,
-                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
+                         ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=unique"})));
                   } else {
                      validatorResultBuilder.merge(list.updateUnique(unique));
                      list.setDeviated(true);
@@ -688,28 +676,26 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
 
    private ValidatorResult deviateUnknown() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator unknownIterator = this.getUnknowns().iterator();
-      while(unknownIterator.hasNext()) {
-         YangUnknown yangUnknown = (YangUnknown)unknownIterator.next();
+      for (YangUnknown yangUnknown : this.getUnknowns()) {
          boolean isMultiInstance = true;
          YangSpecification yangSpecification = this.target.getContext().getYangSpecification();
          YangStatementDef yangStatementDef = yangSpecification.getStatementDef(this.target.getYangKeyword());
          Cardinality cardinality = yangStatementDef.getSubStatementCardinality(yangUnknown.getYangKeyword());
-         if(cardinality != null){
-            if(cardinality.getMaxElements() <=1){
+         if (cardinality != null) {
+            if (cardinality.getMaxElements() <= 1) {
                isMultiInstance = false;
             }
          }
-         if(!isMultiInstance){
+         if (!isMultiInstance) {
             List<YangUnknown> matched = this.target.getUnknowns(yangUnknown.getYangKeyword());
             switch (this.deviateType) {
-               case ADD:{
-                  if(matched != null && !matched.isEmpty()){
+               case ADD: {
+                  if (matched != null && !matched.isEmpty()) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
-                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                         ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=" + yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
                      List<YangUnknown> targetUnknowns = this.target.getUnknowns(yangUnknown.getYangKeyword());
-                     for(YangUnknown targetUnknown:targetUnknowns){
+                     for (YangUnknown targetUnknown : targetUnknowns) {
                         this.target.getUnknowns().remove(targetUnknown);
                      }
                      this.target.getUnknowns().add(yangUnknown);
@@ -717,14 +703,14 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                   }
                   break;
                }
-               case DELETE:{
-                  if(matched == null || matched.isEmpty()){
+               case DELETE: {
+                  if (matched == null || matched.isEmpty()) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
-                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                         ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=" + yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
-                     if(!matched.get(0).getArgStr().equals(yangUnknown.getArgStr())){
+                     if (!matched.get(0).getArgStr().equals(yangUnknown.getArgStr())) {
                         validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
-                                ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                            ErrorCode.PROPERTY_NOT_MATCH.toString(new String[]{"name=" + yangUnknown.getYangKeyword().getQualifiedName()})));
                      } else {
                         this.target.getUnknowns().remove(matched.get(0));
                         this.target.setDeviated(true);
@@ -734,10 +720,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                   break;
                }
 
-               case REPLACE:{
-                  if(matched == null || matched.isEmpty()){
+               case REPLACE: {
+                  if (matched == null || matched.isEmpty()) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
-                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                         ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=" + yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
                      this.target.getUnknowns().remove(matched.get(0));
                      this.target.getUnknowns().add(yangUnknown);
@@ -748,15 +734,15 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
             }
 
          } else {
-            YangUnknown orig =  this.target.getUnknown(yangUnknown.getYangKeyword(),yangUnknown.getArgStr());
+            YangUnknown orig = this.target.getUnknown(yangUnknown.getYangKeyword(), yangUnknown.getArgStr());
             switch (this.deviateType) {
-               case ADD:{
-                  if(orig != null){
+               case ADD: {
+                  if (orig != null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
-                             ErrorCode.PROPERTY_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                         ErrorCode.PROPERTY_EXIST.toString(new String[]{"name=" + yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
-                     YangUnknown targetUnknown = this.target.getUnknown(yangUnknown.getYangKeyword(),yangUnknown.getArgStr());
-                     if(null != targetUnknown){
+                     YangUnknown targetUnknown = this.target.getUnknown(yangUnknown.getYangKeyword(), yangUnknown.getArgStr());
+                     if (null != targetUnknown) {
                         this.target.getUnknowns().remove(targetUnknown);
                      }
                      this.target.getUnknowns().add(yangUnknown);
@@ -764,10 +750,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                   }
                   break;
                }
-               case DELETE:{
-                  if(orig == null){
+               case DELETE: {
+                  if (orig == null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
-                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                         ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=" + yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
                      this.target.getUnknowns().remove(orig);
                      this.target.setDeviated(true);
@@ -775,10 +761,10 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
                   break;
                }
 
-               case REPLACE:{
-                  if(orig == null){
+               case REPLACE: {
+                  if (orig == null) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(yangUnknown,
-                             ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name="+ yangUnknown.getYangKeyword().getQualifiedName()})));
+                         ErrorCode.PROPERTY_NOT_EXIST.toString(new String[]{"name=" + yangUnknown.getYangKeyword().getQualifiedName()})));
                   } else {
                      this.target.getUnknowns().remove(orig);
                      this.target.getUnknowns().add(yangUnknown);
@@ -936,7 +922,7 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.config != null) {
          statements.add(this.config);
       }
@@ -968,4 +954,3 @@ public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
       return statements;
    }
 }
-

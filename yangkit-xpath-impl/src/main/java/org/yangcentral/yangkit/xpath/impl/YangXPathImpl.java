@@ -26,17 +26,16 @@ import org.jaxen.saxpath.XPathReader;
 import org.jaxen.saxpath.XPathSyntaxException;
 import org.jaxen.saxpath.helpers.XPathReaderFactory;
 import org.jaxen.util.SingletonList;
-import org.yangcentral.yangkit.model.api.stmt.XPathSupport;
 import org.yangcentral.yangkit.xpath.YangContextSupport;
 import org.yangcentral.yangkit.xpath.YangXPath;
 import org.yangcentral.yangkit.xpath.YangXPathVisitorContext;
 
 public class YangXPathImpl implements YangXPath {
-   private String yangVersion = "1";
+   private final String yangVersion = "1";
    private final String exprText;
    private final XPathExpr xpath;
    private YangContextSupport support;
-   private Navigator navigator;
+   private final Navigator navigator;
    private YangXPathContext xPathContext;
 
 
@@ -97,7 +96,7 @@ public class YangXPathImpl implements YangXPath {
    public boolean booleanValueOf(Object o) throws JaxenException {
       Context context = this.getContext(o);
       List result = this.selectNodesForContext(context);
-      return result == null ? false : BooleanFunction.evaluate(result, context.getNavigator());
+      return result != null && BooleanFunction.evaluate(result, context.getNavigator());
    }
 
    public Number numberValueOf(Object o) throws JaxenException {
@@ -206,11 +205,11 @@ public class YangXPathImpl implements YangXPath {
          Iterator<Map.Entry<String, ModuleId>> prefixCache = this.xPathContext.getYangContext().getCurModule().getPrefixes().entrySet().iterator();
 
          while(prefixCache.hasNext()) {
-            Map.Entry<String, ModuleId> entry = (Map.Entry)prefixCache.next();
-            ModuleId moduleId = (ModuleId)entry.getValue();
+            Map.Entry<String, ModuleId> entry = prefixCache.next();
+            ModuleId moduleId = entry.getValue();
             Optional<Module> module = this.xPathContext.getYangContext().getSchemaContext().getModule(moduleId);
             if (module.isPresent()) {
-               namespaceContext.addNamespace((String)entry.getKey(), ((Module)module.get()).getMainModule().getNamespace().getUri().toString());
+               namespaceContext.addNamespace(entry.getKey(), module.get().getMainModule().getNamespace().getUri().toString());
             }
          }
 

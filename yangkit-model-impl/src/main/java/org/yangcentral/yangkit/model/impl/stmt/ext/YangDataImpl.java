@@ -11,7 +11,6 @@ import org.yangcentral.yangkit.model.impl.stmt.DataDefContainerImpl;
 import org.yangcentral.yangkit.model.impl.stmt.SchemaNodeContainerImpl;
 import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 import org.yangcentral.yangkit.register.*;
-import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -162,12 +161,10 @@ public class  YangDataImpl extends YangStatementImpl implements YangData  {
         validatorResultBuilder.merge(super.initSelf());
 
         List<YangElement> subElements = this.getSubElements();
-        Iterator iterator = subElements.iterator();
 
-        while(iterator.hasNext()) {
-            YangElement subElement = (YangElement)iterator.next();
+        for (YangElement subElement : subElements) {
             if (subElement instanceof YangBuiltinStatement) {
-                YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+                YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
                 YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
                 switch (builtinKeyword) {
                     case CONTAINER:
@@ -178,7 +175,7 @@ public class  YangDataImpl extends YangStatementImpl implements YangData  {
                     case ANYXML:
                     case CHOICE:
                     case USES:
-                        DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
+                        DataDefinition newDataDefinition = (DataDefinition) builtinStatement;
                         validatorResultBuilder.merge(this.dataDefContainer.addDataDefChild(newDataDefinition));
                         break;
                 }
@@ -239,10 +236,8 @@ public class  YangDataImpl extends YangStatementImpl implements YangData  {
                 return validatorResultBuilder.build();
             }
             case SCHEMA_BUILD:
-                Iterator iterator = this.getDataDefChildren().iterator();
 
-                while(iterator.hasNext()) {
-                    DataDefinition dataDefinition = (DataDefinition)iterator.next();
+                for (DataDefinition dataDefinition : this.getDataDefChildren()) {
                     validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
                 }
 
@@ -252,7 +247,7 @@ public class  YangDataImpl extends YangStatementImpl implements YangData  {
     }
 
     public List<YangStatement> getEffectiveSubStatements() {
-        List<YangStatement> statements = new ArrayList();
+        List<YangStatement> statements = new ArrayList<>();
         statements.addAll(getEffectiveSchemaNodeChildren());
         statements.addAll(super.getEffectiveSubStatements());
         return statements;

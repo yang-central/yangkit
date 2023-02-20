@@ -31,9 +31,8 @@ public class YangXPathPrefixVisitor implements YangXPathVisitor<List<String>, XP
 
     @Override
     public List<String> visitBinaryExpr(BinaryExpr binaryExpr, XPathSupport xPathSupport) {
-        List<String> transformerResults = new ArrayList<>();
         List<String> left = visit(binaryExpr.getLHS(),statement);
-        transformerResults.addAll(left);
+        List<String> transformerResults = new ArrayList<>(left);
         List<String> right = visit(binaryExpr.getRHS(),statement);
         transformerResults.addAll(right);
         return transformerResults;
@@ -46,9 +45,8 @@ public class YangXPathPrefixVisitor implements YangXPathVisitor<List<String>, XP
 
     @Override
     public List<String> visitFilterExpr(FilterExpr filterExpr, XPathSupport xPathSupport) {
-        List<String> transformerResults = new ArrayList<>();
         Expr expr = filterExpr.getExpr();
-        transformerResults.addAll(visit(expr,statement));
+        List<String> transformerResults = new ArrayList<>(visit(expr, statement));
         List predicates = filterExpr.getPredicates();
         if(predicates != null && predicates.size()>0){
             for(Object o:predicates){

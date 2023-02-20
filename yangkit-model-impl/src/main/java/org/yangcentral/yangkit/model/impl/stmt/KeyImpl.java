@@ -1,10 +1,8 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
-import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
-import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+
 import org.yangcentral.yangkit.model.api.stmt.Key;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
 
@@ -14,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class KeyImpl extends YangBuiltInStatementImpl implements Key {
-   private List<Leaf> keyNodes = new ArrayList();
+   private List<Leaf> keyNodes = new ArrayList<>();
 
    public KeyImpl(String argStr) {
       super(argStr);
@@ -25,7 +23,7 @@ public class KeyImpl extends YangBuiltInStatementImpl implements Key {
    }
 
    public boolean addKeyNode(Leaf keyNode) {
-      Iterator leafIterator = this.keyNodes.iterator();
+      Iterator<Leaf> leafIterator = this.keyNodes.iterator();
 
       Leaf key;
       do {
@@ -33,7 +31,7 @@ public class KeyImpl extends YangBuiltInStatementImpl implements Key {
             return this.keyNodes.add(keyNode);
          }
 
-         key = (Leaf)leafIterator.next();
+         key = leafIterator.next();
       } while(!key.getArgStr().equals(keyNode.getArgStr()));
 
       return false;
@@ -42,7 +40,7 @@ public class KeyImpl extends YangBuiltInStatementImpl implements Key {
 
 
    public Leaf getKeyNode(QName identifier) {
-      Iterator leafIterator = this.keyNodes.iterator();
+      Iterator<Leaf> leafIterator = this.keyNodes.iterator();
 
       Leaf key;
       do {
@@ -50,7 +48,7 @@ public class KeyImpl extends YangBuiltInStatementImpl implements Key {
             return null;
          }
 
-         key = (Leaf)leafIterator.next();
+         key = leafIterator.next();
       } while(!key.getIdentifier().equals(identifier));
 
       return key;

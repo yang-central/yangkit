@@ -29,7 +29,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    private MinElements minElements;
    private MaxElements maxElements;
    private OrderedBy orderedBy;
-   private List<Unique> uniques = new ArrayList();
+   private List<Unique> uniques = new ArrayList<>();
 
    public ListImpl(String argStr) {
       super(argStr);
@@ -76,7 +76,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    }
 
    public Unique getUnique(String arg) {
-      Iterator uniqueIterator = this.uniques.iterator();
+      Iterator<Unique> uniqueIterator = this.uniques.iterator();
 
       Unique unique;
       do {
@@ -84,7 +84,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
             return null;
          }
 
-         unique = (Unique)uniqueIterator.next();
+         unique = uniqueIterator.next();
       } while(!unique.getArgStr().equals(arg));
 
       return unique;
@@ -104,7 +104,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       int index = -1;
 
       for(int i = 0; i < this.uniques.size(); ++i) {
-         if (((Unique)this.uniques.get(i)).getArgStr().equals(unique)) {
+         if (this.uniques.get(i).getArgStr().equals(unique)) {
             index = i;
          }
       }
@@ -125,7 +125,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          int index = -1;
 
          for(int i = 0; i < this.uniques.size(); ++i) {
-            if (((Unique)this.uniques.get(i)).getArgStr().equals(unique.getArgStr())) {
+            if (this.uniques.get(i).getArgStr().equals(unique.getArgStr())) {
                index = i;
             }
          }
@@ -262,11 +262,9 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       validatorResultBuilder.merge(super.initSelf());
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.UNIQUE.getQName());
-      Iterator statementIterator = matched.iterator();
 
-      while(statementIterator.hasNext()) {
-         YangStatement subStatement = (YangStatement)statementIterator.next();
-         this.uniques.add((Unique)subStatement);
+      for (YangStatement subStatement : matched) {
+         this.uniques.add((Unique) subStatement);
       }
 
       matched = this.getSubStatement(YangBuiltinKeyword.KEY.getQName());
@@ -302,45 +300,38 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
 
       if (this.getKey() != null) {
          List<Leaf> keyNodes = this.getKey().getkeyNodes();
-         Iterator iterator = keyNodes.iterator();
 
-         while(iterator.hasNext()) {
-            Leaf keyNode = (Leaf)iterator.next();
+         for (Leaf keyNode : keyNodes) {
             if (this.isConfig() != keyNode.isConfig()) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(keyNode,
-                       ErrorCode.KEY_CONFIG_ATTRIBUTE_DIFF_WITH_LIST.getFieldName()));
+                   ErrorCode.KEY_CONFIG_ATTRIBUTE_DIFF_WITH_LIST.getFieldName()));
             } else if (this.isActive() && !keyNode.isActive()) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(keyNode,
-                       ErrorCode.KEY_NODE_INACTIVE.toString(new String[]{"name=" + keyNode.getArgStr()})));
+                   ErrorCode.KEY_NODE_INACTIVE.toString(new String[]{"name=" + keyNode.getArgStr()})));
             } else {
-               if(getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)
-                       && (keyNode.getType().getRestriction() instanceof Empty)){
+               if (getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)
+                   && (keyNode.getType().getRestriction() instanceof Empty)) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this.getKey(),
-                          ErrorCode.KEY_NODE_SHOULD_NOT_EMPTY_TYPE.getFieldName()));
+                      ErrorCode.KEY_NODE_SHOULD_NOT_EMPTY_TYPE.getFieldName()));
                }
             }
          }
       }
 
-      Iterator uniqueIterator = this.uniques.iterator();
-
-      while(uniqueIterator.hasNext()) {
-         Unique unique = (Unique)uniqueIterator.next();
+      for (Unique unique : this.uniques) {
          List<Leaf> uniqueNodes = unique.getUniqueNodes();
          Boolean config = null;
-         Iterator uniqueNodeIt = uniqueNodes.iterator();
 
-         while(uniqueNodeIt.hasNext()) {
-            Leaf uniqueNode = (Leaf)uniqueNodeIt.next();
+         for (Leaf uniqueNode : uniqueNodes) {
             if (config == null) {
                config = uniqueNode.isConfig();
             } else {
                if (config != uniqueNode.isConfig()) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(uniqueNode,
-                          ErrorCode.UNIQUE_NODE_CONFIG_ATTRI_DIFF.getFieldName()));
+                      ErrorCode.UNIQUE_NODE_CONFIG_ATTRI_DIFF.getFieldName()));
                } else if (this.isActive() && !uniqueNode.isActive()) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(uniqueNode,
-                          ErrorCode.UNIQUE_NODE_INACTIVE.toString(new String[]{"name=" + uniqueNode.getArgStr()})));
+                      ErrorCode.UNIQUE_NODE_INACTIVE.toString(new String[]{"name=" + uniqueNode.getArgStr()})));
                }
             }
          }
@@ -358,10 +349,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
                validatorResultBuilder.merge(this.validateKey(this.getKey()));
             }
 
-            Iterator uniqueIterator = this.getUniques().iterator();
-
-            while(uniqueIterator.hasNext()) {
-               Unique unique = (Unique)uniqueIterator.next();
+            for (Unique unique : this.getUniques()) {
                validatorResultBuilder.merge(this.validateUnique(unique));
             }
             break;
@@ -375,7 +363,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.key != null) {
          statements.add(this.key);
       }

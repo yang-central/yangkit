@@ -77,7 +77,7 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.config != null) {
          statements.add(this.config);
       } else {

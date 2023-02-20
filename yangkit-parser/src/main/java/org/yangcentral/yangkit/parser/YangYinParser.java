@@ -17,7 +17,6 @@ import org.yangcentral.yangkit.utils.file.FileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -35,14 +34,12 @@ public class YangYinParser {
    }
 
    private static List<File> getYangFiles(List<File> files) {
-      List<File> yangFiles = new ArrayList();
+      List<File> yangFiles = new ArrayList<>();
       if (null == files) {
          return yangFiles;
       }
-      Iterator fileIterator = files.iterator();
 
-      while(fileIterator.hasNext()) {
-         File file = (File)fileIterator.next();
+      for (File file : files) {
          yangFiles.addAll(getYangFiles(file));
       }
 
@@ -50,7 +47,7 @@ public class YangYinParser {
    }
 
    private static List<File> getYangFiles(File dir) {
-      List<File> yangFiles = new ArrayList();
+      List<File> yangFiles = new ArrayList<>();
       if (dir.isFile()) {
          if (dir.getName().endsWith(".yang") || dir.getName().endsWith(".yin")) {
             yangFiles.add(dir);
@@ -86,17 +83,12 @@ public class YangYinParser {
       YangSchemaContext schemaContext = parse(yangDir, capabilities);
       if (dependency != null) {
          YangSchemaContext dependencyContext = parse(dependency);
-         Iterator it = dependencyContext.getModules().iterator();
 
-         while(it.hasNext()) {
-            Module depModule = (Module)it.next();
+         for (Module depModule : dependencyContext.getModules()) {
             schemaContext.addImportOnlyModule(depModule);
          }
 
-         it = dependencyContext.getParseResult().entrySet().iterator();
-
-         while(it.hasNext()) {
-            Map.Entry<String, List<YangElement>> entry = (Map.Entry)it.next();
+         for (Map.Entry<String, List<YangElement>> entry: dependencyContext.getParseResult().entrySet()) {
             if (!schemaContext.getParseResult().containsKey(entry.getKey())) {
                schemaContext.getParseResult().put(entry.getKey(),entry.getValue());
             }
@@ -111,19 +103,13 @@ public class YangYinParser {
       if (capabilities != null) {
          CapabilityParser capabilityParser = new CapabilityParser(capabilities);
          List<Capability> capabilityList = capabilityParser.parse();
-         List<Module> unMatchedModules = new ArrayList();
+         List<Module> unMatchedModules = new ArrayList<>();
          ModuleSet moduleSet = new ModuleSet();
-         Iterator moduleIterator = schemaContext.getModules().iterator();
 
-         Module module;
-         while (moduleIterator.hasNext()) {
-            module = (Module) moduleIterator.next();
+         for (Module module : schemaContext.getModules()) {
             boolean match = false;
-            Iterator capabilityIterator = capabilityList.iterator();
 
-
-            while (capabilityIterator.hasNext()) {
-               Capability capability = (Capability) capabilityIterator.next();
+            for (Capability capability : capabilityList) {
                if (!(capability instanceof ModuleSupportCapability)) {
                   continue;
                }
@@ -152,7 +138,7 @@ public class YangYinParser {
 
                if (module instanceof SubModule) {
                   SubModule subModule = (SubModule) module;
-                  YangStatement belongsTo = (YangStatement) subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
+                  YangStatement belongsTo = subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
                   String mainModuleName = belongsTo.getArgStr();
                   if (moduleSupportCapability.getModule().equals(mainModuleName)) {
                      match = true;
@@ -172,12 +158,10 @@ public class YangYinParser {
                unMatchedModules.add(module);
             }
          }
-         Iterator unMatchedModuleIt = unMatchedModules.iterator();
 
-         while (unMatchedModuleIt.hasNext()) {
-            module = (Module) unMatchedModuleIt.next();
-            schemaContext.removeModule(module.getModuleId());
-            schemaContext.addImportOnlyModule(module);
+         for (Module unMatchedModule : unMatchedModules) {
+            schemaContext.removeModule(unMatchedModule.getModuleId());
+            schemaContext.addImportOnlyModule(unMatchedModule);
          }
 
          YangSchema yangSchema = schemaContext.getYangSchema();

@@ -33,6 +33,6 @@ public class YangContextSupport extends ContextSupport {
 
    public static enum EvaluateType {
       NORMAL,
-      NEST;
+      NEST,
    }
 }

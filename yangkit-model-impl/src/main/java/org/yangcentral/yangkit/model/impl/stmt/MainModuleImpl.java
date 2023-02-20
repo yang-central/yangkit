@@ -14,7 +14,6 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class MainModuleImpl extends ModuleImpl implements MainModule {
@@ -90,7 +89,7 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
    }
 
    public List<YangStatement> getEffectiveMetaStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.namespace != null) {
          statements.add(this.namespace);
       }
@@ -104,14 +103,11 @@ public class MainModuleImpl extends ModuleImpl implements MainModule {
    }
 
    public List<YangStatement> getEffectiveDefinitionStatement() {
-      List<YangStatement> statements = new ArrayList();
-      statements.addAll(super.getEffectiveDefinitionStatement());
-      Iterator includeIterator = this.getIncludes().iterator();
+      List<YangStatement> statements = new ArrayList<>(super.getEffectiveDefinitionStatement());
 
-      while(includeIterator.hasNext()) {
-         Include include = (Include)includeIterator.next();
+      for (Include include : this.getIncludes()) {
          if (include.getInclude().isPresent()) {
-            SubModule subModule = (SubModule)include.getInclude().get();
+            SubModule subModule = include.getInclude().get();
             statements.addAll(subModule.getAugments());
          }
       }

@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class YangSchema {
    private String name;
-   private List<ModuleSet> moduleSets = new ArrayList();
+   private List<ModuleSet> moduleSets = new ArrayList<>();
 
    public void setName(String name) {
       this.name = name;

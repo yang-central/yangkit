@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 class NotificationContainerImpl implements NotificationContainer {
-   private List<Notification> notifications = new ArrayList();
+   private List<Notification> notifications = new ArrayList<>();
    private YangContext yangContext;
 
    public YangContext getYangContext() {
@@ -30,7 +30,7 @@ class NotificationContainerImpl implements NotificationContainer {
    }
 
    public Notification getNotification(String name) {
-      Iterator iterator = this.notifications.iterator();
+      Iterator<Notification> iterator = this.notifications.iterator();
 
       Notification notification;
       do {
@@ -38,7 +38,7 @@ class NotificationContainerImpl implements NotificationContainer {
             return null;
          }
 
-         notification = (Notification)iterator.next();
+         notification = iterator.next();
       } while(!notification.getArgStr().equals(name));
 
       return notification;
@@ -62,7 +62,7 @@ class NotificationContainerImpl implements NotificationContainer {
 
    public ValidatorResult addNotification(Notification notification) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      SchemaNode schemaNode = (SchemaNode)this.getYangContext().getSchemaNodeIdentifierCache().get(notification.getArgStr());
+      SchemaNode schemaNode = this.getYangContext().getSchemaNodeIdentifierCache().get(notification.getArgStr());
       if (null != schemaNode) {
          validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(schemaNode, notification));
          notification.setErrorStatement(true);

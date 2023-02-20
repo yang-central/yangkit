@@ -10,7 +10,7 @@ import java.util.List;
 public class YangStatementParserPolicy {
    private QName keyword;
    private Class<? extends YangStatement> clazz;
-   private List<BuildPhase> phases = new ArrayList();
+   private List<BuildPhase> phases = new ArrayList<>();
 
    public YangStatementParserPolicy(QName keyword, Class<? extends YangStatement> clazz, List<BuildPhase> phases) {
       this.keyword = keyword;

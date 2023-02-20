@@ -13,16 +13,14 @@ import java.util.Iterator;
 import java.util.List;
 
 class YangXPathRoot implements SchemaNodeContainer {
-   private List<SchemaNode> schemaNodes = new ArrayList();
-   private Namespace namespace;
+   private final List<SchemaNode> schemaNodes = new ArrayList<>();
+   private final Namespace namespace;
 
    public YangXPathRoot(Module module) {
       this.namespace = new Namespace(module.getMainModule().getNamespace().getUri(), module.getMainModule().getPrefix().getArgStr());
       List<SchemaNode> contextSchemaNodes = module.getContext().getSchemaContext().getSchemaNodeChildren();
-      Iterator iterator = contextSchemaNodes.iterator();
 
-      while(iterator.hasNext()) {
-         SchemaNode contextSchemaNode = (SchemaNode)iterator.next();
+      for (SchemaNode contextSchemaNode : contextSchemaNodes) {
          if (contextSchemaNode instanceof DataDefinition) {
             this.addSchemaNodeChild(contextSchemaNode);
          }
@@ -33,34 +31,26 @@ class YangXPathRoot implements SchemaNodeContainer {
    public YangXPathRoot(SchemaNode schemaNode) {
       this.namespace = schemaNode.getContext().getNamespace();
       List<SchemaNode> contextSchemaNodes = schemaNode.getContext().getSchemaContext().getSchemaNodeChildren();
-      Iterator iterator = contextSchemaNodes.iterator();
 
-      while(iterator.hasNext()) {
-         SchemaNode contextSchemaNode = (SchemaNode)iterator.next();
+      for (SchemaNode contextSchemaNode : contextSchemaNodes) {
          if (contextSchemaNode instanceof DataDefinition) {
             this.addSchemaNodeChild(contextSchemaNode);
          }
       }
 
-      SchemaNode notificationChild;
-      List notificationChildren;
-      Iterator it;
+      List<SchemaNode> notificationChildren;
       if (schemaNode instanceof Rpc) {
          notificationChildren = ((Rpc)schemaNode).getSchemaNodeChildren();
-         it = notificationChildren.iterator();
 
-         while(it.hasNext()) {
-            notificationChild = (SchemaNode)it.next();
+         for (SchemaNode notificationChild : notificationChildren) {
             this.addSchemaNodeChild(notificationChild);
          }
       }
 
       if (schemaNode instanceof Notification && schemaNode.getParentSchemaNode() instanceof Module) {
          notificationChildren = ((Notification)schemaNode).getSchemaNodeChildren();
-         it = notificationChildren.iterator();
 
-         while(it.hasNext()) {
-            notificationChild = (SchemaNode)it.next();
+         for (SchemaNode notificationChild : notificationChildren) {
             this.addSchemaNodeChild(notificationChild);
          }
       }
@@ -78,10 +68,8 @@ class YangXPathRoot implements SchemaNodeContainer {
 
    public ValidatorResult addSchemaNodeChildren(List<SchemaNode> schemaNodes) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator iterator = this.schemaNodes.iterator();
 
-      while(iterator.hasNext()) {
-         SchemaNode node = (SchemaNode)iterator.next();
+      for (SchemaNode node : this.schemaNodes) {
          ValidatorResult result = this.addSchemaNodeChild(node);
          validatorResultBuilder.merge(result);
       }
@@ -91,12 +79,10 @@ class YangXPathRoot implements SchemaNodeContainer {
 
    public SchemaNode getSchemaNodeChild(QName identifier) {
       try {
-         Iterator iterator = this.schemaNodes.iterator();
 
-         while(iterator.hasNext()) {
-            SchemaNode schemaNode = (SchemaNode)iterator.next();
+         for (SchemaNode schemaNode : this.schemaNodes) {
             if (schemaNode instanceof VirtualSchemaNode) {
-               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)schemaNode;
+               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
                SchemaNode node = virtualSchemaNode.getSchemaNodeChild(identifier);
                if (node != null) {
                   return node;
@@ -113,7 +99,7 @@ class YangXPathRoot implements SchemaNodeContainer {
    }
 
    public DataNode getDataNodeChild(QName identifier) {
-      Iterator iterator = this.schemaNodes.iterator();
+      Iterator<SchemaNode> iterator = this.schemaNodes.iterator();
 
       SchemaNode schemaNode;
       label35:
@@ -124,7 +110,7 @@ class YangXPathRoot implements SchemaNodeContainer {
                return null;
             }
 
-            schemaNode = (SchemaNode)iterator.next();
+            schemaNode = iterator.next();
             if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
                continue label35;
             }
@@ -144,12 +130,12 @@ class YangXPathRoot implements SchemaNodeContainer {
    }
 
    public List<DataNode> getDataNodeChildren() {
-      List<DataNode> dataNodeChildren = new ArrayList();
-      Iterator iterator = this.schemaNodes.iterator();
+      List<DataNode> dataNodeChildren = new ArrayList<>();
+      Iterator<SchemaNode> iterator = this.schemaNodes.iterator();
 
       while(true) {
          while(iterator.hasNext()) {
-            SchemaNode schemaNode = (SchemaNode)iterator.next();
+            SchemaNode schemaNode = iterator.next();
             if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
                if (schemaNode instanceof DataNode) {
                   dataNodeChildren.add((DataNode)schemaNode);
@@ -190,12 +176,10 @@ class YangXPathRoot implements SchemaNodeContainer {
 
    public void removeSchemaNodeChild(QName identifier) {
       SchemaNode target = null;
-      Iterator var3 = this.schemaNodes.iterator();
 
-      while(var3.hasNext()) {
-         SchemaNode schemaNode = (SchemaNode)var3.next();
+      for (SchemaNode schemaNode : this.schemaNodes) {
          if (schemaNode instanceof VirtualSchemaNode) {
-            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)schemaNode;
+            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
             virtualSchemaNode.removeSchemaNodeChild(identifier);
          } else if (schemaNode.getIdentifier().equals(identifier)) {
             target = schemaNode;
@@ -212,12 +196,10 @@ class YangXPathRoot implements SchemaNodeContainer {
       if (this.schemaNodes.contains(schemaNode)) {
          this.schemaNodes.remove(schemaNode);
       } else {
-         Iterator var2 = this.schemaNodes.iterator();
 
-         while(var2.hasNext()) {
-            SchemaNode node = (SchemaNode)var2.next();
+         for (SchemaNode node : this.schemaNodes) {
             if (node instanceof VirtualSchemaNode) {
-               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)node;
+               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) node;
                virtualSchemaNode.removeSchemaNodeChild(schemaNode);
             }
          }

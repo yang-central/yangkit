@@ -9,7 +9,6 @@ import org.yangcentral.yangkit.model.api.stmt.IfFeature;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class FeatureImpl extends EntityImpl implements Feature {
@@ -80,11 +79,9 @@ public class FeatureImpl extends EntityImpl implements Feature {
       validatorResultBuilder.merge(super.initSelf());
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
-      Iterator statementIterator = matched.iterator();
 
-      while(statementIterator.hasNext()) {
-         YangStatement statement = (YangStatement)statementIterator.next();
-         IfFeature ifFeature = (IfFeature)statement;
+      for (YangStatement statement : matched) {
+         IfFeature ifFeature = (IfFeature) statement;
          validatorResultBuilder.merge(this.addIfFeature(ifFeature));
       }
 
@@ -92,7 +89,7 @@ public class FeatureImpl extends EntityImpl implements Feature {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.ifFeatureSupport.getIfFeatures());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;

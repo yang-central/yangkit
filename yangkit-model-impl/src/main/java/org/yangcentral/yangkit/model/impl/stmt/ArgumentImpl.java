@@ -49,7 +49,7 @@ public class ArgumentImpl extends YangBuiltInStatementImpl implements Argument {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.yinElement != null) {
          statements.add(this.yinElement);
       } else {
