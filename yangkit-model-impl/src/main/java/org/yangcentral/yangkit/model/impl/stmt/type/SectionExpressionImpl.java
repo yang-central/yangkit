@@ -25,7 +25,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    private Reference reference;
    private Comparable highBound;
    private Comparable lowBound;
-   private List<Section> sections = new ArrayList();
+   private List<Section> sections = new ArrayList<>();
 
    public SectionExpressionImpl(String argStr) {
       super(argStr);
@@ -113,8 +113,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
       switch (phase) {
          case GRAMMAR:
             try {
-               List<Section> sections = this.parseRange(this.getArgStr());
-               this.sections = sections;
+               this.sections = this.parseRange(this.getArgStr());
                if (!this.checkSections()) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                           ErrorCode.SECTIONS_MUST_ASCEND_ORDER.getFieldName()));
@@ -190,7 +189,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    }
 
    private List<Section> parseRange(String expression) {
-      List<Section> sections = new ArrayList();
+      List<Section> sections = new ArrayList<>();
       if (null == expression) {
          return sections;
       } else if (0 == expression.length()) {
@@ -207,7 +206,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
             if (null != strs[i]) {
                Section section = this.parseSectionExpression(strs[i].trim());
                int lastIndex = sections.size() - 1;
-               if (lastIndex >= 0 && ((Section)sections.get(lastIndex)).getMax().compareTo(section.getMin()) >= 0) {
+               if (lastIndex >= 0 && sections.get(lastIndex).getMax().compareTo(section.getMin()) >= 0) {
                   throw new IllegalArgumentException("the range argument is not ascend order.");
                }
 
@@ -220,7 +219,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    }
 
    private boolean match(Section section, List<Section> derivedSections) {
-      Iterator sectionIterator = derivedSections.iterator();
+      Iterator<Section> sectionIterator = derivedSections.iterator();
 
       Section derivedSection;
       do {
@@ -228,14 +227,14 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
             return false;
          }
 
-         derivedSection = (Section)sectionIterator.next();
+         derivedSection = sectionIterator.next();
       } while(!section.isSubSection(derivedSection));
 
       return true;
    }
 
    private boolean match(List<Section> sections, List<Section> derivedSections) {
-      Iterator sectionIterator = sections.iterator();
+      Iterator<Section> sectionIterator = sections.iterator();
 
       Section section;
       do {
@@ -243,7 +242,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
             return true;
          }
 
-         section = (Section)sectionIterator.next();
+         section = sectionIterator.next();
       } while(this.match(section, derivedSections));
 
       return false;
@@ -258,7 +257,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    }
 
    public boolean evaluate(Comparable val) {
-      Iterator sectionIterator = this.sections.iterator();
+      Iterator<Section> sectionIterator = this.sections.iterator();
 
       Section section;
       do {
@@ -266,7 +265,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
             return false;
          }
 
-         section = (Section)sectionIterator.next();
+         section = sectionIterator.next();
       } while(!section.evaluate(val));
 
       return true;
@@ -278,7 +277,7 @@ abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements
    }
 
    public Comparable<?> getMin() {
-      return ((Section)this.sections.get(0)).getMin();
+      return (this.sections.get(0)).getMin();
    }
 
    public boolean equals(Object obj) {

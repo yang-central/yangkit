@@ -147,26 +147,19 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
          } else {
             Module curModule = this.feature.getContext().getCurModule();
             List<ModuleSet> moduleSets = yangSchema.getModuleSets();
-            Iterator moduleSetIterator = moduleSets.iterator();
 
-            while(moduleSetIterator.hasNext()) {
-               ModuleSet moduleSet = (ModuleSet)moduleSetIterator.next();
+            for (ModuleSet moduleSet : moduleSets) {
                boolean matchedModule = false;
-               Iterator moduleDescriptionIterator = moduleSet.getModules().iterator();
 
-               while(moduleDescriptionIterator.hasNext()) {
-                  YangModuleDescription moduleDescription = (YangModuleDescription)moduleDescriptionIterator.next();
-                  Iterator iterator;
+               for (YangModuleDescription moduleDescription : moduleSet.getModules()) {
                   if (curModule instanceof MainModule) {
-                     if (moduleDescription.getModuleId().equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? (String)curModule.getCurRevisionDate().get() : null))) {
+                     if (moduleDescription.getModuleId().equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? curModule.getCurRevisionDate().get() : null))) {
                         matchedModule = true;
                      }
                   } else {
-                     iterator = moduleDescription.getSubModules().iterator();
 
-                     while(iterator.hasNext()) {
-                        ModuleId subModuleDescription = (ModuleId)iterator.next();
-                        if (subModuleDescription.equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? (String)curModule.getCurRevisionDate().get() : null))) {
+                     for (ModuleId subModuleDescription : moduleDescription.getSubModules()) {
+                        if (subModuleDescription.equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? curModule.getCurRevisionDate().get() : null))) {
                            matchedModule = true;
                            break;
                         }
@@ -174,7 +167,7 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
                   }
 
                   if (matchedModule) {
-                     iterator = moduleDescription.getFeatures().iterator();
+                     Iterator<String> iterator = moduleDescription.getFeatures().iterator();
 
                      String featureStr;
                      do {
@@ -182,8 +175,8 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
                            return false;
                         }
 
-                        featureStr = (String)iterator.next();
-                     } while(!this.feature.getArgStr().equals(featureStr));
+                        featureStr = iterator.next();
+                     } while (!this.feature.getArgStr().equals(featureStr));
 
                      return true;
                   }

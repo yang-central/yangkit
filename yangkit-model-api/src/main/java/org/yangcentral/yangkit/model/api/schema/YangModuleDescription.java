@@ -11,9 +11,9 @@ import java.util.List;
  */
 public class YangModuleDescription {
    private ModuleId moduleId;
-   private List<ModuleId> subModules = new ArrayList();
-   private List<String> features = new ArrayList();
-   private List<String> deviations = new ArrayList();
+   private List<ModuleId> subModules = new ArrayList<>();
+   private List<String> features = new ArrayList<>();
+   private List<String> deviations = new ArrayList<>();
 
    public YangModuleDescription(ModuleId moduleId) {
       this.moduleId = moduleId;

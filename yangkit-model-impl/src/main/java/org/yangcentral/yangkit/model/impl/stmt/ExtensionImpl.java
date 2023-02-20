@@ -44,7 +44,7 @@ public class ExtensionImpl extends EntityImpl implements Extension {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.argument != null) {
          statements.add(this.argument);
       }

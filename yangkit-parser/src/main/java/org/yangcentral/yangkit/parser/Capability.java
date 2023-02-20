@@ -3,7 +3,7 @@ package org.yangcentral.yangkit.parser;
 import java.net.URI;
 
 public class Capability {
-   private URI uri;
+   final private URI uri;
 
    public Capability(URI uri) {
       this.uri = uri;

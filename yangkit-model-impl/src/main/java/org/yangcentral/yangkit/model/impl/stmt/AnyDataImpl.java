@@ -59,7 +59,7 @@ public class AnyDataImpl extends DataNodeImpl implements Anydata {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.mandatory != null) {
          statements.add(this.mandatory);
       } else {

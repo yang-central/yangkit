@@ -41,7 +41,7 @@ public class AbsoluteSchemaPath extends SchemaPathImpl implements SchemaPath.Abs
       } else if (!path.contains(this)) {
          return null;
       } else {
-         List<QName> steps = new ArrayList();
+         List<QName> steps = new ArrayList<>();
          int thisSize = this.getPath().size();
          int descendentSie = path.getPath().size();
 

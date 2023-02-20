@@ -26,7 +26,7 @@ public class GroupingImpl extends EntityImpl implements Grouping {
    private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
    private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
    private NotificationContainerImpl notificationContainer = new NotificationContainerImpl();
-   private List<YangStatement> referencedBys = new ArrayList();
+   private List<YangStatement> referencedBys = new ArrayList<>();
    private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
 
    public void setContext(YangContext context) {
@@ -227,7 +227,7 @@ public class GroupingImpl extends EntityImpl implements Grouping {
 
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.actionContainer.getActions());
       statements.addAll(this.dataDefContainer.getDataDefChildren());
       statements.addAll(this.groupingDefContainer.getGroupings());

@@ -264,12 +264,10 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStr
         validatorResultBuilder.merge(super.initSelf());
 
         List<YangElement> subElements = this.getSubElements();
-        Iterator iterator = subElements.iterator();
 
-        while(iterator.hasNext()) {
-            YangElement subElement = (YangElement)iterator.next();
+        for (YangElement subElement : subElements) {
             if (subElement instanceof YangBuiltinStatement) {
-                YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+                YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
                 YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
                 switch (builtinKeyword) {
                     case CONTAINER:
@@ -280,18 +278,18 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStr
                     case ANYXML:
                     case CHOICE:
                     case USES:
-                        DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
+                        DataDefinition newDataDefinition = (DataDefinition) builtinStatement;
                         validatorResultBuilder.merge(this.dataDefContainer.addDataDefChild(newDataDefinition));
                         break;
                     case TYPEDEF:
-                        Typedef newTypedef = (Typedef)builtinStatement;
+                        Typedef newTypedef = (Typedef) builtinStatement;
                         validatorResultBuilder.merge(this.typedefContainer.addTypedef(newTypedef));
                         break;
                     case GROUPING:
-                        Grouping newGrouping = (Grouping)builtinStatement;
+                        Grouping newGrouping = (Grouping) builtinStatement;
                         validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(newGrouping));
                         break;
-                    case MUST:{
+                    case MUST: {
                         Must must = (Must) builtinStatement;
                         validatorResultBuilder.merge(addMust(must));
                         break;
@@ -308,10 +306,8 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStr
         validatorResultBuilder.merge(super.buildSelf(phase));
         switch (phase) {
             case SCHEMA_BUILD:
-                Iterator iterator = this.getDataDefChildren().iterator();
 
-                while(iterator.hasNext()) {
-                    DataDefinition dataDefinition = (DataDefinition)iterator.next();
+                for (DataDefinition dataDefinition : this.getDataDefChildren()) {
                     validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
                 }
 
@@ -325,7 +321,7 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStr
     }
 
     public List<YangStatement> getEffectiveSubStatements() {
-        List<YangStatement> statements = new ArrayList();
+        List<YangStatement> statements = new ArrayList<>();
         statements.addAll(getEffectiveSchemaNodeChildren());
         statements.addAll(this.groupingDefContainer.getGroupings());
         statements.addAll(this.mustSupport.getMusts());

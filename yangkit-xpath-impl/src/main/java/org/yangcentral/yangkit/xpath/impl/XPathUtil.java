@@ -2,10 +2,8 @@ package org.yangcentral.yangkit.xpath.impl;
 
 import org.jaxen.expr.*;
 import org.yangcentral.yangkit.common.api.FName;
-import org.yangcentral.yangkit.common.api.Namespace;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
-import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;

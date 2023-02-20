@@ -11,8 +11,8 @@ import java.util.List;
  */
 public class ModuleSet {
    private String name;
-   private List<YangModuleDescription> modules = new ArrayList();
-   private List<YangModuleDescription> importOnlyModules = new ArrayList();
+   private List<YangModuleDescription> modules = new ArrayList<>();
+   private List<YangModuleDescription> importOnlyModules = new ArrayList<>();
 
    public String getName() {
       return this.name;

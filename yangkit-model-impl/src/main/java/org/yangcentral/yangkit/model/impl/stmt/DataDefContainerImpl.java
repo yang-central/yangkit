@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class DataDefContainerImpl implements DataDefContainer {
-   private List<DataDefinition> dataDefs = new ArrayList();
+   private List<DataDefinition> dataDefs = new ArrayList<>();
    private YangContext yangContext;
 
    public YangContext getYangContext() {

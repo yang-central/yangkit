@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class EnumerationImpl extends RestrictionImpl<String> implements Enumeration {
-   private List<YangEnum> enums = new ArrayList();
+   private List<YangEnum> enums = new ArrayList<>();
 
    public EnumerationImpl(YangContext context, Typedef derived) {
       super(context, derived);
@@ -102,7 +102,7 @@ public class EnumerationImpl extends RestrictionImpl<String> implements Enumerat
    }
 
    public boolean addEnum(YangEnum yangEnum) {
-      Iterator enumIterator = this.enums.iterator();
+      Iterator<YangEnum> enumIterator = this.enums.iterator();
 
       YangEnum originalEnum;
       do {
@@ -110,7 +110,7 @@ public class EnumerationImpl extends RestrictionImpl<String> implements Enumerat
             return this.enums.add(yangEnum);
          }
 
-         originalEnum = (YangEnum)enumIterator.next();
+         originalEnum = enumIterator.next();
       } while(!originalEnum.getArgStr().equals(yangEnum.getArgStr()));
 
       return false;
@@ -138,7 +138,7 @@ public class EnumerationImpl extends RestrictionImpl<String> implements Enumerat
          Enumeration derivedEnumeration = (Enumeration)this.getDerived().getType().getRestriction();
          return derivedEnumeration.getEffectiveEnums();
       } else {
-         return new ArrayList();
+         return new ArrayList<>();
       }
    }
 

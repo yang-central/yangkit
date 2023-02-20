@@ -21,15 +21,15 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.impl.schema.AbsoluteSchemaPath;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class OutputImpl extends SchemaNodeImpl implements Output {
-   private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
-   private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
-   private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
-   private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
-   private MustSupportImpl mustSupport = new MustSupportImpl();
+   private final DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
+   private final GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
+   private final SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
+   private final TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
+   private final MustSupportImpl mustSupport = new MustSupportImpl();
    private QName identifier;
 
    public OutputImpl(String argStr) {
@@ -158,16 +158,10 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
       YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(subStatement.getYangKeyword());
       switch (builtinKeyword){
          case TYPEDEF:{
-            if(getTypedef(subStatement.getArgStr()) != null){
-               return false;
-            }
-            return true;
+            return getTypedef(subStatement.getArgStr()) == null;
          }
          case GROUPING:{
-            if(getGrouping(subStatement.getArgStr()) != null){
-               return false;
-            }
-            return true;
+            return getGrouping(subStatement.getArgStr()) == null;
          }
          case CONTAINER:
          case LIST:
@@ -176,16 +170,10 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
          case ANYDATA:
          case ANYXML:
          case CHOICE: {
-            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
-               return false;
-            }
-            return true;
+            return !getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr());
          }
          case MUST:{
-            if(getMust(subStatement.getArgStr()) != null){
-               return false;
-            }
-            return true;
+            return getMust(subStatement.getArgStr()) == null;
          }
          default:{
             return true;
@@ -206,12 +194,10 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
             switch (builtinKeyword) {
                case ANYDATA:
@@ -222,18 +208,18 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
                case LEAFLIST:
                case LIST:
                case USES:
-                  DataDefinition dataDefinition = (DataDefinition)builtinStatement;
+                  DataDefinition dataDefinition = (DataDefinition) builtinStatement;
                   validatorResultBuilder.merge(this.addDataDefChild(dataDefinition));
                   break;
                case GROUPING:
-                  Grouping grouping = (Grouping)builtinStatement;
+                  Grouping grouping = (Grouping) builtinStatement;
                   validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(grouping));
                   break;
                case TYPEDEF:
-                  Typedef typedef = (Typedef)builtinStatement;
+                  Typedef typedef = (Typedef) builtinStatement;
                   validatorResultBuilder.merge(this.typedefContainer.addTypedef(typedef));
                   break;
-               case MUST:{
+               case MUST: {
                   Must must = (Must) builtinStatement;
                   validatorResultBuilder.merge(this.mustSupport.addMust(must));
                   break;
@@ -253,18 +239,12 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
-      switch (phase) {
-         case SCHEMA_BUILD:
-
-            Iterator dataDefinitionIterator = this.getDataDefChildren().iterator();
-
-            while(dataDefinitionIterator.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)dataDefinitionIterator.next();
-               validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
-            }
-         default:
-            return validatorResultBuilder.build();
+      if (Objects.requireNonNull(phase) == BuildPhase.SCHEMA_BUILD) {
+         for (DataDefinition dataDefinition : this.getDataDefChildren()) {
+            validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
+         }
       }
+      return validatorResultBuilder.build();
    }
 
    public boolean isConfig() {
@@ -286,14 +266,14 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
          SchemaNodeContainer parent = this.getParentSchemaNode();
          if (parent instanceof SchemaNode) {
             schemaPath = new AbsoluteSchemaPath(((SchemaNode)parent).getSchemaPath().getPath());
-            ((SchemaPath.Absolute)schemaPath).addStep(this.getIdentifier());
+            schemaPath.addStep(this.getIdentifier());
          } else {
             schemaPath = new AbsoluteSchemaPath();
-            ((SchemaPath.Absolute)schemaPath).addStep(this.getIdentifier());
+            schemaPath.addStep(this.getIdentifier());
          }
       }
 
-      return (SchemaPath.Absolute)schemaPath;
+      return schemaPath;
    }
 
    @Override
@@ -301,7 +281,7 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
       return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
    }
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(this.groupingDefContainer.getGroupings());
       statements.addAll(this.typedefContainer.getTypedefs());

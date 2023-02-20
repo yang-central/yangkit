@@ -89,7 +89,7 @@ public class BitImpl extends EntityImpl implements Bit {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.position != null) {
          statements.add(this.position);
       } else {

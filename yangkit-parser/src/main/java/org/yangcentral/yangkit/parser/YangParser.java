@@ -384,7 +384,7 @@ public class YangParser {
          int singleQuoteBeginPos = -1;
          int singleQuoteEndPos = -1;
          boolean plusFlag = false;
-         ArrayList<String> values = new ArrayList(1);
+         ArrayList<String> values = new ArrayList<>(1);
          int curPos = env.getCurPos();
 
          String str;
@@ -447,8 +447,8 @@ public class YangParser {
             } else {
                StringBuilder sb = new StringBuilder();
 
-               for(int i = 0; i < values.size(); ++i) {
-                  str = values.get(i);
+               for (String s : values) {
+                  str = s;
                   if (null != str) {
                      sb.append(str);
                   }
@@ -671,7 +671,7 @@ public class YangParser {
                      else {
 
                         if (null == elements) {
-                           elements = new ArrayList<YangElement>();
+                           elements = new ArrayList<>();
 
                         }
                         elements.add(comment);
@@ -703,7 +703,7 @@ public class YangParser {
                   else {
 
                      if (null == elements) {
-                        elements = new ArrayList<YangElement>();
+                        elements = new ArrayList<>();
 
                      }
                      elements.add(comment);

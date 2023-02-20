@@ -10,7 +10,6 @@ import org.yangcentral.yangkit.model.api.stmt.Must;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public abstract class DataNodeImpl extends SchemaDataNodeImpl implements DataNode {
@@ -92,11 +91,8 @@ public abstract class DataNodeImpl extends SchemaDataNodeImpl implements DataNod
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.MUST.getQName());
       if (matched.size() != 0) {
-         Iterator iterator = matched.iterator();
-
-         while(iterator.hasNext()) {
-            YangStatement statement = (YangStatement)iterator.next();
-            validatorResultBuilder.merge(this.mustSupport.addMust((Must)statement));
+         for (YangStatement statement : matched) {
+            validatorResultBuilder.merge(this.mustSupport.addMust((Must) statement));
          }
       }
 
@@ -119,7 +115,7 @@ public abstract class DataNodeImpl extends SchemaDataNodeImpl implements DataNod
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.mustSupport.getMusts());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;

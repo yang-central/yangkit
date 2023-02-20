@@ -32,26 +32,26 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    private Reference reference;
    private Organization organization;
    private Contact contact;
-   private List<Import> imports = new ArrayList();
-   private List<Include> includes = new ArrayList();
-   private List<Revision> revisions = new ArrayList();
-   private List<Extension> extensions = new ArrayList();
-   private List<Feature> features = new ArrayList();
-   private List<Identity> identities = new ArrayList();
-   private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
-   private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
-   private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
-   private List<Rpc> rpcs = new ArrayList();
-   private NotificationContainerImpl notificationContainer = new NotificationContainerImpl();
-   private List<Augment> augments = new ArrayList();
-   private List<Deviation> deviations = new ArrayList();
-   private List<Module> dependentBys = new ArrayList<>();
-   private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
-   protected Map<String, ModuleId> prefixCache = new ConcurrentHashMap();
+   private final List<Import> imports = new ArrayList<>();
+   private final List<Include> includes = new ArrayList<>();
+   private final List<Revision> revisions = new ArrayList<>();
+   private final List<Extension> extensions = new ArrayList<>();
+   private final List<Feature> features = new ArrayList<>();
+   private final List<Identity> identities = new ArrayList<>();
+   private final TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
+   private final GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
+   private final DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
+   private final List<Rpc> rpcs = new ArrayList<>();
+   private final NotificationContainerImpl notificationContainer = new NotificationContainerImpl();
+   private final List<Augment> augments = new ArrayList<>();
+   private final List<Deviation> deviations = new ArrayList<>();
+   private final List<Module> dependentBys = new ArrayList<>();
+   private final SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
+   protected Map<String, ModuleId> prefixCache = new ConcurrentHashMap<>();
 
-   private List<YangDataStructure> structures = new ArrayList<>();
+   private final List<YangDataStructure> structures = new ArrayList<>();
 
-   private List<AugmentStructure> augmentStructures = new ArrayList<>();
+   private final List<AugmentStructure> augmentStructures = new ArrayList<>();
 
    public ModuleImpl(String argStr) {
       super(argStr);
@@ -126,12 +126,12 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Optional<Revision> getCurRevision() {
-      return this.revisions.size() == 0 ? Optional.empty() : Optional.of((Revision)this.revisions.get(0));
+      return this.revisions.size() == 0 ? Optional.empty() : Optional.of(this.revisions.get(0));
    }
 
    public Optional<String> getCurRevisionDate() {
       Optional<Revision> revisionOptional = this.getCurRevision();
-      return !revisionOptional.isPresent() ? Optional.empty() : Optional.of(((Revision)revisionOptional.get()).getArgStr());
+      return !revisionOptional.isPresent() ? Optional.empty() : Optional.of(revisionOptional.get().getArgStr());
    }
 
    public List<Extension> getExtensions() {
@@ -139,7 +139,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Extension getExtension(String name) {
-      return (Extension)this.getContext().getExtensionCache().get(name);
+      return this.getContext().getExtensionCache().get(name);
    }
 
    public List<Feature> getFeatures() {
@@ -147,7 +147,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Feature getFeature(String name) {
-      return (Feature)this.getContext().getFeatureCache().get(name);
+      return this.getContext().getFeatureCache().get(name);
    }
 
    public List<Identity> getIdentities() {
@@ -155,7 +155,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Identity getIdentity(String name) {
-      return (Identity)this.getContext().getIdentityCache().get(name);
+      return this.getContext().getIdentityCache().get(name);
    }
 
    public List<Augment> getAugments() {
@@ -167,7 +167,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Rpc getRpc(String name) {
-      SchemaNode schemaNode = (SchemaNode)this.getContext().getSchemaNodeIdentifierCache().get(name);
+      SchemaNode schemaNode = this.getContext().getSchemaNodeIdentifierCache().get(name);
       return null != schemaNode && schemaNode instanceof Rpc ? (Rpc)schemaNode : null;
    }
 
@@ -181,11 +181,11 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    public ModuleId getModuleId() {
       List<YangStatement> revisions = this.getSubStatement(YangBuiltinKeyword.REVISION.getQName());
-      return revisions.isEmpty() ? new ModuleId(this.getArgStr(), "") : new ModuleId(this.getArgStr(), ((YangStatement)revisions.get(0)).getArgStr());
+      return revisions.isEmpty() ? new ModuleId(this.getArgStr(), "") : new ModuleId(this.getArgStr(), revisions.get(0).getArgStr());
    }
 
    public Optional<ModuleId> findModuleByPrefix(String prefix) {
-      ModuleId moduleId = (ModuleId)this.prefixCache.get(prefix);
+      ModuleId moduleId = this.prefixCache.get(prefix);
       return null == moduleId ? Optional.empty() : Optional.of(moduleId);
    }
 
@@ -244,10 +244,8 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private <T extends YangStatement> ValidatorResult mergeDefintion(Map<String, T> source, List<T> candidate, boolean ignoreDuplicate) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator<T> iterator = candidate.iterator();
 
-      while(iterator.hasNext()) {
-         T entry = iterator.next();
+      for (T entry : candidate) {
          if (source.containsKey(entry.getArgStr())) {
             if (!ignoreDuplicate) {
                ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
@@ -255,10 +253,10 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                validatorRecordBuilder.setSeverity(Severity.ERROR);
                validatorRecordBuilder.setErrorPath(entry.getElementPosition());
                validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in " + ((YangStatement)source.get(entry.getArgStr())).getElementPosition()));
+               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in " + source.get(entry.getArgStr()).getElementPosition()));
                validatorResultBuilder.addRecord(ModelUtil.reportError(entry,
-                       ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in "
-                               + (source.get(entry.getArgStr())).getElementPosition()));
+                   ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in "
+                       + (source.get(entry.getArgStr())).getElementPosition()));
             }
          } else {
             source.put(entry.getArgStr(), entry);
@@ -274,15 +272,13 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private <T extends YangStatement> ValidatorResult mergeDefintion(Map<String, T> source, Map<String, T> candidate, boolean ignoreDuplicate) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator<Map.Entry<String, T>> iterator = candidate.entrySet().iterator();
 
-      while(iterator.hasNext()) {
-         Map.Entry<String, T> entry = iterator.next();
+      for (Map.Entry<String, T> entry : candidate.entrySet()) {
          if (source.containsKey(entry.getKey())) {
             if (!ignoreDuplicate) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(entry.getValue(),
-                       ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in "
-                               + (source.get(entry.getKey())).getElementPosition()));
+                   ErrorCode.DUPLICATE_DEFINITION.getFieldName() + " in "
+                       + (source.get(entry.getKey())).getElementPosition()));
             }
          } else {
             source.put(entry.getKey(), entry.getValue());
@@ -319,35 +315,25 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private ValidatorResult mergeSubModules() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator includeIterator = this.includes.iterator();
-      while (includeIterator.hasNext()){
-         Include include = (Include) includeIterator.next();
-         if(!include.getInclude().isPresent()){
+      for (Include include : this.includes) {
+         if (!include.getInclude().isPresent()) {
             continue;
          }
-         SubModule includeModule = (SubModule) include.getInclude().get();
+         SubModule includeModule = include.getInclude().get();
          validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getTypedefIdentifierCache(), includeModule.getTypedefs()));
          validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getGroupingIdentifierCache(), includeModule.getGroupings()));
-         Iterator dataDefinitionIterator = includeModule.getDataDefChildren().iterator();
 
-         while (dataDefinitionIterator.hasNext()) {
-            DataDefinition dataDefinition = (DataDefinition) dataDefinitionIterator.next();
+         for (DataDefinition dataDefinition : includeModule.getDataDefChildren()) {
             if (!(dataDefinition instanceof Uses)) {
                this.getContext().getSchemaNodeIdentifierCache().put(dataDefinition.getArgStr(), dataDefinition);
             }
          }
 
-         Iterator rpcIterator = includeModule.getRpcs().iterator();
-
-         while (rpcIterator.hasNext()) {
-            Rpc rpc = (Rpc) rpcIterator.next();
+         for (Rpc rpc : includeModule.getRpcs()) {
             this.getContext().getSchemaNodeIdentifierCache().put(rpc.getArgStr(), rpc);
          }
 
-         Iterator notificationIterator = includeModule.getNotifications().iterator();
-
-         while (notificationIterator.hasNext()) {
-            Notification notification = (Notification) notificationIterator.next();
+         for (Notification notification : includeModule.getNotifications()) {
             this.getContext().getSchemaNodeIdentifierCache().put(notification.getArgStr(), notification);
          }
 
@@ -363,7 +349,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private ValidatorResult mergeSubModulesSchemaTree() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator includeIterator = this.includes.iterator();
+      Iterator<Include> includeIterator = this.includes.iterator();
 
       while(true) {
          Include include;
@@ -372,26 +358,21 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                return validatorResultBuilder.build();
             }
 
-            include = (Include)includeIterator.next();
+            include = includeIterator.next();
          } while(!include.getInclude().isPresent());
 
-         SubModule includeModule = (SubModule)include.getInclude().get();
-         Iterator schemaNodeIterator = includeModule.getSchemaNodeChildren().iterator();
+         SubModule includeModule = include.getInclude().get();
 
-         while(schemaNodeIterator.hasNext()) {
-            SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
+         for (SchemaNode schemaNode : includeModule.getSchemaNodeChildren()) {
             validatorResultBuilder.merge(this.addSchemaNodeChild(schemaNode));
          }
       }
    }
 
    private void updateSubModules() {
-      Iterator includeIterator = this.includes.iterator();
-
-      while(includeIterator.hasNext()) {
-         Include include = (Include)includeIterator.next();
+      for (Include include : this.includes) {
          if (include.getInclude().isPresent()) {
-            SubModule includeModule = (SubModule)include.getInclude().get();
+            SubModule includeModule = include.getInclude().get();
             this.mergeDefintion(includeModule.getContext().getTypedefIdentifierCache(), this.getContext().getTypedefIdentifierCache(), true);
             this.mergeDefintion(includeModule.getContext().getGroupingIdentifierCache(), this.getContext().getGroupingIdentifierCache(), true);
             this.mergeDefintion(includeModule.getContext().getSchemaNodeIdentifierCache(), this.getContext().getSchemaNodeIdentifierCache(), true);
@@ -405,12 +386,10 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private ValidatorResult validateSubModules(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator includeIterator = this.includes.iterator();
 
-      while(includeIterator.hasNext()) {
-         Include include = (Include)includeIterator.next();
+      for (Include include : this.includes) {
          if (include.getInclude().isPresent()) {
-            SubModule includeModule = (SubModule)include.getInclude().get();
+            SubModule includeModule = include.getInclude().get();
             validatorResultBuilder.merge(includeModule.build(phase));
          }
       }
@@ -420,18 +399,16 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    private ValidatorResult validateSubModules(BuildPhase from, BuildPhase to) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator<Include> includeIterator = this.includes.iterator();
 
-      while (includeIterator.hasNext()){
-         Include include = includeIterator.next();
-         if(!include.getInclude().isPresent()){
+      for (Include include : this.includes) {
+         if (!include.getInclude().isPresent()) {
             continue;
          }
-         SubModule includeModule = (SubModule)include.getInclude().get();
+         SubModule includeModule = include.getInclude().get();
          BuildPhase[] buildPhases = BuildPhase.values();
          int length = buildPhases.length;
 
-         for(int i = 0; i < length; ++i) {
+         for (int i = 0; i < length; ++i) {
             BuildPhase buildPhase = buildPhases[i];
             if (buildPhase.compareTo(from) < 0 || buildPhase.compareTo(to) > 0) {
                break;
@@ -478,24 +455,15 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                validatorResultBuilder.merge(this.validateSubModules(phase));
             }
 
-            Iterator<DataDefinition> definitionIterator = this.getDataDefChildren().iterator();
-
-            while(definitionIterator.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)definitionIterator.next();
+            for (DataDefinition dataDefinition : this.getDataDefChildren()) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
 
-            Iterator<Rpc> rpcIterator = this.rpcs.iterator();
-
-            while(rpcIterator.hasNext()) {
-               Rpc rpc = rpcIterator.next();
+            for (Rpc rpc : this.rpcs) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(rpc));
             }
 
-            Iterator<Notification> notificationIterator = this.getNotifications().iterator();
-
-            while(notificationIterator.hasNext()) {
-               Notification notification = (Notification)notificationIterator.next();
+            for (Notification notification : this.getNotifications()) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(notification));
             }
 
@@ -516,30 +484,28 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                validatorResultBuilder.merge(this.validateSubModules(phase));
             }
 
-            List<Augment> augmentCache = new ArrayList();
+            List<Augment> augmentCache = new ArrayList<>();
             augmentCache.addAll(this.augments);
-            List<Augment> errorCache = new ArrayList();
+            List<Augment> errorCache = new ArrayList<>();
             ValidatorResultBuilder subResultBuilder = new ValidatorResultBuilder();
             int parsedCount = 0;
             do {
                subResultBuilder.clear();
                parsedCount = 0;
-               Iterator<Augment> augmentCacheIt = augmentCache.iterator();
 
-               while(augmentCacheIt.hasNext()) {
-                  Augment augment = augmentCacheIt.next();
+               for (Augment augment : augmentCache) {
                   SchemaPath targetPath = null;
                   try {
-                     targetPath = SchemaPathImpl.from(this, augment,augment.getArgStr());
+                     targetPath = SchemaPathImpl.from(this, augment, augment.getArgStr());
 
                   } catch (ModelException e) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
-                             e.getSeverity(),ErrorTag.BAD_ELEMENT,e.getDescription()));
+                         e.getSeverity(), ErrorTag.BAD_ELEMENT, e.getDescription()));
                      continue;
                   }
                   if (targetPath instanceof SchemaPath.Descendant) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(augment,
-                             ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
+                         ErrorCode.INVALID_SCHEMAPATH.getFieldName()));
                      continue;
                   } else {
                      augment.setTargetPath(targetPath);
@@ -548,14 +514,14 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                   SchemaNode target = targetPath.getSchemaNode(this.getContext().getSchemaContext());
                   if (target == null) {
                      subResultBuilder.addRecord(ModelUtil.reportError(augment,
-                             ErrorCode.MISSING_TARGET.getFieldName()));
+                         ErrorCode.MISSING_TARGET.getFieldName()));
                      errorCache.add(augment);
                      continue;
                   }
 
                   if (!(target instanceof Augmentable)) {
-                    subResultBuilder.addRecord(ModelUtil.reportError(augment,
-                             ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
+                     subResultBuilder.addRecord(ModelUtil.reportError(augment,
+                         ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
                      errorCache.add(augment);
                      continue;
                   }
@@ -711,57 +677,32 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             }
 
             if (orig.getRevisionDate() != null && newImport.getRevisionDate() != null) {
-               if (orig.getRevisionDate().getArgStr().equals(newImport.getRevisionDate().getArgStr())) {
-                  return  false;
-               } else {
-                  return true;
-               }
+               return !orig.getRevisionDate().getArgStr().equals(newImport.getRevisionDate().getArgStr());
             }
             return false;
          }
          case INCLUDE:{
             Include orig = (Include) ModelUtil.checkConflict(subStatement,this.getSubStatement(subStatement.getYangKeyword()));
-            if(orig != null){
-               return false;
-            }
-            return true;
+            return orig == null;
          }
          case REVISION:{
             Revision orig = (Revision) ModelUtil.checkConflict(subStatement,this.getSubStatement(subStatement.getYangKeyword()));
-            if(orig != null){
-               return false;
-            }
-            return true;
+            return orig == null;
          }
          case EXTENSION:{
-            if(getContext().getExtensionCache().containsKey(subStatement.getArgStr())){
-               return false;
-            }
-            return true;
+            return !getContext().getExtensionCache().containsKey(subStatement.getArgStr());
          }
          case FEATURE:{
-            if(getContext().getFeatureCache().containsKey(subStatement.getArgStr())){
-               return false;
-            }
-            return true;
+            return !getContext().getFeatureCache().containsKey(subStatement.getArgStr());
          }
          case IDENTITY:{
-            if(getContext().getIdentityCache().containsKey(subStatement.getArgStr())){
-               return false;
-            }
-            return true;
+            return !getContext().getIdentityCache().containsKey(subStatement.getArgStr());
          }
          case TYPEDEF:{
-            if(getTypedef(subStatement.getArgStr())!= null){
-               return false;
-            }
-            return true;
+            return getTypedef(subStatement.getArgStr()) == null;
          }
          case GROUPING:{
-            if(this.getGrouping(subStatement.getArgStr()) != null){
-               return false;
-            }
-            return true;
+            return this.getGrouping(subStatement.getArgStr()) == null;
          }
          case CONTAINER:
          case LIST:
@@ -772,10 +713,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          case CHOICE:
          case RPC:
          case NOTIFICATION:{
-            if(getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr())){
-               return false;
-            }
-            return true;
+            return !getContext().getSchemaNodeIdentifierCache().containsKey(subStatement.getArgStr());
          }
 
          default:{
@@ -874,7 +812,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             case EXTENSION:{
                Extension newExtension = (Extension)builtinStatement;
                if (this.getContext().getExtensionCache().containsKey(builtinStatement.getArgStr())) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getExtensionCache().get(builtinStatement.getArgStr()), newExtension));
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(this.getContext().getExtensionCache().get(builtinStatement.getArgStr()), newExtension));
                   newExtension.setErrorStatement(true);
                } else {
                   this.extensions.add(newExtension);
@@ -886,7 +824,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             case FEATURE:{
                Feature newFeature = (Feature)builtinStatement;
                if (this.getContext().getFeatureCache().containsKey(builtinStatement.getArgStr())) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getFeatureCache().get(builtinStatement.getArgStr()), newFeature));
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(this.getContext().getFeatureCache().get(builtinStatement.getArgStr()), newFeature));
                   newFeature.setErrorStatement(true);
                } else {
                   this.features.add(newFeature);
@@ -898,7 +836,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             case IDENTITY:{
                Identity newIdentity = (Identity)builtinStatement;
                if (this.getContext().getIdentityCache().containsKey(newIdentity.getArgStr())) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getIdentityCache().get(newIdentity.getArgStr()), newIdentity));
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(this.getContext().getIdentityCache().get(newIdentity.getArgStr()), newIdentity));
                   newIdentity.setErrorStatement(true);
                } else {
                   this.identities.add(newIdentity);
@@ -935,7 +873,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             case RPC:{
                Rpc newRpc = (Rpc)builtinStatement;
                if (this.getContext().getSchemaNodeIdentifierCache().containsKey(newRpc.getArgStr())) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError((YangStatement)this.getContext().getSchemaNodeIdentifierCache().get(newRpc.getArgStr()), newRpc));
+                  validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(this.getContext().getSchemaNodeIdentifierCache().get(newRpc.getArgStr()), newRpc));
                   newRpc.setErrorStatement(true);
                } else {
                   this.rpcs.add(newRpc);
@@ -1002,7 +940,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Import getImportByPrefix(String prefix) {
-      Iterator importIterator = this.imports.iterator();
+      Iterator<Import> importIterator = this.imports.iterator();
 
       Import im;
       do {
@@ -1010,14 +948,14 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             return null;
          }
 
-         im = (Import)importIterator.next();
+         im = importIterator.next();
       } while(!im.getPrefix().getArgStr().equals(prefix));
 
       return im;
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.getEffectiveMetaStatements());
       statements.addAll(this.getEffectiveLinkageStatement());
       statements.addAll(this.getEffectiveDefinitionStatement());
@@ -1026,7 +964,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public List<YangStatement> getEffectiveMetaStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.yangVersion != null) {
          statements.add(this.yangVersion);
       } else {
@@ -1057,14 +995,14 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public List<YangStatement> getEffectiveLinkageStatement() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.imports);
       statements.addAll(this.includes);
       return statements;
    }
 
    public List<YangStatement> getEffectiveDefinitionStatement() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.getContext().getExtensionCache().values());
       statements.addAll(this.getContext().getFeatureCache().values());
       statements.addAll(this.getContext().getIdentityCache().values());

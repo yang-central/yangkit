@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class YangUnknownParserPolicy extends YangStatementParserPolicy {
-   private List<YangParentStatementInfo> parentStatements = new ArrayList();
+   private List<YangParentStatementInfo> parentStatements = new ArrayList<>();
    private YangStatementDef statementDef;
 
    public YangUnknownParserPolicy(QName keyword, Class<? extends YangUnknown> clazz, List<BuildPhase> phases) {

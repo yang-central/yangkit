@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TypedefContainerImpl implements TypedefContainer {
-   private List<Typedef> typedefs = new ArrayList();
+   private List<Typedef> typedefs = new ArrayList<>();
    private YangContext yangContext;
 
    public YangContext getYangContext() {
@@ -27,7 +27,7 @@ public class TypedefContainerImpl implements TypedefContainer {
    }
 
    public Typedef getTypedef(int index) {
-      return (Typedef)this.typedefs.get(index);
+      return this.typedefs.get(index);
    }
 
    public ValidatorResult addTypedef(Typedef typedef) {

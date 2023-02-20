@@ -114,7 +114,7 @@ public class MustImpl extends YangBuiltInStatementImpl implements Must {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.errorMessage != null) {
          statements.add(this.errorMessage);
       }

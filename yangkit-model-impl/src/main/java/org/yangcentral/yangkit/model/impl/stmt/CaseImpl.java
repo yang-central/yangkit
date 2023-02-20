@@ -101,12 +101,10 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       validatorResultBuilder.merge(super.initSelf());
       List<YangElement> subElements = this.getSubElements();
-      Iterator subElementIt = subElements.iterator();
 
-      while(subElementIt.hasNext()) {
-         YangElement subElement = (YangElement)subElementIt.next();
+      for (YangElement subElement : subElements) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
             switch (builtinKeyword) {
                case CONTAINER:
@@ -117,7 +115,7 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
                case ANYXML:
                case CHOICE:
                case USES:
-                  DataDefinition newDataDefinition = (DataDefinition)builtinStatement;
+                  DataDefinition newDataDefinition = (DataDefinition) builtinStatement;
                   validatorResultBuilder.merge(this.dataDefContainer.addDataDefChild(newDataDefinition));
             }
          }
@@ -184,10 +182,7 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       validatorResultBuilder.merge(super.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
-            Iterator iterator = this.getDataDefChildren().iterator();
-
-            while(iterator.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)iterator.next();
+            for (DataDefinition dataDefinition : this.getDataDefChildren()) {
                if (dataDefinition.evaluateFeatures()) {
                   validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
                }
@@ -216,7 +211,7 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
    }
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(super.getEffectiveSubStatements());
       return statements;

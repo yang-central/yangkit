@@ -53,7 +53,7 @@ public class ContainerImpl extends ContainerDataNodeImpl implements Container {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.presence != null) {
          statements.add(this.presence);
       }

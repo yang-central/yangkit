@@ -5,7 +5,6 @@ import org.yangcentral.yangkit.common.api.Namespace;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
@@ -22,8 +21,8 @@ public abstract class YangStatementImpl implements YangStatement {
    private YangContext context;
    private Position position;
    private String argStr;
-   private List<YangElement> subElements = new ArrayList();
-   private List<YangUnknown> unknowns = new ArrayList();
+   private final List<YangElement> subElements = new ArrayList<>();
+   private final List<YangUnknown> unknowns = new ArrayList<>();
    //protected boolean isBuilt;
    protected boolean isBuilding;
    //protected boolean isValidated;
@@ -35,7 +34,7 @@ public abstract class YangStatementImpl implements YangStatement {
    private ValidatorResult initResult;
    private int lastSeq =0;
    private int seq = 0;
-   private Map<BuildPhase, ValidatorResult> phaseResultMap = new ConcurrentHashMap();
+   private final Map<BuildPhase, ValidatorResult> phaseResultMap = new ConcurrentHashMap<>();
    private boolean isError = false;
    private YangStatement clonedBy;
    private boolean cleared = true;
@@ -104,12 +103,10 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected ValidatorResult afterValidateChildren() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator elementIterator = this.subElements.iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.subElements) {
          if (subElement instanceof YangStatement) {
-            YangStatement statement = (YangStatement)subElement;
+            YangStatement statement = (YangStatement) subElement;
             if (!statement.isErrorStatement()) {
                validatorResultBuilder.merge(statement.afterValidate());
             }
@@ -151,13 +148,11 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    public List<YangStatement> getSubStatement(QName keyword) {
-      List<YangStatement> matched = new ArrayList();
-      Iterator yangElementIterator = this.subElements.iterator();
+      List<YangStatement> matched = new ArrayList<>();
 
-      while(yangElementIterator.hasNext()) {
-         YangElement element = (YangElement)yangElementIterator.next();
+      for (YangElement element : this.subElements) {
          if (element instanceof YangStatement) {
-            YangStatement subStatement = (YangStatement)element;
+            YangStatement subStatement = (YangStatement) element;
             if (subStatement.getYangKeyword().equals(keyword)) {
                matched.add(subStatement);
             }
@@ -220,11 +215,9 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    private List<YangUnknown> getUnknowns(String keyword) {
-      List<YangUnknown> targetUnknowns = new ArrayList();
-      Iterator unknownIterator = this.unknowns.iterator();
+      List<YangUnknown> targetUnknowns = new ArrayList<>();
 
-      while(unknownIterator.hasNext()) {
-         YangUnknown unknown = (YangUnknown)unknownIterator.next();
+      for (YangUnknown unknown : this.unknowns) {
          if (unknown.getKeyword().equals(keyword)) {
             targetUnknowns.add(unknown);
          }
@@ -244,9 +237,7 @@ public abstract class YangStatementImpl implements YangStatement {
          }
       }
       if(this instanceof DefaultYangUnknown){
-         if(this.buildPhase == BuildPhase.SCHEMA_TREE && validatorResult.isOk()){
-            return true;
-         }
+         return this.buildPhase == BuildPhase.SCHEMA_TREE && validatorResult.isOk();
       }
       return false;
    }
@@ -282,15 +273,13 @@ public abstract class YangStatementImpl implements YangStatement {
 
    protected ValidatorResult validateChildren() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator elementIterator = this.subElements.iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.subElements) {
          if (subElement instanceof YangStatement) {
-            YangStatement statement = (YangStatement)subElement;
+            YangStatement statement = (YangStatement) subElement;
             if (!statement.isErrorStatement()) {
-               if(statement instanceof SchemaNode && !((SchemaNode) statement).isActive()){
-                   continue;
+               if (statement instanceof SchemaNode && !((SchemaNode) statement).isActive()) {
+                  continue;
                }
                validatorResultBuilder.merge(statement.validate());
             }
@@ -427,22 +416,20 @@ public abstract class YangStatementImpl implements YangStatement {
    protected ValidatorResult buildChildren(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       List<YangUnknown> buildUnknowns = null;
-      Iterator elementIterator = this.subElements.iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.subElements) {
          if (!(subElement instanceof YangComment)) {
             if (subElement instanceof YangUnknownBlock) {
                if (BuildPhase.GRAMMAR == phase) {
-                  YangUnknown unknown = ((YangUnknownBlock)subElement).build(this.getContext());
+                  YangUnknown unknown = ((YangUnknownBlock) subElement).build(this.getContext());
                   if (buildUnknowns == null) {
-                     buildUnknowns = new ArrayList();
+                     buildUnknowns = new ArrayList<>();
                   }
 
                   buildUnknowns.add(unknown);
                }
             } else {
-               YangStatement statement = (YangStatement)subElement;
+               YangStatement statement = (YangStatement) subElement;
                if (!statement.isErrorStatement()) {
                   validatorResultBuilder.merge(statement.build(phase));
                }
@@ -451,10 +438,8 @@ public abstract class YangStatementImpl implements YangStatement {
       }
 
       if (buildUnknowns != null) {
-         elementIterator = buildUnknowns.iterator();
 
-         while(elementIterator.hasNext()) {
-            YangUnknown yangUnknown = (YangUnknown)elementIterator.next();
+         for (YangUnknown yangUnknown : buildUnknowns) {
             this.addChild(yangUnknown);
             yangUnknown.setContext(new YangContext(this.getContext()));
             yangUnknown.init();
@@ -677,15 +662,11 @@ public abstract class YangStatementImpl implements YangStatement {
    public void setChildren(List<YangElement> yangElements) {
       this.subElements.clear();
       if (null != yangElements) {
-         Iterator elementIterator = yangElements.iterator();
-
-         while(elementIterator.hasNext()) {
-            YangElement yangElement = (YangElement)elementIterator.next();
+         for (YangElement yangElement : yangElements) {
             if (null != yangElement) {
                this.addChild(yangElement);
             }
          }
-
       }
    }
 
@@ -774,9 +755,7 @@ public abstract class YangStatementImpl implements YangStatement {
                  ErrorCode.INVALID_IDENTIFIER_REF.getFieldName() + " argument:" + this.getArgStr()));
       }
 
-      Iterator<YangElement> elementIterator = this.subElements.iterator();
-      while (elementIterator.hasNext()) {
-         YangElement subElement = elementIterator.next();
+      for (YangElement subElement : this.subElements) {
          if (!(subElement instanceof YangStatement)) {
             continue;
          }
@@ -857,18 +836,15 @@ public abstract class YangStatementImpl implements YangStatement {
          YangStatement clonedStatement = null;
          if (this instanceof YangUnknown) {
             constructor = this.getClass().getConstructor(String.class, String.class);
-            clonedStatement = (YangStatement)constructor.newInstance(((YangUnknown)this).getKeyword(), this.getArgStr());
+            clonedStatement = constructor.newInstance(((YangUnknown)this).getKeyword(), this.getArgStr());
          } else {
             constructor = this.getClass().getConstructor(String.class);
-            clonedStatement = (YangStatement)constructor.newInstance(this.getArgStr());
+            clonedStatement = constructor.newInstance(this.getArgStr());
          }
          //clonedStatement.setElementPosition(this.getElementPosition());
-         Iterator elementIterator = this.getSubElements().iterator();
-
-         while(elementIterator.hasNext()) {
-            YangElement subElement = (YangElement)elementIterator.next();
+         for (YangElement subElement : this.getSubElements()) {
             if (subElement instanceof YangStatement) {
-               YangStatement subStatement = (YangStatement)subElement;
+               YangStatement subStatement = (YangStatement) subElement;
                clonedStatement.addChild(subStatement.clone());
             }
          }
@@ -917,7 +893,7 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    public int hashCode() {
-      return Objects.hash(new Object[]{this.getArgStr()});
+      return Objects.hash(this.getArgStr());
    }
 
    public boolean isErrorStatement() {
@@ -929,14 +905,7 @@ public abstract class YangStatementImpl implements YangStatement {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> subStatements = new ArrayList();
-      Iterator unknownIterator = this.unknowns.iterator();
-
-      while(unknownIterator.hasNext()) {
-         YangUnknown unknown = (YangUnknown)unknownIterator.next();
-         subStatements.add(unknown);
-      }
-
+      List<YangStatement> subStatements = new ArrayList<>(this.unknowns);
       return subStatements;
    }
 

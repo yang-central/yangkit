@@ -7,12 +7,10 @@ import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Import;
-import org.yangcentral.yangkit.model.api.stmt.MainModule;
 import org.yangcentral.yangkit.model.api.stmt.ModelException;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
-import org.yangcentral.yangkit.model.api.stmt.SubModule;
 import org.yangcentral.yangkit.model.api.stmt.VirtualSchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
@@ -25,16 +23,12 @@ import java.util.Optional;
 import java.util.Stack;
 
 public abstract class SchemaPathImpl implements SchemaPath {
-   private Stack<QName> steps = new Stack();
+   private Stack<QName> steps = new Stack<>();
 
    public SchemaPathImpl(List<QName> steps) {
-      Iterator iterator = steps.iterator();
-
-      while(iterator.hasNext()) {
-         QName step = (QName)iterator.next();
+      for (QName step : steps) {
          this.steps.push(step);
       }
-
    }
 
    public SchemaPathImpl() {
@@ -45,11 +39,11 @@ public abstract class SchemaPathImpl implements SchemaPath {
    }
 
    public QName getLast() {
-      return (QName)this.steps.peek();
+      return this.steps.peek();
    }
 
    public List<QName> getPath() {
-      return new ArrayList(this.steps);
+      return new ArrayList<>(this.steps);
    }
 
    public String toString() {
@@ -61,8 +55,8 @@ public abstract class SchemaPathImpl implements SchemaPath {
       boolean first = true;
 
       QName step;
-      for(Iterator iterator = this.steps.iterator(); iterator.hasNext(); sb.append(step.getQualifiedName())) {
-         step = (QName)iterator.next();
+      for(Iterator<QName> iterator = this.steps.iterator(); iterator.hasNext(); sb.append(step.getQualifiedName())) {
+         step = iterator.next();
          if (!first) {
             sb.append("/");
          } else {
@@ -74,13 +68,10 @@ public abstract class SchemaPathImpl implements SchemaPath {
    }
 
    public static SchemaPath from(SchemaNodeContainer contextNode, YangStatement yangStatement,String path) throws ModelException {
-      boolean isAbsolute = false;
-      if (path.startsWith("/")) {
-         isAbsolute = true;
-      }
+      boolean isAbsolute = path.startsWith("/");
 
       String[] steps = path.split("/");
-      List<QName> stepList = new ArrayList();
+      List<QName> stepList = new ArrayList<>();
       int length = steps.length;
 
       for(int i = 0; i < length; ++i) {
@@ -117,7 +108,7 @@ public abstract class SchemaPathImpl implements SchemaPath {
                   throw new ModelException(Severity.ERROR, (isAbsolute ? module : (YangStatement)contextNode), "can't find the module which prefix:" + prefix + " points to");
                }
 
-               Optional<Module> moduleOp = module.getContext().getSchemaContext().getModule((ModuleId)moduleIdOp.get());
+               Optional<Module> moduleOp = module.getContext().getSchemaContext().getModule(moduleIdOp.get());
                if (!moduleIdOp.isPresent()) {
                   throw new ModelException(Severity.ERROR, (isAbsolute ? module : (YangStatement)contextNode), "can't find the module which prefix:" + prefix + " points to");
                }
@@ -139,13 +130,11 @@ public abstract class SchemaPathImpl implements SchemaPath {
    }
 
    private List<SchemaNode> match(List<SchemaNode> candidate, QName qName) {
-      List<SchemaNode> matched = new ArrayList();
-      Iterator iterator = candidate.iterator();
+      List<SchemaNode> matched = new ArrayList<>();
 
-      while(iterator.hasNext()) {
-         SchemaNode schemaNode = (SchemaNode)iterator.next();
+      for (SchemaNode schemaNode : candidate) {
          if (schemaNode instanceof VirtualSchemaNode) {
-            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode)schemaNode;
+            VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
             matched.addAll(this.match(virtualSchemaNode.getSchemaNodeChildren(), qName));
          } else if (schemaNode.getIdentifier().equals(qName)) {
             matched.add(schemaNode);
@@ -157,7 +146,7 @@ public abstract class SchemaPathImpl implements SchemaPath {
 
    public SchemaNode getSchemaNode(YangSchemaContext schemaContext) {
       List<QName> pathElements = this.getPath();
-      List<SchemaNode> candidate = new ArrayList();
+      List<SchemaNode> candidate = new ArrayList<>();
       if (this.isAbsolute()) {
          candidate.addAll(schemaContext.getSchemaNodeChildren());
       } else {
@@ -166,22 +155,18 @@ public abstract class SchemaPathImpl implements SchemaPath {
       }
 
       List<SchemaNode> matched = null;
-      Iterator iterator = pathElements.iterator();
 
-      while(iterator.hasNext()) {
-         QName pathElement = (QName)iterator.next();
+      for (QName pathElement : pathElements) {
          matched = this.match(candidate, pathElement);
          if (matched.size() == 0) {
             return null;
          }
 
          candidate.clear();
-         Iterator matchedIt = matched.iterator();
 
-         while(matchedIt.hasNext()) {
-            SchemaNode matchedNode = (SchemaNode)matchedIt.next();
+         for (SchemaNode matchedNode : matched) {
             if (matchedNode instanceof SchemaNodeContainer) {
-               candidate.addAll(((SchemaNodeContainer)matchedNode).getSchemaNodeChildren());
+               candidate.addAll(((SchemaNodeContainer) matchedNode).getSchemaNodeChildren());
             }
          }
       }

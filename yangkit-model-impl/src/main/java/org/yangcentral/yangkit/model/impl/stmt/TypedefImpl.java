@@ -20,7 +20,7 @@ public class TypedefImpl extends EntityImpl implements Typedef {
    private Type type;
    private Units units;
    private Default aDefault;
-   private List<YangStatement> referencedBys = new ArrayList();
+   private List<YangStatement> referencedBys = new ArrayList<>();
 
    public TypedefImpl(String argStr) {
       super(argStr);
@@ -92,7 +92,7 @@ public class TypedefImpl extends EntityImpl implements Typedef {
 
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.type != null) {
          statements.add(this.type);
       }

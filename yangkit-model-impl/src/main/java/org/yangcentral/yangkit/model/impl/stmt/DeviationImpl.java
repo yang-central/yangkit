@@ -22,7 +22,6 @@ import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation {
@@ -30,7 +29,7 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
    private Reference reference;
    private SchemaNode target;
    private SchemaPath targetPath;
-   private List<Deviate> deviates = new ArrayList();
+   private List<Deviate> deviates = new ArrayList<>();
 
    public DeviationImpl(String argStr) {
       super(argStr);
@@ -106,27 +105,22 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
 
       matched = this.getSubStatement(YangBuiltinKeyword.DEVIATE.getQName());
       if (matched.size() != 0) {
-         Iterator iterator;
          YangStatement subStatement;
          if (matched.size() > 1) {
-            iterator = matched.iterator();
-
-            while(iterator.hasNext()) {
-               subStatement = (YangStatement)iterator.next();
-               Deviate deviate = (Deviate)subStatement;
+            for (YangStatement yangStatement : matched) {
+               subStatement = yangStatement;
+               Deviate deviate = (Deviate) subStatement;
                if (DeviateType.forValue(deviate.getArgStr()) == DeviateType.NOT_SUPPORTED) {
                   validatorResultBuilder.addRecord(ModelUtil.reportError(deviate,
-                          ErrorCode.DEVIATE_NOT_SUPPORT_ONLY_ONE.getFieldName()));
+                      ErrorCode.DEVIATE_NOT_SUPPORT_ONLY_ONE.getFieldName()));
                   return validatorResultBuilder.build();
                }
             }
          }
 
-         iterator = matched.iterator();
-
-         while(iterator.hasNext()) {
-            subStatement = (YangStatement)iterator.next();
-            this.deviates.add((Deviate)subStatement);
+         for (YangStatement yangStatement : matched) {
+            subStatement = yangStatement;
+            this.deviates.add((Deviate) subStatement);
          }
       }
 
@@ -138,8 +132,6 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
       ValidatorRecordBuilder validatorRecordBuilder;
       switch (phase) {
          case GRAMMAR:{
-
-
             break;
          }
 
@@ -161,10 +153,8 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
                }
 
                this.setTarget(targetNode);
-               Iterator deviateIterator = this.deviates.iterator();
 
-               while(deviateIterator.hasNext()) {
-                  Deviate deviate = (Deviate)deviateIterator.next();
+               for (Deviate deviate : this.deviates) {
                   deviate.setTarget(targetNode);
                }
             } catch (ModelException e) {
@@ -182,7 +172,7 @@ public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.description != null) {
          statements.add(this.description);
       }

@@ -20,7 +20,6 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.model.api.stmt.VirtualSchemaNode;
 import org.yangcentral.yangkit.model.impl.schema.AbsoluteSchemaPath;
 
-import java.util.Iterator;
 
 public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
    private Boolean support;
@@ -93,10 +92,8 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
 
          if (this instanceof VirtualSchemaNode || this instanceof Container) {
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)this;
-            Iterator schemaNodeIterator = schemaNodeContainer.getSchemaNodeChildren().iterator();
 
-            while(schemaNodeIterator.hasNext()) {
-               SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
+            for (SchemaNode schemaNode : schemaNodeContainer.getSchemaNodeChildren()) {
                if (schemaNode.isMandatory()) {
                   return true;
                }
@@ -120,10 +117,8 @@ public abstract class SchemaNodeImpl extends EntityImpl implements SchemaNode {
       } else {
          if (this instanceof SchemaNodeContainer) {
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)this;
-            Iterator schemaNodeIterator = schemaNodeContainer.getSchemaNodeChildren().iterator();
 
-            while(schemaNodeIterator.hasNext()) {
-               SchemaNode schemaNode = (SchemaNode)schemaNodeIterator.next();
+            for (SchemaNode schemaNode : schemaNodeContainer.getSchemaNodeChildren()) {
                if (schemaNode.hasDefault()) {
                   return true;
                }

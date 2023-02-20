@@ -81,11 +81,11 @@ public class YinParser {
    }
 
    public List<YangElement> parse(Document document) throws YangParserException {
-      List<YangElement> elements = new ArrayList();
+      List<YangElement> elements = new ArrayList<>();
       Iterator<Node> nodes = document.nodeIterator();
 
       while(nodes.hasNext()) {
-         Node node = (Node)nodes.next();
+         Node node = nodes.next();
          if (node instanceof Comment) {
             elements.add(buildYangComment((Comment)node, this.fileName));
          } else if (node instanceof Element) {

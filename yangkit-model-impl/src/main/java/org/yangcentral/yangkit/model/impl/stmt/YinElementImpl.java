@@ -35,10 +35,9 @@ public class YinElementImpl extends YangSimpleStatementImpl implements YinElemen
       if (!this.getArgStr().equals("true") && !this.getArgStr().equals("false")) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.INVALID_ARG.getFieldName()));
-         return validatorResultBuilder.build();
       } else {
          this.value = Boolean.getBoolean(this.getArgStr());
-         return validatorResultBuilder.build();
       }
+      return validatorResultBuilder.build();
    }
 }

@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class IfFeatureSupportImpl implements IfFeatureSupport {
-   private List<IfFeature> ifFeatures = new ArrayList();
+   private List<IfFeature> ifFeatures = new ArrayList<>();
    private YangContext yangContext;
 
    public YangContext getYangContext() {
@@ -56,7 +56,7 @@ public class IfFeatureSupportImpl implements IfFeatureSupport {
 
    public ValidatorResult addIfFeature(IfFeature ifFeature) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      Iterator iterator = this.ifFeatures.iterator();
+      Iterator<IfFeature> iterator = this.ifFeatures.iterator();
 
       IfFeature feature;
       do {
@@ -65,7 +65,7 @@ public class IfFeatureSupportImpl implements IfFeatureSupport {
             return validatorResultBuilder.build();
          }
 
-         feature = (IfFeature)iterator.next();
+         feature = iterator.next();
       } while(!feature.getArgStr().equals(ifFeature.getArgStr()));
 
       validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(feature, ifFeature));
@@ -78,7 +78,7 @@ public class IfFeatureSupportImpl implements IfFeatureSupport {
    }
 
    public boolean evaluateFeatures() {
-      Iterator ifFeatureIterator = this.ifFeatures.iterator();
+      Iterator<IfFeature> ifFeatureIterator = this.ifFeatures.iterator();
 
       IfFeature ifFeature;
       do {
@@ -86,7 +86,7 @@ public class IfFeatureSupportImpl implements IfFeatureSupport {
             return true;
          }
 
-         ifFeature = (IfFeature)ifFeatureIterator.next();
+         ifFeature = ifFeatureIterator.next();
       } while(ifFeature.evaluate());
 
       return false;

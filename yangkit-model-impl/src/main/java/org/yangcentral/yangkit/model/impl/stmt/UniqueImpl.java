@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class UniqueImpl extends YangBuiltInStatementImpl implements Unique {
-   private List<Leaf> uniqueNodes = new ArrayList();
+   private List<Leaf> uniqueNodes = new ArrayList<>();
 
    public UniqueImpl(String argStr) {
       super(argStr);
@@ -22,7 +22,7 @@ public class UniqueImpl extends YangBuiltInStatementImpl implements Unique {
    }
 
    public boolean addUniqueNode(Leaf uniqueNode) {
-      Iterator iterator = this.uniqueNodes.iterator();
+      Iterator<Leaf> iterator = this.uniqueNodes.iterator();
 
       Leaf uni;
       do {
@@ -30,7 +30,7 @@ public class UniqueImpl extends YangBuiltInStatementImpl implements Unique {
             return this.uniqueNodes.add(uniqueNode);
          }
 
-         uni = (Leaf)iterator.next();
+         uni = iterator.next();
       } while(!uni.getArgStr().equals(uniqueNode.getArgStr()));
 
       return false;

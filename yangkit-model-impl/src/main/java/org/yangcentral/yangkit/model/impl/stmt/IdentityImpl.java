@@ -17,7 +17,7 @@ import java.util.List;
 
 public class IdentityImpl extends EntityImpl implements Identity {
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();
-   private List<Base> bases = new ArrayList();
+   private List<Base> bases = new ArrayList<>();
 
    public IdentityImpl(String argStr) {
       super(argStr);
@@ -28,7 +28,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
    }
 
    public Base getBase(String name) {
-      Iterator baseIterator = this.bases.iterator();
+      Iterator<Base> baseIterator = this.bases.iterator();
 
       Base base;
       do {
@@ -36,7 +36,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
             return null;
          }
 
-         base = (Base)baseIterator.next();
+         base = baseIterator.next();
       } while(!base.getArgStr().equals(name));
 
       return base;
@@ -46,7 +46,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
       if (this.bases.size() == 0) {
          return false;
       } else {
-         Iterator baseIterator = this.bases.iterator();
+         Iterator<Base> baseIterator = this.bases.iterator();
 
          Base base;
          do {
@@ -54,7 +54,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
                return false;
             }
 
-            base = (Base)baseIterator.next();
+            base = baseIterator.next();
          } while(!base.getIdentity().isDerivedOrSelf(other));
 
          return true;
@@ -67,7 +67,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
       } else if (this.bases.size() == 0) {
          return false;
       } else {
-         Iterator baseIterator = this.bases.iterator();
+         Iterator<Base> baseIterator = this.bases.iterator();
 
          Base base;
          do {
@@ -75,7 +75,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
                return false;
             }
 
-            base = (Base)baseIterator.next();
+            base = baseIterator.next();
          } while(!base.getIdentity().isDerivedOrSelf(other));
 
          return true;
@@ -149,13 +149,8 @@ public class IdentityImpl extends EntityImpl implements Identity {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.BASE.getQName());
-      Iterator iterator;
-      YangStatement statement;
       if (matched.size() > 0) {
-         iterator = matched.iterator();
-
-         while(iterator.hasNext()) {
-            statement = (YangStatement)iterator.next();
+         for (YangStatement statement : matched) {
             Base base = (Base)statement;
             Base orig = this.getBase(base.getArgStr());
             if (orig != null) {
@@ -168,10 +163,8 @@ public class IdentityImpl extends EntityImpl implements Identity {
       }
 
       matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
-      iterator = matched.iterator();
 
-      while(iterator.hasNext()) {
-         statement = (YangStatement)iterator.next();
+      for (YangStatement statement : matched) {
          IfFeature ifFeature = (IfFeature)statement;
          validatorResultBuilder.merge(this.addIfFeature(ifFeature));
       }
@@ -189,7 +182,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.ifFeatureSupport.getIfFeatures());
       statements.addAll(this.bases);
       statements.addAll(super.getEffectiveSubStatements());

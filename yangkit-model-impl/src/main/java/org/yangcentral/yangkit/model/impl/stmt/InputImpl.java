@@ -21,7 +21,6 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.impl.schema.AbsoluteSchemaPath;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class InputImpl extends SchemaNodeImpl implements Input {
@@ -42,14 +41,14 @@ public class InputImpl extends SchemaNodeImpl implements Input {
          SchemaNodeContainer parent = this.getParentSchemaNode();
          if (parent instanceof SchemaNode) {
             schemaPath = new AbsoluteSchemaPath(((SchemaNode)parent).getSchemaPath().getPath());
-            ((SchemaPath.Absolute)schemaPath).addStep(this.getIdentifier());
+            schemaPath.addStep(this.getIdentifier());
          } else {
             schemaPath = new AbsoluteSchemaPath();
-            ((SchemaPath.Absolute)schemaPath).addStep(this.getIdentifier());
+            schemaPath.addStep(this.getIdentifier());
          }
       }
 
-      return (SchemaPath.Absolute)schemaPath;
+      return schemaPath;
    }
 
    public void setContext(YangContext context) {
@@ -222,12 +221,10 @@ public class InputImpl extends SchemaNodeImpl implements Input {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
-      Iterator elementIterator = this.getSubElements().iterator();
 
-      while(elementIterator.hasNext()) {
-         YangElement subElement = (YangElement)elementIterator.next();
+      for (YangElement subElement : this.getSubElements()) {
          if (subElement instanceof YangBuiltinStatement) {
-            YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
+            YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
             YangBuiltinKeyword builtinKeyword = YangBuiltinKeyword.from(builtinStatement.getYangKeyword());
             switch (builtinKeyword) {
                case ANYDATA:
@@ -238,18 +235,18 @@ public class InputImpl extends SchemaNodeImpl implements Input {
                case LEAFLIST:
                case LIST:
                case USES:
-                  DataDefinition dataDefinition = (DataDefinition)builtinStatement;
+                  DataDefinition dataDefinition = (DataDefinition) builtinStatement;
                   validatorResultBuilder.merge(this.addDataDefChild(dataDefinition));
                   break;
                case GROUPING:
-                  Grouping grouping = (Grouping)builtinStatement;
+                  Grouping grouping = (Grouping) builtinStatement;
                   validatorResultBuilder.merge(this.groupingDefContainer.addGrouping(grouping));
                   break;
                case TYPEDEF:
-                  Typedef typedef = (Typedef)builtinStatement;
+                  Typedef typedef = (Typedef) builtinStatement;
                   validatorResultBuilder.merge(this.typedefContainer.addTypedef(typedef));
                   break;
-               case MUST:{
+               case MUST: {
                   Must must = (Must) builtinStatement;
                   validatorResultBuilder.merge(this.mustSupport.addMust(must));
                }
@@ -271,10 +268,7 @@ public class InputImpl extends SchemaNodeImpl implements Input {
       switch (phase) {
          case SCHEMA_BUILD:
 
-            Iterator dataDefinitionIterator = this.getDataDefChildren().iterator();
-
-            while(dataDefinitionIterator.hasNext()) {
-               DataDefinition dataDefinition = (DataDefinition)dataDefinitionIterator.next();
+            for (DataDefinition dataDefinition : this.getDataDefChildren()) {
                validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
             }
          default:
@@ -300,7 +294,7 @@ public class InputImpl extends SchemaNodeImpl implements Input {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       statements.addAll(getEffectiveSchemaNodeChildren());
       statements.addAll(this.groupingDefContainer.getGroupings());
       statements.addAll(this.typedefContainer.getTypedefs());

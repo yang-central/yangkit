@@ -89,7 +89,7 @@ public class EnumImpl extends EntityImpl implements YangEnum {
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.value != null) {
          statements.add(this.value);
       } else {

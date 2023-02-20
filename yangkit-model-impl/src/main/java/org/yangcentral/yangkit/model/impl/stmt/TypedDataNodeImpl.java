@@ -136,7 +136,7 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
    }
 
    public List<YangStatement> getEffectiveSubStatements() {
-      List<YangStatement> statements = new ArrayList();
+      List<YangStatement> statements = new ArrayList<>();
       if (this.type != null) {
          statements.add(this.type);
       }

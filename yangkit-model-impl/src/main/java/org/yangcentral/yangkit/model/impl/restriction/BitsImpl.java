@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
-   private List<Bit> bits = new ArrayList();
+   private List<Bit> bits = new ArrayList<>();
 
    public BitsImpl(YangContext context, Typedef derived) {
       super(context, derived);
@@ -43,7 +43,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
          Long highest = null;
 
          for(int i = 0; i < index; ++i) {
-            Bit bit = (Bit)this.bits.get(i);
+            Bit bit = this.bits.get(i);
             Long cur = null;
             if (bit.getPosition() != null) {
                cur = bit.getPosition().getValue();
@@ -69,7 +69,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
    }
 
    private Long getBitActualPosition(int index) {
-      Bit bit = (Bit)this.bits.get(index);
+      Bit bit = this.bits.get(index);
       if (bit.getPosition() != null) {
          return bit.getPosition().getValue();
       } else if (index == 0) {
@@ -89,7 +89,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
          int pos = -1;
 
          for(int i = 0; i < this.bits.size(); ++i) {
-            Bit bit = (Bit)this.bits.get(i);
+            Bit bit = this.bits.get(i);
             if (bit.getArgStr().equals(bitName)) {
                pos = i;
                break;
@@ -101,7 +101,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
    }
 
    public boolean addBit(Bit bit) {
-      Iterator bitIterator = this.bits.iterator();
+      Iterator<Bit> bitIterator = this.bits.iterator();
 
       Bit orignalBit;
       do {
@@ -109,14 +109,14 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
             return this.bits.add(bit);
          }
 
-         orignalBit = (Bit)bitIterator.next();
+         orignalBit = bitIterator.next();
       } while(!orignalBit.getArgStr().equals(bit.getArgStr()));
 
       return false;
    }
 
    public Bit getBit(String name) {
-      Iterator bitIterator = this.bits.iterator();
+      Iterator<Bit> bitIterator = this.bits.iterator();
 
       Bit bit;
       do {
@@ -124,7 +124,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
             return null;
          }
 
-         bit = (Bit)bitIterator.next();
+         bit = bitIterator.next();
       } while(!name.equals(bit.getArgStr()));
 
       return bit;
@@ -161,7 +161,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
          Bits derivedBits = (Bits)this.getDerived().getType().getRestriction();
          return derivedBits.getEffectiveBits();
       } else {
-         return new ArrayList();
+         return new ArrayList<>();
       }
    }
 
@@ -176,11 +176,11 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
             return false;
          } else {
             for(int i = 0; i < thisBits.size(); ++i) {
-               Bit bit = (Bit)thisBits.get(i);
+               Bit bit = thisBits.get(i);
                Bit anotherMatchedBit = null;
 
                for(int j = 0; j < anotherBits.size(); ++j) {
-                  Bit anotherBit = (Bit)anotherBits.get(j);
+                  Bit anotherBit = anotherBits.get(j);
                   if (bit.getArgStr().equals(anotherBit.getArgStr())) {
                      anotherMatchedBit = anotherBit;
                      break;
