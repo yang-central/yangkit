@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.parser;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
+import org.yangcentral.yangkit.base.Yang;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.model.api.schema.*;
@@ -37,16 +38,15 @@ public class YangYinParser {
       List<File> yangFiles = new ArrayList();
       if (null == files) {
          return yangFiles;
-      } else {
-         Iterator fileIterator = files.iterator();
-
-         while(fileIterator.hasNext()) {
-            File file = (File)fileIterator.next();
-            yangFiles.addAll(getYangFiles(file));
-         }
-
-         return yangFiles;
       }
+      Iterator fileIterator = files.iterator();
+
+      while(fileIterator.hasNext()) {
+         File file = (File)fileIterator.next();
+         yangFiles.addAll(getYangFiles(file));
+      }
+
+      return yangFiles;
    }
 
    private static List<File> getYangFiles(File dir) {
@@ -57,22 +57,14 @@ public class YangYinParser {
          }
 
          return yangFiles;
-      } else {
-         File[] files = dir.listFiles();
-         if (null != files && files.length != 0) {
-            File[] var3 = files;
-            int var4 = files.length;
-
-            for(int var5 = 0; var5 < var4; ++var5) {
-               File file = var3[var5];
-               yangFiles.addAll(getYangFiles(file));
-            }
-
-            return yangFiles;
-         } else {
-            return yangFiles;
+      }
+      File[] files = dir.listFiles();
+      if (null != files && files.length != 0) {
+         for(File file :files) {
+            yangFiles.addAll(getYangFiles(file));
          }
       }
+      return yangFiles;
    }
 
    public static YangSchemaContext parse(File yangDir) throws IOException, YangParserException, DocumentException {
@@ -106,7 +98,7 @@ public class YangYinParser {
          while(it.hasNext()) {
             Map.Entry<String, List<YangElement>> entry = (Map.Entry)it.next();
             if (!schemaContext.getParseResult().containsKey(entry.getKey())) {
-               schemaContext.getParseResult().put((String)entry.getKey(), (List)entry.getValue());
+               schemaContext.getParseResult().put(entry.getKey(),entry.getValue());
             }
          }
       }
@@ -121,83 +113,69 @@ public class YangYinParser {
          List<Capability> capabilityList = capabilityParser.parse();
          List<Module> unMatchedModules = new ArrayList();
          ModuleSet moduleSet = new ModuleSet();
-         Iterator var7 = schemaContext.getModules().iterator();
+         Iterator moduleIterator = schemaContext.getModules().iterator();
 
          Module module;
-         while(var7.hasNext()) {
-            module = (Module)var7.next();
+         while (moduleIterator.hasNext()) {
+            module = (Module) moduleIterator.next();
             boolean match = false;
-            Iterator var10 = capabilityList.iterator();
+            Iterator capabilityIterator = capabilityList.iterator();
 
-            label76:
-            while(var10.hasNext()) {
-               Capability capability = (Capability)var10.next();
-               if (capability instanceof ModuleSupportCapability) {
-                  ModuleSupportCapability moduleSupportCapability = (ModuleSupportCapability)capability;
-                  String deviation;
-                  if (moduleSupportCapability.match(module.getModuleId())) {
-                     match = true;
-                     YangModuleDescription moduleDescription = moduleSet.getModule(module.getModuleId());
-                     if (null == moduleDescription) {
-                        moduleDescription = new YangModuleDescription(module.getModuleId());
-                        moduleSet.addModule(moduleDescription);
+
+            while (capabilityIterator.hasNext()) {
+               Capability capability = (Capability) capabilityIterator.next();
+               if (!(capability instanceof ModuleSupportCapability)) {
+                  continue;
+               }
+               ModuleSupportCapability moduleSupportCapability = (ModuleSupportCapability) capability;
+               if (moduleSupportCapability.match(module.getModuleId())) {
+                  match = true;
+                  YangModuleDescription moduleDescription = moduleSet.getModule(module.getModuleId());
+                  if (null == moduleDescription) {
+                     moduleDescription = new YangModuleDescription(module.getModuleId());
+                     moduleSet.addModule(moduleDescription);
+                  }
+                  if (!moduleSupportCapability.getFeatures().isEmpty()) {
+                     for (String feature : moduleSupportCapability.getFeatures()) {
+                        moduleDescription.addFeature(feature);
                      }
+                  }
 
-                     Iterator var20;
-                     if (!moduleSupportCapability.getFeatures().isEmpty()) {
-                        var20 = moduleSupportCapability.getFeatures().iterator();
-
-                        while(var20.hasNext()) {
-                           deviation = (String)var20.next();
-                           moduleDescription.addFeature(deviation);
-                        }
-                     }
-
-                     if (moduleSupportCapability.getDeviations().isEmpty()) {
-                        break;
-                     }
-
-                     var20 = moduleSupportCapability.getDeviations().iterator();
-
-                     while(true) {
-                        if (!var20.hasNext()) {
-                           break label76;
-                        }
-
-                        deviation = (String)var20.next();
+                  if (!moduleSupportCapability.getDeviations().isEmpty()) {
+                     for (String deviation : moduleSupportCapability.getDeviations()) {
                         moduleDescription.addDeviation(deviation);
                      }
                   }
+                  break;
+               }
 
-                  if (module instanceof SubModule) {
-                     SubModule subModule = (SubModule)module;
-                     YangStatement belongsTo = (YangStatement)subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
-                     deviation = belongsTo.getArgStr();
-                     if (moduleSupportCapability.getModule().equals(deviation)) {
-                        match = true;
-                        ModuleId mainModuleId = new ModuleId(moduleSupportCapability.getModule(), moduleSupportCapability.getRevision());
-                        YangModuleDescription moduleDescription = moduleSet.getModule(mainModuleId);
-                        if (moduleDescription == null) {
-                           moduleDescription = new YangModuleDescription(mainModuleId);
-                           moduleSet.addModule(moduleDescription);
-                        }
 
-                        moduleDescription.addSubModule(subModule.getModuleId());
-                        break;
+               if (module instanceof SubModule) {
+                  SubModule subModule = (SubModule) module;
+                  YangStatement belongsTo = (YangStatement) subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
+                  String mainModuleName = belongsTo.getArgStr();
+                  if (moduleSupportCapability.getModule().equals(mainModuleName)) {
+                     match = true;
+                     ModuleId mainModuleId = new ModuleId(moduleSupportCapability.getModule(), moduleSupportCapability.getRevision());
+                     YangModuleDescription moduleDescription = moduleSet.getModule(mainModuleId);
+                     if (moduleDescription == null) {
+                        moduleDescription = new YangModuleDescription(mainModuleId);
+                        moduleSet.addModule(moduleDescription);
                      }
+
+                     moduleDescription.addSubModule(subModule.getModuleId());
+                     break;
                   }
                }
             }
-
             if (!match) {
                unMatchedModules.add(module);
             }
          }
+         Iterator unMatchedModuleIt = unMatchedModules.iterator();
 
-         var7 = unMatchedModules.iterator();
-
-         while(var7.hasNext()) {
-            module = (Module)var7.next();
+         while (unMatchedModuleIt.hasNext()) {
+            module = (Module) unMatchedModuleIt.next();
             schemaContext.removeModule(module.getModuleId());
             schemaContext.addImportOnlyModule(module);
          }
@@ -208,7 +186,9 @@ public class YangYinParser {
          }
 
          yangSchema.addModuleSet(moduleSet);
+
       }
+
 
       return schemaContext;
    }
@@ -220,58 +200,48 @@ public class YangYinParser {
 
    public static YangSchemaContext parse(List<File> files, YangSchemaContext context) throws IOException, YangParserException, DocumentException {
       List<File> yangFiles = getYangFiles(files);
-      Iterator fileIterator = yangFiles.iterator();
 
-      while(true) {
-         YangElement element;
-         label48:
-         while(true) {
-            File yangFile;
-            List elements;
-            do {
-               do {
-                  if (!fileIterator.hasNext()) {
-                     return context;
-                  }
-
-                  yangFile = (File)fileIterator.next();
-                  if (yangFile.getName().endsWith(".yang")) {
-                     YangParser yangParser = new YangParser();
-                     String yangStr = FileUtil.readFile2String(yangFile);
-                     YangParserEnv env = new YangParserEnv();
-                     env.setYangStr(yangStr);
-                     env.setFilename(yangFile.getAbsolutePath());
-                     env.setCurPos(0);
-                     elements = yangParser.parseYang(yangStr, env);
-                  } else {
-                     YinParser yinParser = new YinParser(yangFile.getAbsolutePath());
-                     SAXReader reader = new SAXReader();
-                     Document document = reader.read(yangFile);
-                     elements = yinParser.parse(document);
-                  }
-               } while(elements == null);
-            } while(elements.isEmpty());
-
-            context.getParseResult().put(yangFile.getAbsolutePath(), elements);
-            Iterator iterator = elements.iterator();
-
-            while(iterator.hasNext()) {
-               element = (YangElement)iterator.next();
-               if (element instanceof YangStatement) {
-                  Module module = (Module)element;
-                  if (context.getYangSchema() == null) {
-                     break label48;
-                  }
-
-                  YangSchema yangSchema = context.getYangSchema();
-                  if (yangSchema.match(new ModuleId(module.getArgStr(), module.getCurRevisionDate().isPresent() ? (String)module.getCurRevisionDate().get() : null))) {
-                     break label48;
-                  }
-               }
-            }
+      for (File yangFile : yangFiles){
+         List<YangElement> yangElements;
+         if (yangFile.getName().endsWith(Yang.YANG_SUFFIX)) {
+            YangParser yangParser = new YangParser();
+            String yangStr = FileUtil.readFile2String(yangFile);
+            YangParserEnv env = new YangParserEnv();
+            env.setYangStr(yangStr);
+            env.setFilename(yangFile.getAbsolutePath());
+            env.setCurPos(0);
+            yangElements = yangParser.parseYang(yangStr, env);
+         } else {
+            YinParser yinParser = new YinParser(yangFile.getAbsolutePath());
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(yangFile);
+            yangElements = yinParser.parse(document);
          }
 
-         context.addModule((Module)element);
+         if(yangElements == null || yangElements.isEmpty()){
+            continue;
+         }
+         context.getParseResult().put(yangFile.getAbsolutePath(), yangElements);
+         for(YangElement yangElement: yangElements){
+            if(yangElement instanceof Module){
+               Module module = (Module) yangElement;
+               if(context.getYangSchema() != null){
+                  YangSchema yangSchema = context.getYangSchema();
+                  String revision = null;
+                  List<YangStatement> revisions = module.getSubStatement(YangBuiltinKeyword.REVISION.getQName());
+                  if(!revisions.isEmpty()){
+                     revision = revisions.get(0).getArgStr();
+                  }
+                  if (!yangSchema.match(new ModuleId(module.getArgStr(),revision))){
+                     continue;
+                  }
+               }
+               context.addModule(module);
+               break;
+            }
+         }
       }
+
+      return context;
    }
 }
