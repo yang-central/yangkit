@@ -2,6 +2,7 @@
 /target/
 /yangkit-data-api/target/
 /yangkit-data-api/yangkit-data-api.iml
+yangkit-data-impl/target/
 /yangkit-model-api/target/
 /yangkit-model-api/yangkit-model-api.iml
 /yangkit-model-impl/target/
@@ -10,5 +11,6 @@
 /yangkit-parser/yangkit-parser.iml
 /yangkit-xpath-api/target/
 /yangkit-xpath-api/yangkit-xpath-api.iml
+/yangkit-xpath-impl/target/
 /yangkit-xpath-impl/yangkit-xpath-impl.iml
 /yangkit-parent.iml
