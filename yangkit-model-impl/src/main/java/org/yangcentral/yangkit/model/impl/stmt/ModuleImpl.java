@@ -732,7 +732,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
          if(subElement == null){
             continue;
          }
-         if(subElement instanceof YangBuiltinStatement){
+         if(!(subElement instanceof YangBuiltinStatement)){
             continue;
          }
          YangBuiltinStatement builtinStatement = (YangBuiltinStatement)subElement;
