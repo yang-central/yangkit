@@ -10,15 +10,27 @@ import javax.annotation.Nonnull;
 public interface YangDataDocumentOperator extends Cloneable {
    YangDataDocument getDocument();
 
-   void create(AbsolutePath var1, YangData<? extends DataNode> var2) throws YangDataException;
+   void create(AbsolutePath path, YangData<? extends DataNode> child,boolean autoDelete) throws YangDataException;
+   default void create(AbsolutePath path, YangData<? extends DataNode> child) throws YangDataException{
+      create(path,child,true);
+   }
+   void delete(AbsolutePath path) throws YangDataException;
 
-   void delete(AbsolutePath var1) throws YangDataException;
+   void merge(@Nonnull YangDataDocument doc, boolean autoDelete) throws YangDataException;
+   default void merge(@Nonnull YangDataDocument doc) throws YangDataException {
+      merge(doc,true);
+   }
 
-   void merge(@Nonnull YangDataDocument var1) throws YangDataException;
+   void merge(AbsolutePath path, YangData<? extends DataNode> child,boolean autoDelete) throws YangDataException;
 
-   void merge(AbsolutePath var1, YangData<? extends DataNode> var2) throws YangDataException;
+   default void merge(AbsolutePath path, YangData<? extends DataNode> child) throws YangDataException {
+      merge(path,child,true);
+   }
+   void replace(YangDataDocument doc) throws YangDataException;
 
-   void replace(YangDataDocument var1) throws YangDataException;
+   void replace(AbsolutePath path, YangData<? extends DataNode> child, boolean autoDelete) throws YangDataException;
 
-   void replace(AbsolutePath var1, YangData<? extends DataNode> var2) throws YangDataException;
+   default void replace(AbsolutePath path, YangData<? extends DataNode> child) throws YangDataException{
+      replace(path,child,true);
+   }
 }

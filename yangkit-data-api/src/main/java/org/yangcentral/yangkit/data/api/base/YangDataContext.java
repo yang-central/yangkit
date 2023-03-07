@@ -8,7 +8,10 @@ public class YangDataContext {
     private YangDataContainer parent;
     private YangDataDocument document;
 
-    public YangDataContext() {
+    private YangData self;
+
+    public YangDataContext(YangData self) {
+        this.self = self;
     }
 
     public YangDataContainer getParent() {
@@ -31,6 +34,12 @@ public class YangDataContext {
 
     public void setParent(YangDataContainer parent) {
         this.parent = parent;
+        if(parent != null && (parent instanceof YangData)){
+            YangData parentData = (YangData) parent;
+            if(parentData.isDummyNode() && !self.isDummyNode()){
+                parentData.setDummyNode(false);
+            }
+        }
     }
 
     public YangDataDocument getDocument() {
