@@ -818,7 +818,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
          }
       } else if (this.restriction instanceof Union) {
          Union union = (Union)this.restriction;
-         for(Type type: union.getTypes()){
+         for(Type type: union.getActualTypes()){
             String arg = type.getArgStr();
             if(type.isDerivedType()){
                arg = type.getBuiltinType().getArgStr();
