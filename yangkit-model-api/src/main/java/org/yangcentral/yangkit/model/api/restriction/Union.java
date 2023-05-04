@@ -12,4 +12,5 @@ import java.util.List;
  */
 public interface Union extends Restriction<Object> {
    List<Type> getTypes();
+   List<Type> getActualTypes();
 }
