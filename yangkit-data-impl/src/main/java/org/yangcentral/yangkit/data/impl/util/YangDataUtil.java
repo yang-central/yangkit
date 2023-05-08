@@ -3,8 +3,11 @@ package org.yangcentral.yangkit.data.impl.util;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
+import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
+import org.yangcentral.yangkit.model.api.stmt.VirtualSchemaNode;
 
 import java.util.List;
+import java.util.Stack;
 
 public class YangDataUtil {
     public static Boolean getXPathBooleanValue(Object obj) {
@@ -44,4 +47,5 @@ public class YangDataUtil {
         return getXpathContextData((YangData<?>) curData.getContext().getParent());
 
     }
+
 }

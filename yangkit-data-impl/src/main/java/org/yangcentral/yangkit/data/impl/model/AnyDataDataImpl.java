@@ -9,6 +9,7 @@ public class AnyDataDataImpl extends YangDataImpl<Anydata> implements AnyDataDat
     private YangDataDocument value;
     public AnyDataDataImpl(Anydata schemaNode) {
         super(schemaNode);
+        this.identifier = new SingleInstanceDataIdentifier(getQName());
     }
 
     @Override
@@ -21,8 +22,5 @@ public class AnyDataDataImpl extends YangDataImpl<Anydata> implements AnyDataDat
         this.value = value;
     }
 
-    @Override
-    public DataIdentifier getIdentifier() {
-        return null;
-    }
+
 }

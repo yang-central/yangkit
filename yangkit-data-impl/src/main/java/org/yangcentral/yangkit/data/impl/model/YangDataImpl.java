@@ -35,6 +35,8 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
     private boolean dummyNode;
     private boolean validatingWhen;
 
+    protected DataIdentifier identifier;
+
     private Logger logger = LoggerFactory.getLogger(YangDataImpl.class);
 
     public YangDataImpl(S schemaNode) {
@@ -510,5 +512,10 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
     @Override
     public void setDummyNode(boolean bool) {
         this.dummyNode = bool;
+    }
+
+    @Override
+    public DataIdentifier getIdentifier() {
+        return identifier;
     }
 }
