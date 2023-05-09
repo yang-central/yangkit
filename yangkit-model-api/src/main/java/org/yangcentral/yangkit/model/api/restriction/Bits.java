@@ -5,7 +5,7 @@ import org.yangcentral.yangkit.model.api.stmt.type.Bit;
 import java.util.List;
 /**
  * the interface of bits type
- * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.7"/>
+ * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.7">bits</a>
  * @version 1.0.0
  * @author frank feng
  * @since 7/8/2022
@@ -16,8 +16,7 @@ public interface Bits extends Restriction<List<String>> {
    /**
     * get bits, if no bit sub-statement, it will return an empty list
     * @version 1.0.0
-    * @throws
-    * @return java.util.List<org.yangcentral.yangkit.model.api.stmt.type.Bit>
+    * @return  list of bit
     * @author frank feng
     * @since 7/8/2022
     */
@@ -25,8 +24,7 @@ public interface Bits extends Restriction<List<String>> {
    /**
     * get effective bits, if no bit sub-statement, the effective bits of derived will be returned.
     * @version 1.0.0
-    * @throws
-    * @return java.util.List<org.yangcentral.yangkit.model.api.stmt.type.Bit>
+    * @return list of bit
     * @author frank feng
     * @since 7/8/2022
     */
@@ -36,7 +34,6 @@ public interface Bits extends Restriction<List<String>> {
     * it will return the value calculated according rule).
     * @param bitName bit's name
     * @version 1.0.0
-    * @throws
     * @return java.lang.Long
     * @author frank feng
     * @since 7/8/2022

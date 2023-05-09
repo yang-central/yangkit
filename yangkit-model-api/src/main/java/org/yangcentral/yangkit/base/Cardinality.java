@@ -17,8 +17,6 @@ public class Cardinality {
  * constructor,minElements need be specified, and maxElements default no limitation
  * @param minElements minimum value
  * @version 1.0.0
- * @throws
- * @return
  * @author frank feng
  * @since 7/7/2022
  */
@@ -34,7 +32,7 @@ public class Cardinality {
 
    /**
     *
-    * @return
+    * @return true: unbounded
     */
    public boolean isUnbounded() {
       return this.unbounded;
@@ -51,7 +49,6 @@ public class Cardinality {
  * check whether specified instances is valid
  * @param instances current instances
  * @version 1.0.0
- * @throws
  * @return boolean true is valid, false is invalid
  * @author frank feng
  * @since 7/7/2022

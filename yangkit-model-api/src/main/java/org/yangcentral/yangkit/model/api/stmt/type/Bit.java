@@ -7,10 +7,8 @@ import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 
 /**
  * the interface of bit statement.
- * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.7.4"/>
+ * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.7.4">bit</a>
  * @version 1.0.0
- * @throws
- * @return
  * @author frank feng
  * @since 7/8/2022
  */

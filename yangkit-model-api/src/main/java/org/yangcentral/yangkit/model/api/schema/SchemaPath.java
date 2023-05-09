@@ -34,8 +34,8 @@ public interface SchemaPath {
       SchemaNodeContainer getContext();
    }
    /**
-    * intface for absolute schema path like "/if:interfaces/if:interface"
-    * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-6.5"/>
+    * interface for absolute schema path like "/if:interfaces/if:interface"
+    * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-6.5">schema-node-id</a>
     * @version 1.0.0
     * @author frank feng
     * @since 7/8/2022

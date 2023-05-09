@@ -5,7 +5,7 @@ import org.yangcentral.yangkit.model.api.stmt.Type;
 import java.util.List;
 /**
  * the interface of union type
- * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.12"/>
+ * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.12">union</a>
  * @version 1.0.0
  * @author frank feng
  * @since 7/8/2022

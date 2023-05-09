@@ -1,4 +1,4 @@
-# Yangkit-model-impl
+# Yangkit-parser
 ## overview
 Yangkit-parser can be used to parse YANG files and generate YANG files from YANG model .
 
@@ -13,11 +13,13 @@ Yangkit-parser can be used to parse YANG files and generate YANG files from YANG
 
 ## Installation
 add the maven dependency to your pom.xml
-
-        <dependency>
+```
+<dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-parser</artifactId>
             <version>1.0.0</version>
         </dependency>
+```
+        
 ## Documentation
 [Javadoc](apidocs/index.html)

@@ -4,7 +4,7 @@ import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
 /**
  * @author : frank feng
- * @date : 7/15/2022 2:49 PM
+ * @since  : 7/15/2022 2:49 PM
  */
 public class YangStatementIdentifier {
     private YangStatement yangStatement;

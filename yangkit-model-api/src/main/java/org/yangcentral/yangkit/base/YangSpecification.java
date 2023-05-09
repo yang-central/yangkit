@@ -37,7 +37,6 @@ public class YangSpecification {
  * get yang statement definition according to keyword
  * @param keyword the qname of yang statement's keyword
  * @version 1.0.0
- * @throws
  * @return org.yangcentral.yangkit.base.YangStatementDef
  * @author frank feng
  * @since 7/8/2022

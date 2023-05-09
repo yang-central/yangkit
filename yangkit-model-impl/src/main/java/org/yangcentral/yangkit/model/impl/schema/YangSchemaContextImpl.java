@@ -265,7 +265,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
     * and build all init statements(build linkage,check static grammar,build schema tree,etc.), and then it will validate
     * all statements of all modules(in this phase, it will only check whether the relation between statements is correct,
     * for example, check whether the xpath expression is correct.)
-    * @return
+    * @return the result of validation
     */
    public ValidatorResult validate() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();

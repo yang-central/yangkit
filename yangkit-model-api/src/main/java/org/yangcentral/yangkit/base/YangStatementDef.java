@@ -43,8 +43,7 @@ public class YangStatementDef {
     * add sub statement info including keyword and cardinality
     * @param subStatementInfo the information of sub statement
     * @version 1.1.0
-    * @throws
-    * @return boolean
+    * @return boolean true: success
     * @author frank feng
     * @since 7/8/2022
     */
@@ -82,7 +81,6 @@ public class YangStatementDef {
  * get sub-statement information according keyword
  * @param subStatement qualified name of sub statement's keyword
  * @version 1.0.0
- * @throws
  * @return org.yangcentral.yangkit.base.YangSubStatementInfo
  * @author frank feng
  * @since 7/8/2022

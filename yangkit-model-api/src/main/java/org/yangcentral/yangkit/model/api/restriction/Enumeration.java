@@ -5,7 +5,7 @@ import org.yangcentral.yangkit.model.api.stmt.type.YangEnum;
 import java.util.List;
 /**
  * the definition of enumeration type
- * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.6"/>
+ * @see <a href="https://datatracker.ietf.org/doc/html/rfc7950#section-9.6">enumeration</a>
  * @version 1.0.0
  * @author frank feng
  * @since 7/8/2022
@@ -17,7 +17,6 @@ public interface Enumeration extends Restriction<String> {
     * get specified enum's actual value, if no value sub-statement is defined, it will return the value calculated according rule
     * @param enumName  the name of enum
     * @version 1.0.0
-    * @throws
     * @return java.lang.Integer
     * @author frank feng
     * @since 7/8/2022
@@ -28,8 +27,7 @@ public interface Enumeration extends Restriction<String> {
    /**
     * get enums, if no enum sub-statement is defined, it will return empty list.
     * @version 1.0.0
-    * @throws
-    * @return java.util.List<org.yangcentral.yangkit.model.api.stmt.type.YangEnum>
+    * @return list of enum
     * @author frank feng
     * @since 7/8/2022
     */
@@ -37,8 +35,7 @@ public interface Enumeration extends Restriction<String> {
    /**
     * get effective enums, if no enum sub-statement is defined, it will return the effective enums of derived type
     * @version 1.0.0
-    * @throws
-    * @return java.util.List<org.yangcentral.yangkit.model.api.stmt.type.YangEnum>
+    * @return list of enum
     * @author frank feng
     * @since 7/8/2022
     */

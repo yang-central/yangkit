@@ -71,7 +71,6 @@ public class ModuleSet {
     * judge whether the specified module-id matches this module-set.
     * @param moduleId module id
     * @version 1.0.0
-    * @throws
     * @return boolean true: the module-id matches the module-set
     * (it's the module belongs to module-set or the submodule belongs to the module-set)
     * @author frank feng

@@ -33,7 +33,6 @@ public class Section {
     * evaluate whether the value matches the section.
     * @param val value
     * @version 1.0.0
-    * @throws
     * @return boolean true: the value matches the section(greater than or equals the min and less than or equals the max)
     *                 false: the value doesn't match the section.
     * @author frank feng
@@ -46,7 +45,6 @@ public class Section {
     * judge whether this section is the sub section of super section
     * @param superSection  super section
     * @version 1.0.0
-    * @throws
     * @return boolean
     * @author frank feng
     * @since 7/8/2022

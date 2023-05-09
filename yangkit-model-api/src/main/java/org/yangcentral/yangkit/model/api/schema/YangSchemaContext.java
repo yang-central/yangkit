@@ -15,8 +15,6 @@ import java.util.Optional;
  * when a series of yang files are parsed to yang modules,these yang modules will be added to a yang schema context. user can
  * validate the yang schema context by calling validate method.
  * @version 1.0.0
- * @throws
- * @return
  * @author frank feng
  * @since 7/8/2022
  */

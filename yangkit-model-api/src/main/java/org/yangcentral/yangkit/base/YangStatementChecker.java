@@ -6,7 +6,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
 /**
- * 功能描述
+ * yang statement checker for 3rd party developer to add specified checker
  *
  * @author frank
  * @since 2022-11-22

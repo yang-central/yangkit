@@ -38,8 +38,6 @@ public class YangContext {
     * construct context from parent
     * @param parent parent context
     * @version 1.0.0
-    * @throws
-    * @return
     * @author frank feng
     * @since 7/8/2022
     */
@@ -105,7 +103,6 @@ public class YangContext {
  * get typedef from yang context, if not found in local context, it will search from merged contexts.
  * @param name typedef name
  * @version 1.0.0
- * @throws
  * @return org.yangcentral.yangkit.model.api.stmt.Typedef
  * @author frank feng
  * @since 7/8/2022
@@ -133,7 +130,6 @@ public class YangContext {
     * get grouping from yang context, if not found in local context, it will search from merged contexts.
     * @param name typedef name
     * @version 1.0.0
-    * @throws
     * @return org.yangcentral.yangkit.model.api.stmt.Grouping
     * @author frank feng
     * @since 7/8/2022
