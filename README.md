@@ -58,4 +58,4 @@ mvn clean install
             <version>1.0.0</version>
         </dependency>
 ## Documentation
-[javadoc](docs/apidocs)
+Please see the java doc in components.
