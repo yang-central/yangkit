@@ -21,9 +21,5 @@ public class AnyXmlDataImpl extends YangDataImpl<Anyxml> implements AnyxmlData {
     public void setValue(Document value) {
         this.value = value;
     }
-
-    @Override
-    public DataIdentifier getIdentifier() {
-        return null;
-    }
+    
 }

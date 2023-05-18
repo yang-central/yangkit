@@ -11,6 +11,7 @@ import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
+import org.yangcentral.yangkit.data.impl.builder.YangDataBuilder;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -18,10 +19,7 @@ import org.yangcentral.yangkit.model.api.stmt.DataNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangAbstractDataContainer implements YangDataContainer {
@@ -162,18 +160,20 @@ public class YangAbstractDataContainer implements YangDataContainer {
                             + " is not the data child of this schema node:"
                             + ((schemaNodeContainer instanceof YangSchemaContext)?"root":schemaNodeContainer.toString())));
         }
-        YangDataOperator yangDataOperator = new YangDataOperatorImpl(self);
+
         YangData<?> oldChild = getChild(child.getIdentifier());
         if(oldChild != null) {
             if(oldChild.isDummyNode()){
-                yangDataOperator.merge(child,autoDelete);
+                self.removeChild(child.getIdentifier());
+                children.put(child.getIdentifier(),child);
                 return;
             }
             throw new YangDataException(ErrorTag.DATA_EXISTS,oldChild.getPath(),
                     new ErrorMessage("the child:"+child.getIdentifier() + " is exists."));
         }
-        yangDataOperator.create(child,autoDelete);
+
         children.put(child.getIdentifier(),child);
+        child.getContext().setParent(self);
     }
 
     @Override
@@ -201,7 +201,37 @@ public class YangAbstractDataContainer implements YangDataContainer {
             throw new YangDataException(ErrorTag.BAD_ELEMENT, errorPath,
                     new ErrorMessage("unknown data child:"+ child.getSchemaNode().toString()));
         }
-        //TODO  generate virtual data node
+
+        Stack<SchemaNode> descendants = new Stack();
+        SchemaNode childParentSchemaNode = child.getSchemaNode();
+        while(childParentSchemaNode != schemaNodeContainer){
+            descendants.push(childParentSchemaNode);
+            SchemaNodeContainer parentContainer = childParentSchemaNode.getParentSchemaNode();
+            if(!(parentContainer instanceof SchemaNode)){
+                break;
+            }
+            childParentSchemaNode = (SchemaNode) parentContainer;
+        }
+
+        YangDataContainer yangDataContainer = this.self;
+
+        while( !descendants.isEmpty()) {
+            SchemaNode descendant = descendants.pop();
+            YangData<?> descendantData = null;
+            if(descendant == child.getSchemaNode()){
+                yangDataContainer.addChild(child,autoDelete);
+                break;
+            } else {
+                descendantData = yangDataContainer.getChild(
+                        new SingleInstanceDataIdentifier(descendant.getIdentifier()));
+                if(null == descendantData){
+                  descendantData = YangDataBuilder.getYangData(descendant,null);
+                  yangDataContainer.addChild(descendantData,autoDelete);
+                }
+            }
+            yangDataContainer = (YangDataContainer) descendantData;
+
+        }
 
     }
 
