@@ -14,6 +14,7 @@
         <module>yangkit-model-impl</module>
         <module>yangkit-parser</module>
         <module>yangkit-data-impl</module>
+        <module>yangkit-data-json-codec</module>
     </modules>
     <packaging>pom</packaging>
     <name>yangkit</name>
