@@ -155,14 +155,14 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
         XPathStep step = new XPathStep(yangData.getQName());
         if (yangData.getIdentifier() instanceof ListIdentifier) {
             ListIdentifier listIdentifier = (ListIdentifier) yangData.getIdentifier();
-            List<LeafData<?>> keys = listIdentifier.getKeys();
-            for (LeafData<?> key : keys) {
+            List<LeafData> keys = listIdentifier.getKeys();
+            for (LeafData key : keys) {
                 Predict predict = new Predict(key.getQName(), key.getStringValue());
                 step.addPredict(predict);
             }
         } else if (yangData.getIdentifier() instanceof LeafListIdentifier) {
             LeafListIdentifier leafListIdentifier = (LeafListIdentifier) (yangData.getIdentifier());
-            Predict predict = new Predict(leafListIdentifier.getQName(), ((TypedData<?, ?>) yangData).getStringValue());
+            Predict predict = new Predict(leafListIdentifier.getQName(), ((TypedData<?>) yangData).getStringValue());
             step.addPredict(predict);
         }
         return step;
@@ -214,7 +214,7 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
 
     }
 
-    private boolean findValueMatched(List<YangData<?>> dataList, TypedData<?, ?> candidate) {
+    private boolean findValueMatched(List<YangData<?>> dataList, TypedData<?> candidate) {
         if (null == dataList || dataList.size() == 0) {
             return false;
         }
@@ -223,7 +223,7 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
                 continue;
             }
             if (data instanceof TypedData) {
-                TypedData<?, ?> typedData = (TypedData<?, ?>) data;
+                TypedData<?> typedData = (TypedData<?>) data;
                 if (typedData.getValue().equals(candidate.getValue())) {
                     return true;
                 }
@@ -289,7 +289,7 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
                     .getXPathExpression();
             Object result = yangDataXPath.evaluate(YangDataUtil.getXpathContextData(this));
             List<YangData<?>> nodeSet = (List<YangData<?>>) result;
-            boolean findMatched = findValueMatched(nodeSet, (TypedData<?,?>) this);
+            boolean findMatched = findValueMatched(nodeSet, (TypedData<?>) this);
             if (!findMatched) {
                 ValidatorRecordBuilder<AbsolutePath, YangData<?>> validatorRecordBuilder =
                         new ValidatorRecordBuilder<>();
@@ -325,7 +325,7 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
         }
 
         if (this instanceof TypedData) {
-            TypedData<?, ?> typedData = (TypedData<?, ?>) this;
+            TypedData<?> typedData = (TypedData<?>) this;
             // check value
             if (typedData.getValue() == null) {
                 ValidatorRecordBuilder<AbsolutePath, YangData<?>> validatorRecordBuilder =

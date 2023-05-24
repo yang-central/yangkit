@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class ListIdentifierImpl extends DataIdentifierImpl implements ListIdentifier {
-    private List<LeafData<?>> keys;
-    public ListIdentifierImpl(QName qName) {
+    private List<LeafData> keys;
+    public ListIdentifierImpl(QName qName, List<LeafData> keys) {
         super(qName);
         if (null == keys) {
             this.keys = new ArrayList<>();
@@ -43,7 +43,7 @@ public class ListIdentifierImpl extends DataIdentifierImpl implements ListIdenti
     }
 
     @Override
-    public List<LeafData<?>> getKeys() {
+    public List<LeafData> getKeys() {
         return keys;
     }
 

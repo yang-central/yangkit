@@ -37,6 +37,14 @@ public class YangAbstractDataContainer implements YangDataContainer {
         }
     }
 
+    public YangAbstractDataContainer(SchemaNodeContainer schemaNodeContainer) {
+        this.schemaNodeContainer = schemaNodeContainer;
+    }
+
+    public void setSelf(YangDataContainer self) {
+        this.self = self;
+    }
+
     @Override
     public List<YangData<?>> getChildren() {
         return Lists.newArrayList(children.values());
@@ -237,6 +245,14 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public YangData<? extends DataNode> removeDataChild(DataIdentifier identifier) {
-        return null;
+
+        YangData<? extends DataNode> dataChild = getDataChild(identifier);
+        if(dataChild == null){
+            return null;
+        }
+        YangDataContainer parent = dataChild.getContext().getParent();
+        parent.removeChild(identifier);
+        return dataChild;
     }
+
 }

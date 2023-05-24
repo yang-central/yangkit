@@ -17,6 +17,11 @@
             <version>${io.github.yang-central.yangkit.yangkit-data-api.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.github.yang-central.yangkit</groupId>
+            <artifactId>yangkit-model-impl</artifactId>
+            <version>${io.github.yang-central.yangkit.yangkit-data-api.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${org.slf4j.slf4j-api.version}</version>
