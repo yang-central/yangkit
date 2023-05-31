@@ -33,4 +33,6 @@ public interface YangDataDocumentOperator extends Cloneable {
    default void replace(AbsolutePath path, YangData<? extends DataNode> child) throws YangDataException{
       replace(path,child,true);
    }
+
+   YangData<? extends DataNode> get(AbsolutePath path);
 }

@@ -28,4 +28,5 @@ public interface YangDataOperator extends Cloneable {
    }
 
    void delete(DataIdentifier identifier);
+
 }

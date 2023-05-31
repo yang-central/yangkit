@@ -1,16 +1,19 @@
 package org.yangcentral.yangkit.data.impl.model;
 
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.DataIdentifier;
 import org.yangcentral.yangkit.data.api.model.YangData;
+import org.yangcentral.yangkit.data.api.model.YangDataCompareResult;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 
 import java.util.List;
 
-public class YangDataContainerImpl<S extends SchemaNode> extends YangDataImpl<S> implements YangDataContainer {
+public abstract class YangDataContainerImpl<S extends SchemaNode> extends YangDataImpl<S> implements YangDataContainer {
 
     private YangAbstractDataContainer container;
 
@@ -77,5 +80,29 @@ public class YangDataContainerImpl<S extends SchemaNode> extends YangDataImpl<S>
     @Override
     public YangData<? extends DataNode> removeDataChild(DataIdentifier identifier) {
         return container.removeDataChild(identifier);
+    }
+
+    @Override
+    public ValidatorResult validateChildren() {
+        return container.validateChildren();
+    }
+
+    @Override
+    public List<YangDataCompareResult> compareChildren(YangDataContainer another) {
+        return container.compareChildren(another);
+    }
+
+    @Override
+    public List<YangDataCompareResult> compare(YangData other) {
+        List<YangDataCompareResult> results = super.compare(other);
+        results.addAll(compareChildren((YangDataContainer) other));
+        return results;
+    }
+
+    @Override
+    public ValidatorResult validate() {
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validate());
+        validatorResultBuilder.merge(validateChildren());
+        return validatorResultBuilder.build();
     }
 }

@@ -8,4 +8,5 @@ public interface YangDataValue<D,S> {
     D getValue() throws YangCodecException;
     S getSource();
     String getStringValue();
+
 }

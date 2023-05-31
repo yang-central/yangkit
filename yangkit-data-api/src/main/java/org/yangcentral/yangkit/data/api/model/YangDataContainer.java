@@ -1,12 +1,14 @@
 package org.yangcentral.yangkit.data.api.model;
 
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.data.api.base.ValidatePhase;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
 
 import java.util.List;
 
-public interface YangDataContainer {
+public interface YangDataContainer{
    List<YangData<?>> getChildren();
 
    YangData<?> getChild(DataIdentifier identifier);
@@ -38,4 +40,8 @@ public interface YangDataContainer {
    }
 
    YangData<? extends DataNode> removeDataChild(DataIdentifier identifier);
+
+   ValidatorResult validateChildren();
+
+   List<YangDataCompareResult> compareChildren(YangDataContainer another);
 }

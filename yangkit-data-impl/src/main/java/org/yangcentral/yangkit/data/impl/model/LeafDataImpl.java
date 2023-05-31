@@ -5,6 +5,8 @@ import org.yangcentral.yangkit.data.api.model.YangDataValue;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.yangcentral.yangkit.model.impl.codec.StringValueCodecFactory;
 
+import java.util.Objects;
+
 public class LeafDataImpl extends YangDataImpl<Leaf> implements LeafData {
     private YangDataValue<?,?> value;
     public LeafDataImpl(Leaf schemaNode) {
@@ -25,5 +27,19 @@ public class LeafDataImpl extends YangDataImpl<Leaf> implements LeafData {
     @Override
     public void setValue(YangDataValue<?, ?> value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        LeafDataImpl leafData = (LeafDataImpl) o;
+        return value.equals(leafData.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value);
     }
 }

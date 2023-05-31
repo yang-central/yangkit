@@ -9,40 +9,21 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import java.util.List;
 import org.jaxen.JaxenException;
 
-public interface YangData<S extends SchemaNode> extends Comparable<YangData>, Cloneable {
-   QName getQName();
+public interface YangData<S extends SchemaNode> extends YangDataEntity<YangData> {
 
    S getSchemaNode();
 
    YangDataContext getContext();
 
-
-
    void setContext(YangDataContext context);
-
 
    boolean isRoot();
 
-
    void detach();
-
-   void update();
 
    default boolean isVirtual() {
       return false;
    }
-
-   void addAttribute(Attribute attribute);
-
-   Attribute getAttribute(QName qName);
-
-   List<Attribute> getAttributes(String name);
-
-   void deleteAttribute(QName qName);
-
-   List<Attribute> getAttributes();
-
-   void setAttributes(List<Attribute> attributes);
 
    DataIdentifier getIdentifier();
 
@@ -50,18 +31,10 @@ public interface YangData<S extends SchemaNode> extends Comparable<YangData>, Cl
 
    boolean checkWhen() throws JaxenException;
 
-   ValidatorResult validate();
-
-   ValidatorResult processWhen();
 
    default int compareTo(YangData o) {
       return this.getIdentifier().compareTo(o.getIdentifier());
    }
-
-   YangData<S> clone() throws CloneNotSupportedException;
-
-   List<YangDataCompareResult> compare(YangData<?> var1);
-
 
    boolean isConfig();
 

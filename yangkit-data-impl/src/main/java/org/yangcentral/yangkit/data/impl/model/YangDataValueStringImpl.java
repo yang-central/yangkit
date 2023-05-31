@@ -2,7 +2,6 @@ package org.yangcentral.yangkit.data.impl.model;
 
 import org.yangcentral.yangkit.data.api.model.YangDataValue;
 import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
-import org.yangcentral.yangkit.model.api.codec.ValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
 import org.yangcentral.yangkit.model.impl.codec.StringValueCodecFactory;
@@ -37,5 +36,24 @@ public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
     @Override
     public String getStringValue() {
         return source;
+    }
+
+    @Override
+    public boolean equals(Object oValue){
+        if(oValue == null){
+            return false;
+        }
+        if(this.getClass() != oValue.getClass()){
+            return false;
+        }
+        YangDataValue oDataValue = (YangDataValue) oValue;
+
+        try {
+            D val =  getValue();
+            Object oVal = oDataValue.getValue();
+            return val.equals(oVal);
+        } catch (YangCodecException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

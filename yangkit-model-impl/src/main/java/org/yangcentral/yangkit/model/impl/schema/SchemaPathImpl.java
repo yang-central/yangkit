@@ -67,6 +67,7 @@ public abstract class SchemaPathImpl implements SchemaPath {
       return sb.toString();
    }
 
+
    public static SchemaPath from(SchemaNodeContainer contextNode, YangStatement yangStatement,String path) throws ModelException {
       boolean isAbsolute = path.startsWith("/");
 

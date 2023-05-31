@@ -24,13 +24,11 @@ import java.util.List;
 import java.util.Objects;
 
 
-public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> {
-    private QName qName;
+public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDataEntry<YangData> implements YangData<S> {
+
     private S schemaNode;
 
     private YangDataContext context;
-
-    private List<Attribute> attributes = new ArrayList<>();
 
     private boolean dummyNode;
     private boolean validatingWhen;
@@ -40,8 +38,8 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
     private Logger logger = LoggerFactory.getLogger(YangDataImpl.class);
 
     public YangDataImpl(S schemaNode) {
+        super(schemaNode.getIdentifier());
         this.schemaNode = schemaNode;
-        this.qName = schemaNode.getIdentifier();
     }
 
     public YangDataContext getContext() {
@@ -52,19 +50,13 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
         this.context = context;
     }
 
-    public QName getQName() {
-        return qName;
-    }
+
 
     @Override
     public S getSchemaNode() {
         return schemaNode;
     }
 
-    @Override
-    public List<Attribute> getAttributes() {
-        return attributes;
-    }
 
     @Override
     public boolean isRoot() {
@@ -78,79 +70,9 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
         update();
     }
 
-    @Override
-    public void update() {
-        if(this instanceof YangDataContainer){
-            YangDataContainer yangDataContainer = (YangDataContainer) this;
-            if(yangDataContainer.getChildren() != null){
-                for(YangData<?> child: yangDataContainer.getChildren()){
-                    if(null == child){
-                        continue;
-                    }
-                    child.getContext().setDocument(this.getContext().getDocument());
-                    child.update();
-                }
-            }
-        }
-    }
 
-    @Override
-    public void addAttribute(Attribute attribute) {
-        if (null != getAttribute(attribute.getName())) {
-            return;
-        }
 
-        attributes.add(attribute);
-    }
 
-    @Override
-    public Attribute getAttribute(QName qName) {
-        for (Attribute attribute : attributes) {
-            if (null == attribute) {
-                continue;
-            }
-            if (attribute.getName().equals(qName)) {
-                return attribute;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public List<Attribute> getAttributes(String name) {
-        List<Attribute> candidate = null;
-        for (Attribute attribute : attributes) {
-            if (null == attribute) {
-                continue;
-            }
-            if (attribute.getName().getLocalName().equals(name)) {
-                if (null == candidate) {
-                    candidate = new ArrayList<>();
-                }
-                candidate.add(attribute);
-            }
-        }
-        return candidate;
-    }
-
-    @Override
-    public void deleteAttribute(QName qName) {
-        for (Attribute attribute : attributes) {
-            if (null == attribute) {
-                continue;
-            }
-            if (attribute.getName().equals(qName)) {
-                attributes.remove(attribute);
-                return;
-            }
-        }
-        return;
-    }
-
-    @Override
-    public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
-    }
     private  XPathStep translate2Step(YangData<? extends DataNode> yangData) {
         XPathStep step = new XPathStep(yangData.getQName());
         if (yangData.getIdentifier() instanceof ListIdentifier) {
@@ -319,6 +241,9 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
     @Override
     public ValidatorResult validate() {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        //check when
+        validatorResultBuilder.merge(processWhen());
+
         if (getSchemaNode() instanceof MustSupport) {
             MustSupport mustConstraintAware = (MustSupport) getSchemaNode();
             validatorResultBuilder.merge(validateMust(mustConstraintAware));
@@ -349,7 +274,6 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
         return validatorResultBuilder.build();
     }
 
-    @Override
     public ValidatorResult processWhen() {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         try {
@@ -411,23 +335,10 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
     public String toString() {
         return getIdentifier().toString();
     }
-    @Override
-    public YangData<S> clone() throws CloneNotSupportedException {
-        YangData<S> cloned = (YangData<S>) super.clone();
-        if (null != getAttributes()) {
-            for (Attribute attribute : getAttributes()) {
-                if (null == attribute) {
-                    continue;
-                }
-                cloned.addAttribute(attribute.clone());
-            }
-        }
-        cloned.update();
-        return cloned;
-    }
+
 
     @Override
-    public List<YangDataCompareResult> compare(YangData<?> data) {
+    public List<YangDataCompareResult> compare(YangData data) {
         if (!getIdentifier().equals(data.getIdentifier())) {
             throw new IllegalArgumentException("the candidate data must have same identifier.");
         }
@@ -437,63 +348,6 @@ public abstract class YangDataImpl<S extends SchemaNode> implements YangData<S> 
                 results.add(new YangCompareResultImpl(getPath(), DifferenceType.CHANGED, data));
                 return results;
             }
-        } else if (this instanceof YangDataContainer) {
-            List<YangData<?extends DataNode>> children = ((YangDataContainer) this).getDataChildren();
-            boolean matchArray[] = null;
-            if (null != children) {
-                matchArray = new boolean[children.size()];
-            }
-            List<YangData<? extends DataNode>> candidateChildren = ((YangDataContainer) data).getDataChildren();
-            boolean matchCandidateArray[] = null;
-            if (null != candidateChildren) {
-                matchCandidateArray = new boolean[candidateChildren.size()];
-            }
-            if (null != children && null == candidateChildren) {
-                // all none
-                for (int i = 0; i < children.size(); i++) {
-                    YangData<?> child = children.get(i);
-                    results.add(new YangCompareResultImpl(getPath(), DifferenceType.NONE, child));
-                }
-            } else if (null == children && null != candidateChildren) {
-                // all new
-                for (int i = 0; i < candidateChildren.size(); i++) {
-                    YangData<?> candidateChild = candidateChildren.get(i);
-                    results.add(new YangCompareResultImpl(getPath(), DifferenceType.NEW, candidateChild));
-                }
-            } else if (null != children && null != candidateChildren) {
-                for (int i = 0; i < children.size(); i++) {
-                    YangData<?> child = children.get(i);
-                    for (int j = 0; j < candidateChildren.size(); j++) {
-                        if (matchCandidateArray[j]) {
-                            continue;
-                        }
-                        YangData<?> candidateChild = candidateChildren.get(j);
-                        if (child.getIdentifier().equals(candidateChild.getIdentifier())) {
-                            matchArray[i] = true;
-                            matchCandidateArray[j] = true;
-                            List<YangDataCompareResult> childResults = child.compare(candidateChild);
-                            if (0 != childResults.size()) {
-                                results.addAll(childResults);
-                            }
-                            break;
-                        }
-                    }
-                    // if no match, this child shouble be none in candidate
-                    if (!matchArray[i]) {
-                        results.add(new YangCompareResultImpl(getPath(), DifferenceType.NONE, child));
-                    }
-                }
-                // process no matched children of candidate, these children should be new in this
-                for (int i = 0; i < candidateChildren.size(); i++) {
-                    if (matchCandidateArray[i]) {
-                        continue;
-                    }
-                    YangData<?> candidateChild = candidateChildren.get(i);
-                    results.add(new YangCompareResultImpl(getPath(), DifferenceType.NEW, candidateChild));
-                }
-
-            }
-
         }
 
         return results;
