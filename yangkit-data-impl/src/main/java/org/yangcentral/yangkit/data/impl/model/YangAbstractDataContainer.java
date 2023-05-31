@@ -240,7 +240,12 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
         children.put(child.getIdentifier(),child);
         child.getContext().setParent(self);
-
+        if(self instanceof YangDataDocument){
+            child.getContext().setDocument((YangDataDocument) self);
+        } else {
+            YangData<?> yangData = (YangData<?>) self;
+            child.getContext().setDocument(yangData.getContext().getDocument());
+        }
     }
 
 

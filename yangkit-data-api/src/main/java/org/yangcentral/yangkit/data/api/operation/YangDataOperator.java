@@ -9,13 +9,13 @@ import org.yangcentral.yangkit.model.api.stmt.DataNode;
 public interface YangDataOperator extends Cloneable {
    YangDataContainer getOperatedData();
 
-   void create(YangData<?> node, boolean autoDelete) throws YangDataException;
+   void create(YangData<? extends DataNode> node, boolean autoDelete) throws YangDataException;
 
-   void merge(YangData<?> node, boolean autoDelete) throws YangDataException;
+   void merge(YangData<? extends DataNode> node, boolean autoDelete) throws YangDataException;
 
-   void replace(YangData<?> node, boolean autoDelete) throws YangDataException;
+   void replace(YangData<? extends DataNode> node, boolean autoDelete) throws YangDataException;
 
-   default void create(YangData<?> node) throws YangDataException {
+   default void create(YangData<? extends DataNode> node) throws YangDataException {
       create(node,true);
    }
 

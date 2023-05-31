@@ -1,6 +1,9 @@
 package org.yangcentral.yangkit.data.impl.util;
 
+import org.yangcentral.yangkit.common.api.AbsolutePath;
+import org.yangcentral.yangkit.common.api.Predict;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.XPathStep;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
@@ -66,6 +69,59 @@ public class YangDataUtil {
         return matched;
     }
 
+    public static XPathStep translate2Step(YangData<? extends DataNode> yangData){
+        XPathStep step = new XPathStep(yangData.getQName());
+        if(yangData.getIdentifier()  instanceof ListIdentifier){
+            ListIdentifier listIdentifier = (ListIdentifier) yangData.getIdentifier();
+            List<LeafData> keys = listIdentifier.getKeys();
+            for(LeafData key: keys){
+                Predict predict = new Predict(key.getQName(),key.getStringValue());
+                step.addPredict(predict);
+            }
+        } else if( yangData.getIdentifier() instanceof LeafListIdentifier){
+            LeafListIdentifier leafListIdentifier = (LeafListIdentifier) yangData.getIdentifier();
+            Predict predict = new Predict(leafListIdentifier.getQName(), leafListIdentifier.getValue());
+            step.addPredict(predict);
+        }
+        return step;
+    }
+
+    public static YangData<? extends DataNode> search(YangDataDocument yangDataDocument, AbsolutePath path){
+        List<XPathStep> steps = path.getSteps();
+        if(steps.isEmpty()){
+            return null;
+        }
+        YangDataContainer parent = yangDataDocument;
+        YangData<? extends DataNode> matched = null;
+        for(XPathStep step: steps){
+            if(null == parent){
+                matched = null;
+                break;
+            }
+            QName stepName = step.getStep();
+            List<YangData<? extends DataNode>> children = parent.getDataChildren(stepName);
+            if(children.isEmpty()){
+                return null;
+            }
+            matched = null;
+            for(YangData<? extends DataNode> child:children){
+                if(translate2Step(child).equals(step)){
+                    matched = child;
+                    break;
+                }
+            }
+            if(null == matched){
+                return null;
+            }
+            if(matched instanceof YangDataContainer){
+                parent = (YangDataContainer) matched;
+            } else {
+                parent = null;
+            }
+        }
+        return matched;
+    }
+
     public static List<YangData<?>> search(YangDataContainer yangDataContainer, SchemaPath.Descendant path){
         if(null == yangDataContainer || null == path){
             return null;
@@ -111,5 +167,6 @@ public class YangDataUtil {
         }
         return true;
     }
+
 
 }
