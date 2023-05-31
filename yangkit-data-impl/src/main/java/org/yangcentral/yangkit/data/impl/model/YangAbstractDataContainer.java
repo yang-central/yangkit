@@ -199,7 +199,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
                 descendantData = yangDataContainer.getChild(
                         new SingleInstanceDataIdentifier(descendant.getIdentifier()));
                 if(null == descendantData){
-                    descendantData = YangDataBuilder.getYangData(descendant,null);
+                    descendantData = new YangDataBuilder().getYangData(descendant,null);
                     yangDataContainer.addChild(descendantData,autoDelete);
                 }
             }
@@ -329,7 +329,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
         if(schemaNode.isMandatory()){
             if(matchedData.isEmpty()){
                 //if have when condition, valuate this when condition,if true, report error
-                YangData<?> dummyNode = YangDataBuilder.getYangData(schemaNode,null);
+                YangData<?> dummyNode = new YangDataBuilder().getYangData(schemaNode,null);
                 dummyNode.setDummyNode(true);
                 try {
                     self.addChild(dummyNode);

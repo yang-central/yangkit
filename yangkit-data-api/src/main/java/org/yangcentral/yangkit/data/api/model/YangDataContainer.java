@@ -2,7 +2,6 @@ package org.yangcentral.yangkit.data.api.model;
 
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
-import org.yangcentral.yangkit.data.api.base.ValidatePhase;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
 

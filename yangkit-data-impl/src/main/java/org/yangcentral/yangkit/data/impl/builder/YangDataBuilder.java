@@ -7,8 +7,11 @@ import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
 
 import java.util.List;
 
-public class YangDataBuilder {
-    public static <T> YangData<?> getYangData(SchemaNode schemaNode, T  value) {
+public class YangDataBuilder implements org.yangcentral.yangkit.data.api.builder.YangDataBuilder {
+    public YangDataBuilder() {
+    }
+
+    public YangData<?> getYangData(SchemaNode schemaNode, Object value) {
         if (schemaNode instanceof Anydata){
             return new AnyDataDataImpl((Anydata) schemaNode);
         } else if (schemaNode instanceof Anyxml){
@@ -25,14 +28,18 @@ public class YangDataBuilder {
             return new ContainerDataImpl((Container) schemaNode);
         } else if (schemaNode instanceof Leaf){
             LeafData leafData = new LeafDataImpl((Leaf) schemaNode);
-            if(value != null && (value instanceof YangDataValue<?,?>)){
-                leafData.setValue((YangDataValue<?, ?>) value);
+            if(value != null && (value instanceof String)){
+                YangDataValueStringImpl yangDataValue = new YangDataValueStringImpl
+                        (((Leaf) schemaNode).getType().getRestriction(), (String) value);
+                leafData.setValue(yangDataValue);
             }
             return leafData;
         } else if (schemaNode instanceof LeafList){
-            if(value instanceof YangDataValue<?,?>){
+            if(value instanceof String){
+                YangDataValueStringImpl yangDataValue = new YangDataValueStringImpl
+                        (((LeafList) schemaNode).getType().getRestriction(), (String) value);
                 LeafListData leafListData = new LeafListDataImpl((LeafList) schemaNode,
-                        (YangDataValue<?, ?>) value);
+                        yangDataValue);
                 return leafListData;
             }
             return new LeafListDataImpl((LeafList) schemaNode,null);

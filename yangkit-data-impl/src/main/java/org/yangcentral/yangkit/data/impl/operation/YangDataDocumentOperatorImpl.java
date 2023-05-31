@@ -9,7 +9,6 @@ import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.api.operation.DataChangeNotifier;
 import org.yangcentral.yangkit.data.api.operation.YangDataDocumentOperator;
-import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
 

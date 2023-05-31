@@ -3,14 +3,12 @@ package org.yangcentral.yangkit.xpath.impl;
 import org.yangcentral.yangkit.common.api.Attribute;
 import org.yangcentral.yangkit.common.api.Namespace;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.data.api.model.TypedData;
-import org.yangcentral.yangkit.data.api.model.YangData;
-import org.yangcentral.yangkit.data.api.model.YangDataContainer;
-import org.yangcentral.yangkit.data.api.model.YangDataDocument;
+import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
+import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
-import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.model.api.stmt.*;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -22,6 +20,7 @@ import org.jaxen.NamedAccessNavigator;
 import org.jaxen.UnsupportedAxisException;
 import org.jaxen.XPath;
 import org.jaxen.saxpath.SAXPathException;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 
 public class YangDocumentNavigator extends DefaultNavigator implements NamedAccessNavigator {
    private static YangDocumentNavigator instance = new YangDocumentNavigator();
@@ -134,6 +133,54 @@ public class YangDocumentNavigator extends DefaultNavigator implements NamedAcce
       } else {
          YangDataContainer dataContainer = (YangDataContainer)contextNode;
          List<YangData<? extends DataNode>> children = dataContainer.getDataChildren();
+         SchemaNodeContainer schemaNodeContainer = null;
+         if(dataContainer instanceof YangDataDocument){
+            YangDataDocument document = (YangDataDocument) dataContainer;
+            schemaNodeContainer = document.getSchemaContext();
+         } else {
+            YangData yangData = (YangData) dataContainer;
+            schemaNodeContainer = (SchemaNodeContainer) yangData.getSchemaNode();
+         }
+         for(DataNode child :schemaNodeContainer.getDataNodeChildren()){
+            if(child instanceof Container){
+               Container container = (Container) child;
+               if(!container.isPresence()){
+                  if(dataContainer.getDataChildren(child.getIdentifier()) == null){
+                     //np-container and no instance, build a dummy node
+                     ContainerData containerData = (ContainerData) YangDataBuilderFactory.getBuilder().getYangData(container,null);
+                     containerData.setDummyNode(true);
+                     children.add(containerData);
+                     containerData.getContext().setParent(dataContainer);
+                  }
+               }
+            } else if(child instanceof Leaf){
+               Leaf leaf = (Leaf) child;
+               if(leaf.hasDefault()){
+                  if(dataContainer.getDataChildren(child.getIdentifier()) == null){
+                     //leaf with default value and no instance, build a dummy node
+
+                     LeafData leafData = (LeafData) YangDataBuilderFactory.getBuilder()
+                             .getYangData(leaf,leaf.getDefault().getArgStr());
+                     leafData.setDummyNode(true);
+                     children.add(leafData);
+                     leafData.getContext().setParent(dataContainer);
+                  }
+               }
+            } else if(child instanceof LeafList){
+               LeafList leafList = (LeafList) child;
+               List<Default> defaults = leafList.getDefaults();
+               if(!defaults.isEmpty()){
+                  for(Default dflt:defaults){
+                     LeafListData leafListData = (LeafListData) YangDataBuilderFactory.getBuilder().
+                             getYangData(leafList,dflt.getArgStr());
+                     leafListData.setDummyNode(true);
+                     leafListData.getContext().setParent(dataContainer);
+                     children.add(leafListData);
+                  }
+               }
+            }
+
+         }
          return children != null && !children.isEmpty() ? children.iterator() : JaxenConstants.EMPTY_ITERATOR;
       }
    }
