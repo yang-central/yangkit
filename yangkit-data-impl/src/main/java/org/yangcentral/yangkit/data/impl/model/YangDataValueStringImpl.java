@@ -4,6 +4,7 @@ import org.yangcentral.yangkit.data.api.model.YangDataValue;
 import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
+import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 import org.yangcentral.yangkit.model.impl.codec.StringValueCodecFactory;
 
 public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
@@ -11,10 +12,10 @@ public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
     String source;
     StringValueCodec<D> codec;
 
-    public YangDataValueStringImpl(Restriction<D> restriction, String source) {
-        this.restriction = restriction;
+    public YangDataValueStringImpl(TypedDataNode node, String source) {
+        this.restriction = node.getType().getRestriction();
         this.source = source;
-        codec = (StringValueCodec<D>) StringValueCodecFactory.getInstance().getStringValueCodec(restriction);
+        codec = (StringValueCodec<D>) StringValueCodecFactory.getInstance().getStringValueCodec(node,restriction);
 
     }
 

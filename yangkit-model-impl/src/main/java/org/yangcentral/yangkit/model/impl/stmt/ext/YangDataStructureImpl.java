@@ -159,6 +159,16 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStr
     }
 
     @Override
+    public List<SchemaNode> getTreeNodeChildren() {
+        return schemaNodeContainer.getTreeNodeChildren();
+    }
+
+    @Override
+    public SchemaNode getTreeNodeChild(QName identifier) {
+        return schemaNodeContainer.getTreeNodeChild(identifier);
+    }
+
+    @Override
     public void removeSchemaNodeChild(QName identifier) {
         schemaNodeContainer.removeSchemaNodeChild(identifier);
     }

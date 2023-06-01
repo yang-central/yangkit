@@ -69,7 +69,7 @@ public class YangDataUtil {
         return matched;
     }
 
-    public static XPathStep translate2Step(YangData<? extends DataNode> yangData){
+    public static XPathStep translate2Step(YangData<?> yangData){
         XPathStep step = new XPathStep(yangData.getQName());
         if(yangData.getIdentifier()  instanceof ListIdentifier){
             ListIdentifier listIdentifier = (ListIdentifier) yangData.getIdentifier();
@@ -86,25 +86,25 @@ public class YangDataUtil {
         return step;
     }
 
-    public static YangData<? extends DataNode> search(YangDataDocument yangDataDocument, AbsolutePath path){
+    public static YangData<?> search(YangDataDocument yangDataDocument, AbsolutePath path){
         List<XPathStep> steps = path.getSteps();
         if(steps.isEmpty()){
             return null;
         }
         YangDataContainer parent = yangDataDocument;
-        YangData<? extends DataNode> matched = null;
+        YangData<?> matched = null;
         for(XPathStep step: steps){
             if(null == parent){
                 matched = null;
                 break;
             }
             QName stepName = step.getStep();
-            List<YangData<? extends DataNode>> children = parent.getDataChildren(stepName);
+            List<YangData<?>> children = parent.getDataChildren(stepName);
             if(children.isEmpty()){
                 return null;
             }
             matched = null;
-            for(YangData<? extends DataNode> child:children){
+            for(YangData<?> child:children){
                 if(translate2Step(child).equals(step)){
                     matched = child;
                     break;

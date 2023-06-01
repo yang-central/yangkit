@@ -21,6 +21,10 @@ public interface SchemaNodeContainer {
     */
    List<DataNode> getDataNodeChildren();
 
+   List<SchemaNode> getTreeNodeChildren();
+
+   SchemaNode getTreeNodeChild(QName identifier);
+
    /**
     * get all schema node children except augmented schema nodes from other modules, inactive schema nodes, and uses should be expanded
     * @param ignoreNamespace whether ignore namespace

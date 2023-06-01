@@ -101,6 +101,16 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
    }
 
    @Override
+   public List<SchemaNode> getTreeNodeChildren() {
+      return schemaNodeContainer.getTreeNodeChildren();
+   }
+
+   @Override
+   public SchemaNode getTreeNodeChild(QName identifier) {
+      return schemaNodeContainer.getTreeNodeChild(identifier);
+   }
+
+   @Override
    public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
       return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
    }

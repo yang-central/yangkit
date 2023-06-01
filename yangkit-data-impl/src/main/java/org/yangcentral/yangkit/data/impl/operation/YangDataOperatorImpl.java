@@ -42,7 +42,7 @@ public class YangDataOperatorImpl implements YangDataOperator {
     }
     @Override
     public void create(YangData<? extends DataNode> node, boolean autoDelete) throws YangDataException {
-        YangData<? extends DataNode> originalNode = operatedData.getDataChild(node.getIdentifier());
+        YangData<? extends DataNode> originalNode = (YangData<? extends DataNode>) operatedData.getDataChild(node.getIdentifier());
         if(originalNode != null){
             throw new YangDataException(ErrorTag.DATA_EXISTS,originalNode.getPath(),
                     new ErrorMessage("data exists"));
@@ -60,7 +60,7 @@ public class YangDataOperatorImpl implements YangDataOperator {
         if(node == null){
             return;
         }
-        YangData<? extends DataNode> originalNode = operatedData.getDataChild(node.getIdentifier());
+        YangData<? extends DataNode> originalNode = (YangData<? extends DataNode>) operatedData.getDataChild(node.getIdentifier());
         if(null == originalNode){
             //new
             create(node,autoDelete);
@@ -91,8 +91,8 @@ public class YangDataOperatorImpl implements YangDataOperator {
             if(dataChangeNotifier != null){
                 yangDataOperator.setDataChangeNotifier(dataChangeNotifier);
             }
-            for(YangData<? extends DataNode> candidateChild:candidateContainer.getDataChildren()){
-                yangDataOperator.merge(candidateChild,autoDelete);
+            for(YangData<?> candidateChild:candidateContainer.getDataChildren()){
+                yangDataOperator.merge((YangData<? extends DataNode>) candidateChild,autoDelete);
             }
         }
     }
@@ -102,7 +102,7 @@ public class YangDataOperatorImpl implements YangDataOperator {
         if(null == node){
             return;
         }
-        YangData<? extends DataNode> originalNode = operatedData.getDataChild(node.getIdentifier());
+        YangData<? extends DataNode> originalNode = (YangData<? extends DataNode>) operatedData.getDataChild(node.getIdentifier());
         if(originalNode != null){
             delete(originalNode.getIdentifier());
         }
@@ -111,7 +111,7 @@ public class YangDataOperatorImpl implements YangDataOperator {
 
     @Override
     public void delete(DataIdentifier identifier) {
-        YangData<? extends DataNode> originalNode = operatedData.getDataChild(identifier);
+        YangData<? extends DataNode> originalNode = (YangData<? extends DataNode>) operatedData.getDataChild(identifier);
         if(null != originalNode){
             operatedData.removeDataChild(identifier);
             if(dataChangeNotifier != null){

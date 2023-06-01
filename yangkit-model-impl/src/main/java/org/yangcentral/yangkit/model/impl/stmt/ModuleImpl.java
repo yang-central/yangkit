@@ -927,6 +927,17 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    public List<DataNode> getDataNodeChildren() {
       return this.schemaNodeContainer.getDataNodeChildren();
    }
+
+   @Override
+   public List<SchemaNode> getTreeNodeChildren() {
+      return schemaNodeContainer.getTreeNodeChildren();
+   }
+
+   @Override
+   public SchemaNode getTreeNodeChild(QName identifier) {
+      return schemaNodeContainer.getTreeNodeChild(identifier);
+   }
+
    @Override
    public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
       return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);

@@ -69,8 +69,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren() {
-        List<YangData<? extends DataNode>> childrenList = new ArrayList<>();
+    public List<YangData<?>> getDataChildren() {
+        List<YangData<?>> childrenList = new ArrayList<>();
         Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
         while(entries.hasNext()){
             Map.Entry<DataIdentifier,YangData<?>> entry = entries.next();
@@ -80,17 +80,17 @@ public class YangAbstractDataContainer implements YangDataContainer {
                     childrenList.addAll(((YangDataContainer) value).getDataChildren());
                 }
             } else {
-                childrenList.add((YangData<? extends DataNode>) value);
+                childrenList.add(value);
             }
         }
         return childrenList;
     }
 
     @Override
-    public YangData<? extends DataNode> getDataChild(DataIdentifier identifier) {
+    public YangData<?> getDataChild(DataIdentifier identifier) {
         YangData<?> value = children.get(identifier);
         if(value != null && !value.isVirtual()){
-            return (YangData<? extends DataNode>) value;
+            return value;
         }
 
         Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
@@ -99,7 +99,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
             value = entry.getValue();
             if(value.isVirtual()){
                 if(value instanceof YangDataContainer){
-                    YangData<? extends DataNode> dataChild = ((YangDataContainer) value).getDataChild(identifier);
+                    YangData<?> dataChild = ((YangDataContainer) value).getDataChild(identifier);
                     if(dataChild != null){
                         return dataChild;
                     }
@@ -111,8 +111,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren(QName qName) {
-        List<YangData<? extends DataNode>> childrenList = new ArrayList<>();
+    public List<YangData<?>> getDataChildren(QName qName) {
+        List<YangData<?>> childrenList = new ArrayList<>();
         Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
         while(entries.hasNext()){
             Map.Entry<DataIdentifier,YangData<?>> entry = entries.next();
@@ -122,15 +122,15 @@ public class YangAbstractDataContainer implements YangDataContainer {
                     childrenList.addAll(((YangDataContainer) value).getDataChildren(qName));
                 }
             } else if (entry.getKey().getQName().equals(qName)){
-                childrenList.add((YangData<? extends DataNode>) value);
+                childrenList.add(value);
             }
         }
         return childrenList;
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren(String name) {
-        List<YangData<? extends DataNode>> childrenList = new ArrayList<>();
+    public List<YangData<?>> getDataChildren(String name) {
+        List<YangData<?>> childrenList = new ArrayList<>();
         Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
         while(entries.hasNext()){
             Map.Entry<DataIdentifier,YangData<?>> entry = entries.next();
@@ -140,14 +140,14 @@ public class YangAbstractDataContainer implements YangDataContainer {
                     childrenList.addAll(((YangDataContainer) value).getDataChildren(name));
                 }
             } else if (entry.getKey().getQName().getLocalName().equals(name)){
-                childrenList.add((YangData<? extends DataNode>) value);
+                childrenList.add(value);
             }
         }
         return childrenList;
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren(String name, String namespace) {
+    public List<YangData<?>> getDataChildren(String name, String namespace) {
         return getDataChildren(new QName(namespace,name));
     }
 
@@ -158,7 +158,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public void addDataChild(YangData child, boolean autoDelete) throws YangDataException {
-        YangData<? extends DataNode> original = getDataChild(child.getIdentifier());
+        YangData<?> original = getDataChild(child.getIdentifier());
         if(original != null){
             if(!original.isDummyNode()){
                 throw new YangDataException(ErrorTag.DATA_EXISTS,original.getPath(),
@@ -166,7 +166,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
             }
         }
 
-        DataNode childSchema = schemaNodeContainer.getDataNodeChild(child.getSchemaNode().getIdentifier());
+        SchemaNode childSchema = schemaNodeContainer.getTreeNodeChild(child.getSchemaNode().getIdentifier());
         if(null == childSchema){
             AbsolutePath errorPath = new AbsolutePath();
             if(self instanceof YangData){
@@ -177,7 +177,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
         }
 
         Stack<SchemaNode> descendants = new Stack();
-        SchemaNode childParentSchemaNode = child.getSchemaNode();
+        SchemaNode childParentSchemaNode = childSchema;
         while(childParentSchemaNode != schemaNodeContainer){
             descendants.push(childParentSchemaNode);
             SchemaNodeContainer parentContainer = childParentSchemaNode.getParentSchemaNode();
@@ -250,9 +250,9 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
 
     @Override
-    public YangData<? extends DataNode> removeDataChild(DataIdentifier identifier) {
+    public YangData<?> removeDataChild(DataIdentifier identifier) {
 
-        YangData<? extends DataNode> dataChild = getDataChild(identifier);
+        YangData<?> dataChild = getDataChild(identifier);
         if(dataChild == null){
             return null;
         }
@@ -421,7 +421,9 @@ public class YangAbstractDataContainer implements YangDataContainer {
             //check mandatory
             validatorResultBuilder.merge(checkMandatory(schemaNode,entry.getValue()));
             //check unique
-            validatorResultBuilder.merge(checkUniques((YangList) schemaNode,entry.getValue()));
+            if(schemaNode instanceof YangList){
+                validatorResultBuilder.merge(checkUniques((YangList) schemaNode,entry.getValue()));
+            }
         }
         for(YangData<?> child:self.getChildren()){
             validatorResultBuilder.merge(child.validate());
@@ -432,15 +434,15 @@ public class YangAbstractDataContainer implements YangDataContainer {
     @Override
     public List<YangDataCompareResult> compareChildren(YangDataContainer another) {
         List<YangDataCompareResult> results = new ArrayList<>();
-        List<YangData<? extends DataNode>> children = self.getDataChildren();
-        List<YangData<? extends DataNode>> oChildren = another.getDataChildren();
-        Map<DataIdentifier,YangData<? extends DataNode>> map = new ConcurrentHashMap<>();
+        List<YangData<?>> children = self.getDataChildren();
+        List<YangData<?>> oChildren = another.getDataChildren();
+        Map<DataIdentifier,YangData<?>> map = new ConcurrentHashMap<>();
         AbsolutePath path = new AbsolutePath();
         if(!(self instanceof YangDataDocument)){
             path = ((YangData)self).getPath();
         }
-        for(YangData<? extends DataNode> child: children){
-            YangData<? extends DataNode> oChild = another.getDataChild(child.getIdentifier());
+        for(YangData<?> child: children){
+            YangData<?> oChild = another.getDataChild(child.getIdentifier());
             if(oChild == null){
                 //delete
                 results.add(new YangCompareResultImpl(path,DifferenceType.NONE,child));
@@ -450,7 +452,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
                 map.put(child.getIdentifier(),oChild);
             }
         }
-        for(YangData<? extends DataNode> oChild:another.getDataChildren()){
+        for(YangData<?> oChild:another.getDataChildren()){
             if(map.get(oChild.getIdentifier())== null){
                 //new
                 results.add(new YangCompareResultImpl(path,DifferenceType.NEW,oChild));

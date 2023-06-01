@@ -38,27 +38,27 @@ public abstract class YangDataContainerImpl<S extends SchemaNode> extends YangDa
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren() {
+    public List<YangData<?>> getDataChildren() {
         return container.getDataChildren();
     }
 
     @Override
-    public YangData<? extends DataNode> getDataChild(DataIdentifier identifier) {
+    public YangData<?> getDataChild(DataIdentifier identifier) {
         return container.getDataChild(identifier);
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren(QName qName) {
+    public List<YangData<?>> getDataChildren(QName qName) {
         return container.getDataChildren(qName);
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren(String name) {
+    public List<YangData<?>> getDataChildren(String name) {
         return container.getDataChildren(name);
     }
 
     @Override
-    public List<YangData<? extends DataNode>> getDataChildren(String name, String namespace) {
+    public List<YangData<?>> getDataChildren(String name, String namespace) {
         return container.getDataChildren(name,namespace);
     }
 
@@ -73,12 +73,12 @@ public abstract class YangDataContainerImpl<S extends SchemaNode> extends YangDa
     }
 
     @Override
-    public void addDataChild(YangData<? extends DataNode> child, boolean autoDelete) throws YangDataException {
+    public void addDataChild(YangData<?> child, boolean autoDelete) throws YangDataException {
         container.addDataChild(child,autoDelete);
     }
 
     @Override
-    public YangData<? extends DataNode> removeDataChild(DataIdentifier identifier) {
+    public YangData<?> removeDataChild(DataIdentifier identifier) {
         return container.removeDataChild(identifier);
     }
 

@@ -132,7 +132,7 @@ public class YangDocumentNavigator extends DefaultNavigator implements NamedAcce
          return JaxenConstants.EMPTY_ITERATOR;
       } else {
          YangDataContainer dataContainer = (YangDataContainer)contextNode;
-         List<YangData<? extends DataNode>> children = dataContainer.getDataChildren();
+         List<YangData<?>> children = dataContainer.getDataChildren();
          SchemaNodeContainer schemaNodeContainer = null;
          if(dataContainer instanceof YangDataDocument){
             YangDataDocument document = (YangDataDocument) dataContainer;
@@ -141,7 +141,7 @@ public class YangDocumentNavigator extends DefaultNavigator implements NamedAcce
             YangData yangData = (YangData) dataContainer;
             schemaNodeContainer = (SchemaNodeContainer) yangData.getSchemaNode();
          }
-         for(DataNode child :schemaNodeContainer.getDataNodeChildren()){
+         for(SchemaNode child :schemaNodeContainer.getTreeNodeChildren()){
             if(child instanceof Container){
                Container container = (Container) child;
                if(!container.isPresence()){

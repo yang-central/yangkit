@@ -40,6 +40,7 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
     public YangDataImpl(S schemaNode) {
         super(schemaNode.getIdentifier());
         this.schemaNode = schemaNode;
+        this.context = new YangDataContext(this);
     }
 
     public YangDataContext getContext() {
@@ -111,8 +112,11 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
 
     @Override
     public boolean checkWhen() throws JaxenException {
-        DataDefinition dataDefinition = (DataDefinition) getSchemaNode();
-        When when = dataDefinition.getWhen();
+        SchemaNode dataDefinition = getSchemaNode();
+        if(!(dataDefinition instanceof WhenSupport)){
+            return true;
+        }
+        When when = ((WhenSupport)dataDefinition).getWhen();
 
         if (when == null) {
             return true;

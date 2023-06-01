@@ -14,15 +14,15 @@ public interface YangDataContainer{
 
    List<YangData<?>> getChildren(QName qName);
 
-   List<YangData<? extends DataNode>> getDataChildren();
+   List<YangData<?>> getDataChildren();
 
-   YangData<? extends DataNode> getDataChild(DataIdentifier identifier);
+   YangData<?> getDataChild(DataIdentifier identifier);
 
-   List<YangData<? extends DataNode>> getDataChildren(QName qName);
+   List<YangData<?>> getDataChildren(QName qName);
 
-   List<YangData<? extends DataNode>> getDataChildren(String name);
+   List<YangData<?>> getDataChildren(String name);
 
-   List<YangData<? extends DataNode>> getDataChildren(String name, String namespace);
+   List<YangData<?>> getDataChildren(String name, String namespace);
 
    default void addChild(YangData<?> child) throws YangDataException {
       this.addChild(child, true);
@@ -32,13 +32,13 @@ public interface YangDataContainer{
 
    YangData<?> removeChild(DataIdentifier identifier);
 
-   void addDataChild(YangData<? extends DataNode> child, boolean autoDelete) throws YangDataException;
+   void addDataChild(YangData<?> child, boolean autoDelete) throws YangDataException;
 
-   default void addDataChild(YangData<? extends DataNode> child) throws YangDataException {
+   default void addDataChild(YangData<?> child) throws YangDataException {
       this.addDataChild(child, true);
    }
 
-   YangData<? extends DataNode> removeDataChild(DataIdentifier identifier);
+   YangData<?> removeDataChild(DataIdentifier identifier);
 
    ValidatorResult validateChildren();
 

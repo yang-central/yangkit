@@ -115,6 +115,16 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
       return this.schemaNodeContainer.getDataNodeChildren();
    }
 
+   @Override
+   public List<SchemaNode> getTreeNodeChildren() {
+      return schemaNodeContainer.getTreeNodeChildren();
+   }
+
+   @Override
+   public SchemaNode getTreeNodeChild(QName identifier) {
+      return schemaNodeContainer.getTreeNodeChild(identifier);
+   }
+
    public void removeSchemaNodeChild(QName identifier) {
       this.schemaNodeContainer.removeSchemaNodeChild(identifier);
    }

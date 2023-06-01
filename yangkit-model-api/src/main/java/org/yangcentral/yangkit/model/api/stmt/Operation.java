@@ -8,7 +8,7 @@ package org.yangcentral.yangkit.model.api.stmt;
  * @since 2022-11-09
  */
 public interface Operation extends Identifiable, IfFeatureSupport, YangBuiltinStatement,SchemaNode,
-        SchemaNodeContainer, TypedefContainer, GroupingDefContainer{
+        SchemaNodeContainer, TypedefContainer, GroupingDefContainer,TreeNode{
     Input getInput();
 
     void setInput(Input input);

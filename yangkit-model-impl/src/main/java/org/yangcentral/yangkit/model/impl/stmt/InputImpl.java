@@ -105,6 +105,16 @@ public class InputImpl extends SchemaNodeImpl implements Input {
       return this.schemaNodeContainer.getDataNodeChildren();
    }
 
+   @Override
+   public List<SchemaNode> getTreeNodeChildren() {
+      return schemaNodeContainer.getTreeNodeChildren();
+   }
+
+   @Override
+   public SchemaNode getTreeNodeChild(QName identifier) {
+      return schemaNodeContainer.getTreeNodeChild(identifier);
+   }
+
    public void removeSchemaNodeChild(QName identifier) {
       this.schemaNodeContainer.removeSchemaNodeChild(identifier);
    }

@@ -37,7 +37,7 @@ public class YangDataDocumentOperatorImpl implements YangDataDocumentOperator {
 
     @Override
     public void create(AbsolutePath path, YangData<? extends DataNode> child, boolean autoDelete) throws YangDataException {
-        YangData<? extends DataNode> parent = YangDataUtil.search(document,path);
+        YangData<?> parent = YangDataUtil.search(document,path);
         YangDataContainer operateData = null;
         if(parent == null){
             //not found, it may be document
@@ -62,7 +62,7 @@ public class YangDataDocumentOperatorImpl implements YangDataDocumentOperator {
 
     @Override
     public void delete(AbsolutePath path) throws YangDataException {
-        YangData<? extends DataNode> target = YangDataUtil.search(document,path);
+        YangData<?> target = YangDataUtil.search(document,path);
         if(target == null){
             throw new YangDataException(ErrorTag.DATA_MISSING,path,new ErrorMessage("data missing"));
         }
@@ -79,14 +79,14 @@ public class YangDataDocumentOperatorImpl implements YangDataDocumentOperator {
     public void merge(@Nonnull YangDataDocument doc, boolean autoDelete) throws YangDataException {
         YangDataOperatorImpl yangDataOperator = new YangDataOperatorImpl(document);
         yangDataOperator.setDataChangeNotifier(dataChangeNotifier);
-        for(YangData<? extends DataNode> child:doc.getDataChildren()){
-            yangDataOperator.merge(child,autoDelete);
+        for(YangData<?> child:doc.getDataChildren()){
+            yangDataOperator.merge((YangData<? extends DataNode>) child,autoDelete);
         }
     }
 
     @Override
     public void merge(AbsolutePath path, YangData<? extends DataNode> child, boolean autoDelete) throws YangDataException {
-        YangData<? extends DataNode> parent = YangDataUtil.search(document,path);
+        YangData<?> parent = YangDataUtil.search(document,path);
         YangDataContainer operateData = null;
         if(parent == null){
             //not found, it may be document
@@ -113,14 +113,14 @@ public class YangDataDocumentOperatorImpl implements YangDataDocumentOperator {
     public void replace(YangDataDocument doc) throws YangDataException {
         YangDataOperatorImpl yangDataOperator = new YangDataOperatorImpl(document);
         yangDataOperator.setDataChangeNotifier(dataChangeNotifier);
-        for(YangData<? extends DataNode> child:doc.getDataChildren()){
-            yangDataOperator.replace(child);
+        for(YangData<?> child:doc.getDataChildren()){
+            yangDataOperator.replace((YangData<? extends DataNode>) child);
         }
     }
 
     @Override
     public void replace(AbsolutePath path, YangData<? extends DataNode> child, boolean autoDelete) throws YangDataException {
-        YangData<? extends DataNode> parent = YangDataUtil.search(document,path);
+        YangData<?> parent = YangDataUtil.search(document,path);
         YangDataContainer operateData = null;
         if(parent == null){
             //not found, it may be document
@@ -144,7 +144,7 @@ public class YangDataDocumentOperatorImpl implements YangDataDocumentOperator {
     }
 
     @Override
-    public YangData<? extends DataNode> get(AbsolutePath path) {
+    public YangData<?> get(AbsolutePath path) {
         return YangDataUtil.search(document,path);
     }
 }

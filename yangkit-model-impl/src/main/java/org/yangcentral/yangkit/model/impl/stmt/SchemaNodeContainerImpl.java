@@ -38,7 +38,7 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
    public ValidatorResult addSchemaNodeChild(SchemaNode schemaNode) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       if (!(schemaNode instanceof VirtualSchemaNode)) {
-         SchemaNode child = this.getSchemaNodeChild(schemaNode.getIdentifier());
+         SchemaNode child = this.getTreeNodeChild(schemaNode.getIdentifier());
          if (child != null) {
             validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(child, schemaNode));
             schemaNode.setErrorStatement(true);
@@ -119,35 +119,22 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
    }
 
    public SchemaNode getSchemaNodeChild(QName identifier) {
-      try {
-         for (SchemaNode schemaNode : this.schemaNodes) {
-            if (schemaNode instanceof VirtualSchemaNode) {
-               VirtualSchemaNode virtualSchemaNode = (VirtualSchemaNode) schemaNode;
-               SchemaNode node = virtualSchemaNode.getSchemaNodeChild(identifier);
-               if (node != null) {
-                  return node;
-               }
-            } else if (schemaNode.getIdentifier().equals(identifier)) {
-               return schemaNode;
-            }
+      for (SchemaNode schemaNode : this.schemaNodes) {
+         if (schemaNode.getIdentifier().equals(identifier)) {
+            return schemaNode;
          }
-      } catch (RuntimeException e) {
-         e.printStackTrace();
       }
-
       return null;
    }
 
    public DataNode getDataNodeChild(QName identifier) {
       for (SchemaNode schemaNode : this.schemaNodes) {
-         if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
-            if (schemaNode.getIdentifier().equals(identifier)) {
-               if (schemaNode instanceof DataNode) {
-                  return (DataNode) schemaNode;
-               }
-               return null;
+         if (schemaNode instanceof DataNode) {
+            if(schemaNode.getIdentifier().equals(identifier)){
+               return (DataNode) schemaNode;
             }
-         } else {
+
+         }else {
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
             DataNode node = schemaNodeContainer.getDataNodeChild(identifier);
             if (node != null) {
@@ -162,10 +149,8 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
    public List<DataNode> getDataNodeChildren() {
       List<DataNode> dataNodeChildren = new ArrayList<>();
       for (SchemaNode schemaNode : this.schemaNodes) {
-         if (!(schemaNode instanceof VirtualSchemaNode) && !(schemaNode instanceof Choice) && !(schemaNode instanceof Case) && !(schemaNode instanceof Input) && !(schemaNode instanceof Output)) {
-            if (schemaNode instanceof DataNode) {
-               dataNodeChildren.add((DataNode) schemaNode);
-            }
+         if (schemaNode instanceof DataNode) {
+            dataNodeChildren.add((DataNode) schemaNode);
          } else {
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
             dataNodeChildren.addAll(schemaNodeContainer.getDataNodeChildren());
@@ -175,6 +160,42 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       return dataNodeChildren;
 
    }
+
+   @Override
+   public List<SchemaNode> getTreeNodeChildren() {
+      List<SchemaNode> treeNodeChildren = new ArrayList<>();
+      for (SchemaNode schemaNode : this.schemaNodes) {
+         if (schemaNode instanceof TreeNode) {
+            treeNodeChildren.add(schemaNode);
+         } else {
+            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
+            treeNodeChildren.addAll(schemaNodeContainer.getTreeNodeChildren());
+         }
+      }
+
+      return treeNodeChildren;
+   }
+
+   @Override
+   public SchemaNode getTreeNodeChild(QName identifier) {
+      for (SchemaNode schemaNode : this.schemaNodes) {
+         if (schemaNode instanceof TreeNode) {
+            if(schemaNode.getIdentifier().equals(identifier)){
+               return  schemaNode;
+            }
+
+         }else {
+            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
+            SchemaNode node = schemaNodeContainer.getTreeNodeChild(identifier);
+            if (node != null) {
+               return node;
+            }
+         }
+      }
+
+      return null;
+   }
+
    @Override
    public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {
       List<SchemaNode> effectiveSchemaNodes = new ArrayList<>();
