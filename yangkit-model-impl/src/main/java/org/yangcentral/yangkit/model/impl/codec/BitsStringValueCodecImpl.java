@@ -7,10 +7,16 @@ import org.yangcentral.yangkit.model.api.restriction.Restriction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.PatternSyntaxException;
 
 public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>> implements BitsStringValueCodec {
    public List<String> deserialize(Restriction<List<String>> restriction, String input) throws YangCodecException {
-      String[] splitStr = input.split(" ");
+      String[] splitStr;
+      try {
+         splitStr = input.split(" ");
+      } catch (PatternSyntaxException el) {
+         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+      }
       List<String> ret = new ArrayList<>();
       int length = splitStr.length;
 

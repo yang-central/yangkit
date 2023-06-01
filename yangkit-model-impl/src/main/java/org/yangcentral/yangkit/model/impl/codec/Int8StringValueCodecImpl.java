@@ -7,7 +7,12 @@ import org.yangcentral.yangkit.model.api.restriction.Restriction;
 
 public class Int8StringValueCodecImpl extends StringValueCodecImpl<Byte> implements Int8StringValueCodec {
    public Byte deserialize(Restriction<Byte> restriction, String input) throws YangCodecException {
-      Byte b = Byte.valueOf(input);
+      Byte b;
+      try {
+         b = Byte.valueOf(input);
+      } catch (NumberFormatException e) {
+         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+      }
       if (!restriction.evaluated(b)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {

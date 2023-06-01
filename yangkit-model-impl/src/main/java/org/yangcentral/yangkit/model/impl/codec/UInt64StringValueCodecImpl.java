@@ -9,7 +9,12 @@ import java.math.BigInteger;
 
 public class UInt64StringValueCodecImpl extends StringValueCodecImpl<BigInteger> implements UInt64StringValueCodec {
    public BigInteger deserialize(Restriction<BigInteger> restriction, String input) throws YangCodecException {
-      BigInteger bi = new BigInteger(input);
+      BigInteger bi;
+      try {
+         bi = new BigInteger(input);
+      } catch (NumberFormatException e) {
+         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+      }
       if (!restriction.evaluated(bi)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
