@@ -191,7 +191,7 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
          String keyStr = keys[i];
          keyStr = keyStr.trim();
          if (keyStr.length() != 0) {
-            SchemaNode child = this.getSchemaNodeChild(new QName(this.getContext().getNamespace(), keyStr));
+            SchemaNode child = this.getDataNodeChild(new QName(this.getContext().getNamespace(), keyStr));
             if (null != child && child instanceof Leaf) {
                Leaf keyLef = (Leaf) child;
                if(getContext().getCurModule().getEffectiveYangVersion().equals(Yang.VERSION_1)
