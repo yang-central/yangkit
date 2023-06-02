@@ -103,14 +103,15 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
          Range derivedRange = ((Decimal64)this.getDerived().getType().getRestriction()).getEffectiveRange();
          return derivedRange;
       } else {
-         Range newRange = new RangeImpl(this.getLowBound() + ".." + this.getHighBound());
-         newRange.setContext(new YangContext(this.getContext()));
-         newRange.setElementPosition(this.getContext().getSelf().getElementPosition());
-         newRange.setParentStatement(this.getContext().getSelf());
-         newRange.setBound(this.getHighBound(),this.getLowBound());
-         newRange.init();
-         newRange.build();
-         return newRange;
+//         Range newRange = new RangeImpl(this.getLowBound() + ".." + this.getHighBound());
+//         newRange.setContext(new YangContext(this.getContext()));
+//         newRange.setElementPosition(this.getContext().getSelf().getElementPosition());
+//         newRange.setParentStatement(this.getContext().getSelf());
+//         newRange.setBound(this.getHighBound(),this.getLowBound());
+//         newRange.init();
+//         newRange.build();
+//         return newRange;
+         return null;
       }
    }
 

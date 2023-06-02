@@ -7,7 +7,12 @@ import org.yangcentral.yangkit.model.api.restriction.Restriction;
 
 public class UInt32StringValueCodecImpl extends StringValueCodecImpl<Long> implements UInt32StringValueCodec {
    public Long deserialize(Restriction<Long> restriction, String input) throws YangCodecException {
-      Long l = Long.valueOf(input);
+      Long l;
+      try {
+         l = Long.valueOf(input);
+      } catch (NumberFormatException e) {
+         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+      }
       if (!restriction.evaluated(l)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {

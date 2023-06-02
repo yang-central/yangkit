@@ -89,14 +89,15 @@ public class BinaryImpl extends RestrictionImpl<byte[]> implements Binary {
             Binary derivedBinary = (Binary)derived.getType().getRestriction();
             return derivedBinary.getEffectiveLength();
          } else {
-            Length newLength = new LengthImpl(this.getLowBound() + ".." + this.getHighBound());
-            newLength.setContext(new YangContext(this.getContext()));
-            newLength.setElementPosition(this.getContext().getSelf().getElementPosition());
-            newLength.setParentStatement(this.getContext().getSelf());
-            newLength.setBound(this.getHighBound(),this.getLowBound());
-            newLength.init();
-            newLength.build();
-            return newLength;
+//            Length newLength = new LengthImpl(this.getLowBound() + ".." + this.getHighBound());
+//            newLength.setContext(new YangContext(this.getContext()));
+//            newLength.setElementPosition(this.getContext().getSelf().getElementPosition());
+//            newLength.setParentStatement(this.getContext().getSelf());
+//            newLength.setBound(this.getHighBound(),this.getLowBound());
+//            newLength.init();
+//            newLength.build();
+//            return newLength;
+            return null;
          }
       }
    }

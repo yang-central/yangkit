@@ -9,7 +9,12 @@ import java.math.BigDecimal;
 
 public class Decimal64StringValueCodecImpl extends StringValueCodecImpl<BigDecimal> implements Decimal64StringValueCodec {
    public BigDecimal deserialize(Restriction<BigDecimal> restriction, String input) throws YangCodecException {
-      BigDecimal bigDecimal = new BigDecimal(input);
+      BigDecimal bigDecimal;
+      try {
+         bigDecimal = new BigDecimal(input);
+      } catch (NumberFormatException e) {
+         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+      }
       if (!restriction.evaluated(bigDecimal)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {

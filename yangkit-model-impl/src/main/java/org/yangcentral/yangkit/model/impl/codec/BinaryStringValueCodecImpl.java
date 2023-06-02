@@ -23,7 +23,13 @@ public class BinaryStringValueCodecImpl extends StringValueCodecImpl<byte[]> imp
    }
 
    public byte[] deserialize(Restriction<byte[]> restriction, String input) throws YangCodecException {
-      byte[] decode = Base64.getDecoder().decode(input);
+      byte[] decode;
+      try {
+         decode = Base64.getDecoder().decode(input);
+      } catch (IllegalArgumentException e) {
+         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+      }
+
       boolean bool = restriction.evaluated(decode);
       if (!bool) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());

@@ -68,14 +68,15 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
       } else if (this.getDerived() != null) {
          return ((YangString)this.getDerived().getType().getRestriction()).getEffectiveLength();
       } else {
-         Length newLength = new LengthImpl(this.getLowBound() + ".." + this.getHighBound());
-         newLength.setContext(new YangContext(this.getContext()));
-         newLength.setElementPosition(this.getContext().getSelf().getElementPosition());
-         newLength.setParentStatement(this.getContext().getSelf());
-         newLength.setBound(this.getHighBound(),this.getLowBound());
-         newLength.init();
-         newLength.build();
-         return newLength;
+//         Length newLength = new LengthImpl(this.getLowBound() + ".." + this.getHighBound());
+//         newLength.setContext(new YangContext(this.getContext()));
+//         newLength.setElementPosition(this.getContext().getSelf().getElementPosition());
+//         newLength.setParentStatement(this.getContext().getSelf());
+//         newLength.setBound(this.getHighBound(),this.getLowBound());
+//         newLength.init();
+//         newLength.build();
+//         return newLength;
+         return null;
       }
    }
 

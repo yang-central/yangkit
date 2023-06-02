@@ -45,14 +45,15 @@ public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionI
       } else if (this.getDerived() != null) {
          return ((YangInteger)this.getDerived().getType().getRestriction()).getEffectiveRange();
       } else {
-         Range newRange = new RangeImpl(this.getLowBound() + ".." + this.getHighBound());
-         newRange.setContext(new YangContext(this.getContext()));
-         newRange.setElementPosition(this.getContext().getSelf().getElementPosition());
-         newRange.setParentStatement(this.getContext().getSelf());
-         newRange.setBound(this.getHighBound(),this.getLowBound());
-         newRange.init();
-         newRange.build();
-         return newRange;
+//         Range newRange = new RangeImpl(this.getLowBound() + ".." + this.getHighBound());
+//         newRange.setContext(new YangContext(this.getContext()));
+//         newRange.setElementPosition(this.getContext().getSelf().getElementPosition());
+//         newRange.setParentStatement(this.getContext().getSelf());
+//         newRange.setBound(this.getHighBound(),this.getLowBound());
+//         newRange.init();
+//         newRange.build();
+//         return newRange;
+         return null;
       }
    }
 
