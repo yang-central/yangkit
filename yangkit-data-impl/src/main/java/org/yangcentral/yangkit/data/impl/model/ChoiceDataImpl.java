@@ -34,7 +34,7 @@ public class ChoiceDataImpl extends YangDataContainerImpl<Choice> implements Cho
 
     @Override
     public boolean isVirtual() {
-        return super.isVirtual();
+        return true;
     }
 
     @Override
