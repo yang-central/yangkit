@@ -38,6 +38,8 @@ public interface YangData<S extends SchemaNode> extends YangDataEntity<YangData>
 
    boolean isConfig();
 
+   boolean isMandatory();
+
    boolean isDummyNode();
 
    void setDummyNode(boolean bool);

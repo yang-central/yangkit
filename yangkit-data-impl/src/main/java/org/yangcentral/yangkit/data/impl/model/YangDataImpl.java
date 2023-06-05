@@ -11,6 +11,8 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.base.YangDataContext;
+import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
+import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.restriction.LeafRef;
@@ -360,6 +362,47 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
     @Override
     public boolean isConfig() {
         return getSchemaNode().isConfig();
+    }
+
+    @Override
+    public boolean isMandatory() {
+
+        try {
+            if(!checkWhen()){
+                return false;
+            }
+        } catch (JaxenException e) {
+
+        }
+        if(!schemaNode.isMandatory()){
+            return false;
+        }
+        if(this instanceof YangDataContainer){
+            YangDataContainer yangDataContainer = (YangDataContainer) this;
+            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) this.schemaNode;
+            for(SchemaNode childSchemaNode : schemaNodeContainer.getSchemaNodeChildren()){
+                List<YangData<?>> matched = yangDataContainer.getChildren(childSchemaNode.getIdentifier());
+                if(!matched.isEmpty()){
+                    for(YangData<?> childData:matched){
+                        if(childData.isMandatory()){
+                            return true;
+                        }
+                    }
+                } else {
+                    YangData<?> dummyNode = YangDataBuilderFactory.getBuilder().getYangData(childSchemaNode,null);
+                    try {
+                        yangDataContainer.addChild(dummyNode,true);
+                        if(dummyNode.isMandatory()){
+                            yangDataContainer.removeChild(dummyNode.getIdentifier());
+                            return true;
+                        }
+                    } catch (YangDataException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @Override

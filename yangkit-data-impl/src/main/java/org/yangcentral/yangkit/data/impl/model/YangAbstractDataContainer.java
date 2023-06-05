@@ -27,6 +27,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
     private SchemaNodeContainer schemaNodeContainer;
     private Map<DataIdentifier,YangData<?>> children = new ConcurrentHashMap<>();
 
+    private List<YangData<?>> childrenList = new ArrayList<>();
+
 
     public YangAbstractDataContainer(YangDataContainer yangDataContainer) {
         this.self = yangDataContainer;
@@ -47,7 +49,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public List<YangData<?>> getChildren() {
-        return Lists.newArrayList(children.values());
+        return Lists.newArrayList(childrenList);
     }
 
     @Override
@@ -70,20 +72,17 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public List<YangData<?>> getDataChildren() {
-        List<YangData<?>> childrenList = new ArrayList<>();
-        Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
-        while(entries.hasNext()){
-            Map.Entry<DataIdentifier,YangData<?>> entry = entries.next();
-            YangData<?> value = entry.getValue();
+        List<YangData<?>> list = new ArrayList<>();
+        for(YangData<?> value: childrenList){
             if(value.isVirtual()){
                 if(value instanceof YangDataContainer){
-                    childrenList.addAll(((YangDataContainer) value).getDataChildren());
+                    list.addAll(((YangDataContainer) value).getDataChildren());
                 }
             } else {
-                childrenList.add(value);
+                list.add(value);
             }
         }
-        return childrenList;
+        return list;
     }
 
     @Override
@@ -112,38 +111,33 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public List<YangData<?>> getDataChildren(QName qName) {
-        List<YangData<?>> childrenList = new ArrayList<>();
-        Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
-        while(entries.hasNext()){
-            Map.Entry<DataIdentifier,YangData<?>> entry = entries.next();
-            YangData<?> value = entry.getValue();
-            if(value.isVirtual()){
-                if(value instanceof YangDataContainer){
-                    childrenList.addAll(((YangDataContainer) value).getDataChildren(qName));
+        List<YangData<?>> list = new ArrayList<>();
+        for(YangData<?> child:childrenList){
+            if(child.isVirtual()){
+                if(child instanceof YangDataContainer){
+                    list.addAll(((YangDataContainer) child).getDataChildren(qName));
                 }
-            } else if (entry.getKey().getQName().equals(qName)){
-                childrenList.add(value);
+            } else if (child.getIdentifier().getQName().equals(qName)){
+                list.add(child);
             }
         }
-        return childrenList;
+        return list;
     }
 
     @Override
     public List<YangData<?>> getDataChildren(String name) {
-        List<YangData<?>> childrenList = new ArrayList<>();
-        Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
-        while(entries.hasNext()){
-            Map.Entry<DataIdentifier,YangData<?>> entry = entries.next();
-            YangData<?> value = entry.getValue();
+        List<YangData<?>> list = new ArrayList<>();
+        for(YangData<?> value:childrenList){
             if(value.isVirtual()){
                 if(value instanceof YangDataContainer){
-                    childrenList.addAll(((YangDataContainer) value).getDataChildren(name));
+                    list.addAll(((YangDataContainer) value).getDataChildren(name));
                 }
-            } else if (entry.getKey().getQName().getLocalName().equals(name)){
-                childrenList.add(value);
+            } else if (value.getIdentifier().getQName().getLocalName().equals(name)){
+                list.add(value);
             }
         }
-        return childrenList;
+
+        return list;
     }
 
     @Override
@@ -153,7 +147,9 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public YangData<?> removeChild(DataIdentifier identifier) {
-        return children.remove(identifier);
+        YangData<?> child = children.remove(identifier);
+        childrenList.remove(child);
+        return child;
     }
 
     @Override
@@ -229,15 +225,15 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
         YangData<?> oldChild = getChild(child.getIdentifier());
         if(oldChild != null) {
-            if(oldChild.isDummyNode()){
-                self.removeChild(child.getIdentifier());
-                children.put(child.getIdentifier(),child);
-                return;
-            }
+//            if(oldChild.isDummyNode()){
+//                self.removeChild(child.getIdentifier());
+//                children.put(child.getIdentifier(),child);
+//                return;
+//            }
             throw new YangDataException(ErrorTag.DATA_EXISTS,oldChild.getPath(),
                     new ErrorMessage("the child:"+child.getIdentifier() + " is exists."));
         }
-
+        childrenList.add(child);
         children.put(child.getIdentifier(),child);
         child.getContext().setParent(self);
         if(self instanceof YangDataDocument){
