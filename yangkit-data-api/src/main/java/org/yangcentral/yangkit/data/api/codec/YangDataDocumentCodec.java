@@ -7,7 +7,7 @@ import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 public interface YangDataDocumentCodec<T> {
    YangSchemaContext getSchemaContext();
 
-   YangDataDocument deserialize(T var1, ValidatorResultBuilder var2);
+   YangDataDocument deserialize(T document, ValidatorResultBuilder builder);
 
-   T serialize(YangDataDocument var1);
+   T serialize(YangDataDocument yangDataDocument);
 }

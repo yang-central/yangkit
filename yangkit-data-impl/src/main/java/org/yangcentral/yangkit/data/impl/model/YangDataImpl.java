@@ -419,4 +419,24 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
     public DataIdentifier getIdentifier() {
         return identifier;
     }
+
+    @Override
+    public YangData clone() throws CloneNotSupportedException {
+        YangData cloned =  super.clone();
+        cloned.setContext(new YangDataContext(cloned));
+        if(this instanceof YangDataContainer){
+            YangDataContainer yangDataContainer = (YangDataContainer) this;
+            for(YangData<?> child:yangDataContainer.getDataChildren()){
+                YangData<?> childCloned = child.clone();
+                ((YangDataContainer)cloned).removeChild(child.getIdentifier());
+                try {
+                    ((YangDataContainer)cloned).addChild(childCloned);
+                } catch (YangDataException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return cloned;
+
+    }
 }

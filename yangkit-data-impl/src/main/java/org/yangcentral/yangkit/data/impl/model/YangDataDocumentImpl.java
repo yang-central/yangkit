@@ -40,6 +40,17 @@ public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument
     @Override
     public YangDataDocument clone() throws CloneNotSupportedException {
         YangDataDocument cloned = super.clone();
+
+        for(YangData<?> child:this.getChildren()){
+            YangData<?> clonedChild = child.clone();
+            cloned.removeChild(child.getIdentifier());
+            try {
+                cloned.addChild(clonedChild);
+            } catch (YangDataException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        cloned.update();
         return cloned;
     }
 

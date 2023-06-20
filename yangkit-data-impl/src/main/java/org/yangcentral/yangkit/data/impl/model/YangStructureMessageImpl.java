@@ -18,22 +18,22 @@ public class YangStructureMessageImpl extends YangAbstractDataEntry<YangStructur
 
     @Override
     public ValidatorResult validate() {
-        return null;
+        return document.validate();
     }
 
     @Override
     public List<YangDataCompareResult> compare(YangStructureMessage other) {
-        return null;
+        return document.compare(other.getDocument());
     }
 
     @Override
     public YangDataDocument getDocument() {
-        return null;
+        return document;
     }
 
     @Override
     public void setDocument(YangDataDocument document) {
-
+        this.document = document;
     }
 
     @Override
