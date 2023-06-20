@@ -1,3 +1,4 @@
 {
-  "builder": "org.yangcentral.yangkit.data.impl.builder.YangDataBuilder"
+  "builder": "org.yangcentral.yangkit.data.impl.builder.YangDataBuilder",
+  "docbuilder": "org.yangcentral.yangkit.data.impl.builder.YangDataDocumentBuilder"
 }
