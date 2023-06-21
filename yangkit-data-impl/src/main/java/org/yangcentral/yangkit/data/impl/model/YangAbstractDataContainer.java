@@ -260,8 +260,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
     private boolean matchUnique(Unique unique,List<YangData<?>> uniqueData,ListData listData){
         List<YangData<?>> matchedUniqueData = new ArrayList<>();
         for(Leaf leaf:unique.getUniqueNodes()){
-            List<QName> steps = leaf.getSchemaPath().getRelativeSchemaPath(
-                    listData.getSchemaNode().getSchemaPath());
+            List<QName> steps = listData.getSchemaNode().getSchemaPath().getRelativeSchemaPath(leaf.getSchemaPath());
             SchemaPath.Descendant descendant = new DescendantSchemaPath(steps,listData.getSchemaNode());
             List<YangData<?>> matched = YangDataUtil.search(listData,descendant);
             if(matched.isEmpty()){
