@@ -426,7 +426,7 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
         cloned.setContext(new YangDataContext(cloned));
         if(this instanceof YangDataContainer){
             YangDataContainer yangDataContainer = (YangDataContainer) this;
-            for(YangData<?> child:yangDataContainer.getDataChildren()){
+            for(YangData<?> child:yangDataContainer.getChildren()){
                 YangData<?> childCloned = child.clone();
                 ((YangDataContainer)cloned).removeChild(child.getIdentifier());
                 try {
