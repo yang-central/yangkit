@@ -9,7 +9,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
 
 public class YangDataDocumentBuilderFactory {
+    private static YangDataDocumentBuilder builder;
     public static YangDataDocumentBuilder getBuilder(){
+        if(builder != null){
+            return builder;
+        }
         InputStream inputStream = YangDataDocumentBuilderFactory.class.getResourceAsStream("/builder.json");
         Scanner s = new Scanner(inputStream).useDelimiter("\\A");
         String result = s.hasNext()?s.next():"";
@@ -18,7 +22,8 @@ public class YangDataDocumentBuilderFactory {
         String builderClassStr = jsonObject.get("docbuilder").getAsString();
         try {
             Class<YangDataDocumentBuilder> builderClass = (Class<YangDataDocumentBuilder>) Class.forName(builderClassStr);
-            return builderClass.getConstructor().newInstance();
+            builder = builderClass.getConstructor().newInstance();
+            return builder;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {
