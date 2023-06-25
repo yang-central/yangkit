@@ -15,4 +15,7 @@ import java.util.List;
 public interface YangDataDocument extends YangDataContainer,YangDataEntity<YangDataDocument>{
    YangSchemaContext getSchemaContext();
 
+   void setOnlyConfig(boolean onlyConfig);
+
+   boolean onlyConfig();
 }

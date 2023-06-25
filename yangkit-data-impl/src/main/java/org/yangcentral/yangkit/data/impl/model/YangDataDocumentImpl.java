@@ -13,6 +13,8 @@ import java.util.List;
 public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument> implements YangDataDocument {
     private YangAbstractDataContainer container;
     private YangSchemaContext schemaContext;
+
+    private boolean onlyConfig;
     public YangDataDocumentImpl(QName qName,YangSchemaContext yangDataContainer) {
         super(qName);
         this.schemaContext = yangDataContainer;
@@ -25,6 +27,15 @@ public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument
         return schemaContext;
     }
 
+    @Override
+    public void setOnlyConfig(boolean onlyConfig) {
+        this.onlyConfig = onlyConfig;
+    }
+
+    @Override
+    public boolean onlyConfig() {
+        return onlyConfig;
+    }
 
 
     @Override

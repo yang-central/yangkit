@@ -391,6 +391,11 @@ public class YangAbstractDataContainer implements YangDataContainer {
         //build schema children match record map
         Map<QName,List<YangData<?>>> matchRecord = new ConcurrentHashMap<>();
         for(SchemaNode schemaNode: schemaNodeContainer.getSchemaNodeChildren()){
+            if(YangDataUtil.onlyConfig(self)){
+                if(!schemaNode.isConfig()){
+                    continue;
+                }
+            }
             matchRecord.put(schemaNode.getIdentifier(),new ArrayList<YangData<?>>());
         }
         for(YangData<?> child:self.getChildren()){

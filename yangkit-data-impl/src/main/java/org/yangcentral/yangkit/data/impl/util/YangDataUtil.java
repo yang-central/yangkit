@@ -168,5 +168,26 @@ public class YangDataUtil {
         return true;
     }
 
+    public static boolean onlyConfig(YangData<?> yangData){
+        if(null == yangData){
+            return false;
+        }
+        if(null == yangData.getContext().getDocument()){
+            return false;
+        }
+        return yangData.getContext().getDocument().onlyConfig();
+    }
 
+    public static boolean onlyConfig(YangDataContainer yangDataContainer){
+        if(null == yangDataContainer){
+            return false;
+        }
+        if(yangDataContainer instanceof YangDataDocument){
+            YangDataDocument yangDataDocument = (YangDataDocument) yangDataContainer;
+            return yangDataDocument.onlyConfig();
+        } else {
+            YangData yangData = (YangData) yangDataContainer;
+            return onlyConfig(yangData);
+        }
+    }
 }
