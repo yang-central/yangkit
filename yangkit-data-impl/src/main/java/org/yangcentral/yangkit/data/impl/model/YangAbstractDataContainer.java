@@ -370,11 +370,11 @@ public class YangAbstractDataContainer implements YangDataContainer {
                         if(size < minElements){
                             validatorRecordBuilder.setErrorAppTag(ErrorAppTag.TOO_FEW_ELEMENTS.getName());
                             validatorRecordBuilder.setErrorMessage(new ErrorMessage("too few elements for node:"
-                            + schemaNode.getIdentifier().getQualifiedName() + "min-elements:"+ minElements));
+                            + schemaNode.getIdentifier().getQualifiedName() + " min-elements:"+ minElements));
                         } else {
                             validatorRecordBuilder.setErrorAppTag(ErrorAppTag.TOO_MANY_ELEMENTS.getName());
                             validatorRecordBuilder.setErrorMessage(new ErrorMessage("too many elements for node:"
-                                    + schemaNode.getIdentifier().getQualifiedName() + "max-elements:"+ maxElements));
+                                    + schemaNode.getIdentifier().getQualifiedName() + " max-elements:"+ maxElements));
                         }
                         validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                     }
