@@ -5,6 +5,7 @@ import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.data.api.model.YangData;
+import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Identity;
@@ -35,15 +36,20 @@ public class DerivedFromFunction implements Function {
             if (null == destIdentity) {
                throw new FunctionCallException("argument error, the second argument:" + dest + " can't find corresponding identity");
             } else {
-               Iterator var10 = sourceDataset.iterator();
+               Iterator iterator = sourceDataset.iterator();
 
-               while(var10.hasNext()) {
-                  YangData yangData = (YangData)var10.next();
+               while(iterator.hasNext()) {
+                  YangData yangData = (YangData)iterator.next();
                   if (yangData.getSchemaNode() instanceof TypedDataNode) {
                      TypedDataNode typedDataNode = (TypedDataNode)yangData.getSchemaNode();
                      if (typedDataNode.getType().getRestriction() instanceof IdentityRef) {
                         TypedData typedData = (TypedData)yangData;
-                        QName qName = (QName)typedData.getValue();
+                        QName qName = null;
+                        try {
+                           qName = (QName)(typedData.getValue().getValue());
+                        } catch (YangCodecException e) {
+                           throw new FunctionCallException(e.getMessage());
+                        }
                         Identity sourceIdentity = XPathUtil.getIdentity(schemaContext, qName.getNamespace().toString(), qName.getLocalName());
                         if (sourceIdentity != null && sourceIdentity.isDerived(destIdentity)) {
                            return true;

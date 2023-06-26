@@ -2,6 +2,7 @@ package org.yangcentral.yangkit.xpath.impl.function;
 
 import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.data.api.model.YangData;
+import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.xpath.impl.YangAbsoluteLocationPathImpl;
 import org.yangcentral.yangkit.model.api.restriction.InstanceIdentifier;
 import org.yangcentral.yangkit.model.api.restriction.LeafRef;
@@ -26,7 +27,8 @@ public class DeRefFunction implements Function {
                return Collections.EMPTY_LIST;
             } else {
                TypedData typedData = (TypedData)node;
-               if (!(((TypedDataNode)typedData.getSchemaNode()).getType().getRestriction() instanceof LeafRef) && !(((TypedDataNode)typedData.getSchemaNode()).getType().getRestriction() instanceof InstanceIdentifier)) {
+               if (!(((TypedDataNode)typedData.getSchemaNode()).getType().getRestriction() instanceof LeafRef)
+                       && !(((TypedDataNode)typedData.getSchemaNode()).getType().getRestriction() instanceof InstanceIdentifier)) {
                   return Collections.EMPTY_LIST;
                } else if (((TypedDataNode)typedData.getSchemaNode()).getType().getRestriction() instanceof LeafRef) {
                   LeafRef leafRef = (LeafRef)((TypedDataNode)typedData.getSchemaNode()).getType().getRestriction();
@@ -38,17 +40,23 @@ public class DeRefFunction implements Function {
                      } else {
                         return Collections.EMPTY_LIST;
                      }
-                  } catch (JaxenException var9) {
+                  } catch (JaxenException e) {
                      return Collections.EMPTY_LIST;
                   }
                } else {
-                  YangAbsoluteLocationPathImpl yangAbsoluteLocationPath = (YangAbsoluteLocationPathImpl)typedData.getValue();
-
+                  YangAbsoluteLocationPathImpl yangAbsoluteLocationPath = null;
                   try {
-                     return yangAbsoluteLocationPath.evaluate(context);
-                  } catch (JaxenException var10) {
-                     return Collections.EMPTY_LIST;
+                     yangAbsoluteLocationPath = (YangAbsoluteLocationPathImpl)(typedData.getValue().getValue());
+                     try {
+                        return yangAbsoluteLocationPath.evaluate(context);
+                     } catch (JaxenException e) {
+                        return Collections.EMPTY_LIST;
+                     }
+                  } catch (YangCodecException e) {
+                     throw new FunctionCallException(e);
                   }
+
+
                }
             }
          }

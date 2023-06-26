@@ -2,6 +2,7 @@ package org.yangcentral.yangkit.xpath.impl.function;
 
 import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.data.api.model.YangData;
+import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Bits;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 import java.util.List;
@@ -24,7 +25,12 @@ public class BitIsSetFunction implements Function {
                if (!(((TypedDataNode)typedData.getSchemaNode()).getType().getRestriction() instanceof Bits)) {
                   return false;
                } else {
-                  List<String> value = (List)typedData.getValue();
+                  List<String> value = null;
+                  try {
+                     value = (List)(typedData.getValue().getValue());
+                  } catch (YangCodecException e) {
+                     throw new FunctionCallException(e);
+                  }
                   String bitName = (String)args.get(1);
                   return value.contains(bitName);
                }
