@@ -14,8 +14,7 @@ import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.utils.file.FileUtil;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +23,15 @@ public class YangYinParser {
    static {
       YangStatementImplRegister.registerImpl();
    }
+
+   /**
+    * parse yang modules from a list of yang file
+    * @param yangFiles
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
    public static YangSchemaContext parse(List<File> yangFiles) throws IOException, YangParserException, DocumentException {
       if (null == yangFiles) {
          return null;
@@ -64,21 +72,59 @@ public class YangYinParser {
       return yangFiles;
    }
 
+   /**
+    * parse yang modules from yang directory file
+    * @param yangDir yang directory file
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
+
    public static YangSchemaContext parse(File yangDir) throws IOException, YangParserException, DocumentException {
       List<File> files = getYangFiles(yangDir);
       return parse(files);
    }
+
+   /**
+    * parse yang modules from a directory file
+    * @param yangDir yang directory file
+    * @param context yang schema context
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
 
    public static YangSchemaContext parse(File yangDir, YangSchemaContext context) throws IOException, YangParserException, DocumentException {
       List<File> files = getYangFiles(yangDir);
       return parse(files, context);
    }
 
+   /**
+    * parse yang modules from a directory
+    * @param yangDir a directory contains yang/yin modules
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
+
    public static YangSchemaContext parse(String yangDir) throws IOException, YangParserException, DocumentException {
       File dir = new File(yangDir);
       return parse(dir);
    }
 
+   /**
+    * parse yang modules from a directory with a dependency directory and capabilities
+    * @param yangDir directory contains yang/yin modules
+    * @param dependency directory contains yang/yin modules for dependency
+    * @param capabilities capabilities xml like NETCONF capabilities
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
    public static YangSchemaContext parse(String yangDir, String dependency, String capabilities) throws IOException, YangParserException, DocumentException {
       YangSchemaContext schemaContext = parse(yangDir, capabilities);
       if (dependency != null) {
@@ -97,6 +143,16 @@ public class YangYinParser {
 
       return schemaContext;
    }
+
+   /**
+    * parse yang modules from a directory and with capabilities
+    * @param yangDir  a directory contains yang/yin modules
+    * @param capabilities capabilities xml like NETCONF capabilities
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
 
    public static YangSchemaContext parse(String yangDir, String capabilities) throws IOException, YangParserException, DocumentException {
       YangSchemaContext schemaContext = parse(yangDir);
@@ -177,53 +233,137 @@ public class YangYinParser {
       return schemaContext;
    }
 
+   /**
+    * parse yang modules from a directory
+    * @param yangDir a directory contains yang/yin modules
+    * @param context yang schema context
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
+
    public static YangSchemaContext parse(String yangDir, YangSchemaContext context) throws IOException, YangParserException, DocumentException {
       File dir = new File(yangDir);
       return parse(dir, context);
    }
 
-   public static YangSchemaContext parse(List<File> files, YangSchemaContext context) throws IOException, YangParserException, DocumentException {
+   private static String readString(InputStream inputStream) throws IOException {
+      BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+
+      String temp = null;
+      StringBuffer sb = new StringBuffer();
+
+      for(temp = br.readLine(); temp != null; temp = br.readLine()) {
+         sb.append(temp + "\n");
+      }
+
+      br.close();
+      return sb.toString();
+   }
+
+   /**
+    * parse YANG module from inputStream, not import-only
+    * @param inputStream
+    * @param moduleInfo
+    * @param context
+    * @return
+    * @throws YangParserException
+    * @throws IOException
+    * @throws DocumentException
+    */
+
+   public static YangSchemaContext parse(InputStream inputStream,
+                                         String moduleInfo,
+                                         YangSchemaContext context)
+           throws YangParserException, IOException, DocumentException {
+      return parse(inputStream,moduleInfo,true,false,context);
+   }
+
+   /**
+    * parse YANG/YIN module from inputStream
+    * @param inputStream  the candidate input stream
+    * @param moduleInfo  the description of the module, it often indicates the position information and module information
+    *                    for example, "ftp://10.1.1.1/ietf-interfaces@2019-07-31"
+    *                    or "C:\documents\yang\ietf-interfaces@2019-07-31.yang"
+    * @param isYang
+    * @param importOnly
+    * @param context
+    * @return
+    * @throws YangParserException
+    * @throws IOException
+    * @throws DocumentException
+    */
+   public static YangSchemaContext parse(InputStream inputStream,
+                                         String moduleInfo,
+                                         boolean isYang,
+                                         boolean importOnly,
+                                         YangSchemaContext context)
+           throws YangParserException, IOException, DocumentException {
+      List<YangElement> yangElements;
+
+      if (isYang) {
+         String yangString = readString(inputStream);
+         YangParser yangParser = new YangParser();
+         YangParserEnv env = new YangParserEnv();
+         env.setYangStr(yangString);
+         env.setFilename(moduleInfo);
+         env.setCurPos(0);
+         yangElements = yangParser.parseYang(yangString, env);
+      } else {
+         YinParser yinParser = new YinParser(moduleInfo);
+         SAXReader reader = new SAXReader();
+         Document document = reader.read(inputStream);
+         yangElements = yinParser.parse(document);
+      }
+
+      if(yangElements == null || yangElements.isEmpty()){
+         return context;
+      }
+      context.getParseResult().put(moduleInfo, yangElements);
+      for(YangElement yangElement: yangElements){
+         if(yangElement instanceof Module){
+            Module module = (Module) yangElement;
+            if(context.getYangSchema() != null){
+               YangSchema yangSchema = context.getYangSchema();
+               String revision = null;
+               List<YangStatement> revisions = module.getSubStatement(YangBuiltinKeyword.REVISION.getQName());
+               if(!revisions.isEmpty()){
+                  revision = revisions.get(0).getArgStr();
+               }
+               if (!yangSchema.match(new ModuleId(module.getArgStr(),revision))){
+                  continue;
+               }
+            }
+            if(importOnly){
+               context.addImportOnlyModule(module);
+            } else {
+               context.addModule(module);
+            }
+
+            break;
+         }
+      }
+      return context;
+   }
+
+   /**
+    * parse yang modules from a list of files
+    * @param files a list of files
+    * @param context yang schema context
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
+
+   public static YangSchemaContext parse(List<File> files, YangSchemaContext context)
+           throws IOException, YangParserException, DocumentException {
       List<File> yangFiles = getYangFiles(files);
 
       for (File yangFile : yangFiles){
-         List<YangElement> yangElements;
-         if (yangFile.getName().endsWith(Yang.YANG_SUFFIX)) {
-            YangParser yangParser = new YangParser();
-            String yangStr = FileUtil.readFile2String(yangFile);
-            YangParserEnv env = new YangParserEnv();
-            env.setYangStr(yangStr);
-            env.setFilename(yangFile.getAbsolutePath());
-            env.setCurPos(0);
-            yangElements = yangParser.parseYang(yangStr, env);
-         } else {
-            YinParser yinParser = new YinParser(yangFile.getAbsolutePath());
-            SAXReader reader = new SAXReader();
-            Document document = reader.read(yangFile);
-            yangElements = yinParser.parse(document);
-         }
-
-         if(yangElements == null || yangElements.isEmpty()){
-            continue;
-         }
-         context.getParseResult().put(yangFile.getAbsolutePath(), yangElements);
-         for(YangElement yangElement: yangElements){
-            if(yangElement instanceof Module){
-               Module module = (Module) yangElement;
-               if(context.getYangSchema() != null){
-                  YangSchema yangSchema = context.getYangSchema();
-                  String revision = null;
-                  List<YangStatement> revisions = module.getSubStatement(YangBuiltinKeyword.REVISION.getQName());
-                  if(!revisions.isEmpty()){
-                     revision = revisions.get(0).getArgStr();
-                  }
-                  if (!yangSchema.match(new ModuleId(module.getArgStr(),revision))){
-                     continue;
-                  }
-               }
-               context.addModule(module);
-               break;
-            }
-         }
+         context = parse(new FileInputStream(yangFile), yangFile.getAbsolutePath(),
+                 yangFile.getName().endsWith(Yang.YANG_SUFFIX),false,context);
       }
 
       return context;
