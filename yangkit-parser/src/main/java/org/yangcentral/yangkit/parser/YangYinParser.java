@@ -14,6 +14,7 @@ import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.utils.file.FileUtil;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -275,7 +276,7 @@ public class YangYinParser {
 
    public static YangSchemaContext parse(InputStream inputStream,
                                          String moduleInfo,
-                                         YangSchemaContext context)
+                                         @Nullable YangSchemaContext context)
            throws YangParserException, IOException, DocumentException {
       return parse(inputStream,moduleInfo,true,false,context);
    }
@@ -298,9 +299,12 @@ public class YangYinParser {
                                          String moduleInfo,
                                          boolean isYang,
                                          boolean importOnly,
-                                         YangSchemaContext context)
+                                         @Nullable YangSchemaContext context)
            throws YangParserException, IOException, DocumentException {
       List<YangElement> yangElements;
+      if(null == context){
+         context = YangStatementRegister.getInstance().getSchemeContextInstance();
+      }
 
       if (isYang) {
          String yangString = readString(inputStream);

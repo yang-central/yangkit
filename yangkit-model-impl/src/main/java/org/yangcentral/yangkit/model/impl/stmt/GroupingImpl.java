@@ -35,6 +35,7 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       this.dataDefContainer.setYangContext(context);
       this.groupingDefContainer.setYangContext(context);
       this.notificationContainer.setYangContext(context);
+      this.typedefContainer.setYangContext(context);
    }
 
    public GroupingImpl(String argStr) {
