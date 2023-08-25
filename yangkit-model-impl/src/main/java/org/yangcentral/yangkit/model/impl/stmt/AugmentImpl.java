@@ -217,7 +217,9 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
 
             return validatorResultBuilder.build();
          case SCHEMA_EXPAND:
-            for (SchemaNode child: getSchemaNodeChildren()) {
+            List<SchemaNode> schemaNodes = new ArrayList<>();
+            schemaNodes.addAll(getSchemaNodeChildren());
+            for (SchemaNode child: schemaNodes) {
                if (child instanceof DataDefinition) {
                   if (!(this.target instanceof DataDefContainer)) {
                      validatorResultBuilder.addRecord(

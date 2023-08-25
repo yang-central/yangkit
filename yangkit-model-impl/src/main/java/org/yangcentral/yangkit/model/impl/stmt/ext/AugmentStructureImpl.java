@@ -287,7 +287,9 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
                                     ErrorCode.TARGET_CAN_NOT_AUGMENTED.getFieldName()));
                         }
                         this.setTarget(target);
-                        iterator = this.getSchemaNodeChildren().iterator();
+                        List<SchemaNode> schemaNodes = new ArrayList<>();
+                        schemaNodes.addAll(this.getSchemaNodeChildren());
+                        iterator = schemaNodes.iterator();
                         while(iterator.hasNext()) {
                             child = iterator.next();
                             if (child instanceof DataDefinition) {
