@@ -44,6 +44,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    public YangSchemaContextImpl() {
    }
 
+
    public Optional<Module> getModule(String name, String revision) {
       return this.getModule(new ModuleId(name, revision));
    }
@@ -97,14 +98,14 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    public List<Module> getModule(URI namespace) {
-      List<Module> candiate = new ArrayList<>();
+      List<Module> candidate = new ArrayList<>();
       Iterator<List<Module>> valueIt = this.moduleMap.values().iterator();
 
       while(true) {
          List<Module> modules;
          do {
             if (!valueIt.hasNext()) {
-               return candiate;
+               return candidate;
             }
 
             modules = valueIt.next();
@@ -114,7 +115,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
             if (module.getMainModule() != null) {
                URI uri = module.getMainModule().getNamespace().getUri();
                if (uri.equals(namespace)) {
-                  candiate.add(module);
+                  candidate.add(module);
                }
             }
          }
@@ -131,40 +132,34 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    public void addModule(Module module) {
+      if(getModule(module.getModuleId()).isPresent()) {
+         Module matchedModule = getModule(module.getModuleId()).get();
+         if(isImportOnly(matchedModule)){
+            removeModule(matchedModule.getModuleId());
+         } else {
+            return;
+         }
+      }
       List<Module> filterModules = this.moduleMap.get(module.getArgStr());
-      if (filterModules != null && filterModules.size() != 0) {
-         filterModules.add(module);
-      } else {
+      if(filterModules == null || filterModules.isEmpty()) {
          filterModules = new ArrayList<>();
-         filterModules.add(module);
          this.moduleMap.put(module.getArgStr(), filterModules);
       }
-
+      filterModules.add(module);
       this.modules.add(module);
    }
 
    public void addImportOnlyModule(Module module) {
-      List<Module> filterModules = this.moduleMap.get(module.getArgStr());
-      if (filterModules != null && filterModules.size() != 0) {
-         Iterator<Module> iterator = filterModules.iterator();
-
-         Module candidate;
-         do {
-            if (!iterator.hasNext()) {
-               filterModules.add(module);
-               this.importOnlyModules.add(module);
-               return;
-            }
-
-            candidate = iterator.next();
-         } while(!candidate.getModuleId().equals(module.getModuleId()));
-
-      } else {
-         filterModules = new ArrayList<>();
-         filterModules.add(module);
-         this.moduleMap.put(module.getArgStr(), filterModules);
-         this.importOnlyModules.add(module);
+      if(getModule(module.getModuleId()).isPresent()){
+         return;
       }
+      List<Module> filterModules = this.moduleMap.get(module.getArgStr());
+      if(filterModules == null || filterModules.isEmpty()) {
+         filterModules = new ArrayList<>();
+         this.moduleMap.put(module.getArgStr(), filterModules);
+      }
+      filterModules.add(module);
+      importOnlyModules.add(module);
    }
 
    public boolean isImportOnly(Module module) {
