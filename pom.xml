@@ -16,6 +16,7 @@
         <module>yangkit-data-impl</module>
         <module>yangkit-data-json-codec</module>
         <module>yangkit-data-xml-codec</module>
+        <module>yangkit-examples</module>
     </modules>
     <packaging>pom</packaging>
     <name>yangkit</name>
