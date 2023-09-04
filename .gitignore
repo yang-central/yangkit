@@ -2,8 +2,13 @@
 /dataSourceType/
 /yangkit-data-api/dataSourceType/
 /yangkit-data-api/yangkit-data-api.iml
-yangkit-data-impl/dataSourceType/
+/yangkit-data-impl/dataSourceType/
 /yangkit-model-api/dataSourceType/
+/yangkit-data-impl/target/
+/yangkit-data-impl/yangkit-data-impl.iml
+/yangkit-data-json-codec/target/
+/yangkit-data-json-codec/yangkit-data-json-codec
+/yangkit-model-api/target/
 /yangkit-model-api/yangkit-model-api.iml
 /yangkit-model-impl/dataSourceType/
 /yangkit-model-impl/yangkit-model-impl.iml
