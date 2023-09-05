@@ -27,13 +27,12 @@ import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 /**
- * Schema provider at Kafka usecase: from yangString, validation
+ * Schema provider at Kafka usecase: validate from yangString
  *
  */
 public class App {

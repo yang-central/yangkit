@@ -16,20 +16,23 @@
 
 package com.insa.app;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.dom4j.DocumentException;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.model.YangDataDocument;
+import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
-import org.yangcentral.yangkit.register.YangStatementRegister;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 /**
  * Usecase on how to use yang to validate a json
@@ -38,7 +41,6 @@ import java.net.URL;
 public class App2 {
     public static void main(String[] args) throws IOException, YangParserException, DocumentException {
         InputStream inputStream = App2.class.getClassLoader().getResourceAsStream("insa-test.yang");
-        YangSchemaContext context = YangStatementRegister.getInstance().getSchemeContextInstance();
 
         // Parsing module
         YangSchemaContext schemaContext = YangYinParser.parse(inputStream, "insa-custom", null);
@@ -46,30 +48,36 @@ public class App2 {
         System.out.println("Valid? " + result.isOk());
         System.out.println("Size modules = " + schemaContext.getModules().size());
 
-        for (Module module : schemaContext.getModules()) {
-            System.out.println("prefix: " + module.getSelfPrefix());
-            System.out.println(module.getCurRevision().get());
-        }
-
-        // Parsing from file with a dependance
-        System.out.println("-------------------");
-        URL dependentYang = App2.class.getClassLoader().getResource("insa-test-dependence.yang");
-        schemaContext = YangYinParser.parse(dependentYang.getFile(), schemaContext);
-        ValidatorResult result2 = schemaContext.validate();
-        System.out.println("Second yang is valid ? " + result2.isOk());
-        if (!result2.isOk()) {
-            for (ValidatorRecord<?, ?> record : result2.getRecords()) {
-                System.out.println("Error: " + record.getErrorMsg().getMessage());
-            }
-        }
-
-        System.out.println("Total modules in context: " + schemaContext.getModules().size());
-
         int count = 0;
         for (Module module : schemaContext.getModules()) {
             System.out.println(count + "-> prefix: " + module.getSelfPrefix());
             System.out.println(count + "-> " + module.getCurRevision().get());
             count++;
+        }
+
+        if (!result.isOk()) {
+            for (ValidatorRecord<?, ?> record : result.getRecords()) {
+                System.out.println("Error: " + record.getErrorMsg().getMessage());
+            }
+        }
+
+        // Get JSON message
+        InputStream jsonInputStream = App2.class.getClassLoader().getResourceAsStream("json/insa-test.json");
+        Reader jsonReader = new InputStreamReader(jsonInputStream);
+        JsonElement jsonElement = new JsonParser().parse(jsonReader).getAsJsonObject();
+        System.out.println(jsonElement);
+
+        // Validating
+        YangDataDocumentJsonCodec yangDataDocumentJsonCodec = new YangDataDocumentJsonCodec();
+        YangDataDocument document = yangDataDocumentJsonCodec.deserialize(jsonElement, new ValidatorResultBuilder());
+        ValidatorResult validatorResult = document.validate();
+
+        if (validatorResult.isOk()) {
+            System.out.println("JSON is valid");
+        } else {
+            for (ValidatorRecord<?, ?> record : validatorResult.getRecords()) {
+                System.out.println("Error: " + record.getErrorMsg().getMessage());
+            }
         }
     }
 }
