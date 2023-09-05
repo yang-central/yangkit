@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * Usecase on how to use yang to validate a json
@@ -36,12 +37,7 @@ import java.io.InputStream;
  */
 public class App2 {
     public static void main(String[] args) throws IOException, YangParserException, DocumentException {
-        String yang =
-            new String(
-                new FileInputStream("/Users/ahuangfeng/Unyte/shared/kafka-mesh/test-yangs/yang/schemas/insa-custom.yang")
-                    .readAllBytes());
-        // Simulating parsing YANG from inputStream
-        InputStream inputStream = new ByteArrayInputStream(yang.getBytes());
+        InputStream inputStream = App2.class.getClassLoader().getResourceAsStream("insa-test.yang");
         YangSchemaContext context = YangStatementRegister.getInstance().getSchemeContextInstance();
 
         // Parsing module
@@ -57,7 +53,8 @@ public class App2 {
 
         // Parsing from file with a dependance
         System.out.println("-------------------");
-        schemaContext = YangYinParser.parse("/Users/ahuangfeng/Unyte/shared/kafka-mesh/test-yangs/yang/schemas/kafka-custom.yang", schemaContext);
+        URL dependentYang = App2.class.getClassLoader().getResource("insa-test-dependence.yang");
+        schemaContext = YangYinParser.parse(dependentYang.getFile(), schemaContext);
         ValidatorResult result2 = schemaContext.validate();
         System.out.println("Second yang is valid ? " + result2.isOk());
         if (!result2.isOk()) {

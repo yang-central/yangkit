@@ -29,6 +29,7 @@ import org.yangcentral.yangkit.register.YangStatementRegister;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -37,17 +38,15 @@ import java.util.List;
  */
 public class App {
     public static void main(String[] args) throws IOException {
-        String yang =
-            new String(
-                new FileInputStream("/Users/ahuangfeng/Unyte/shared/kafka-mesh/test-yangs/yang/schemas/insa-custom.yang")
-                    .readAllBytes());
+        InputStream inputStream = App.class.getClassLoader().getResourceAsStream("insa-test.yang");
+        String yang = new String(inputStream.readAllBytes());
         System.out.println(yang);
 
         YangStatementImplRegister.registerImpl();
         YangParser yangParser = new YangParser();
         YangParserEnv yangParserEnv = new YangParserEnv();
         yangParserEnv.setYangStr(yang);
-        yangParserEnv.setFilename("insa-custom");
+        yangParserEnv.setFilename("insa-test");
         yangParserEnv.setCurPos(0);
         List<YangElement> yangElements;
         try {
