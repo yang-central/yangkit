@@ -61,7 +61,7 @@ public class App2 {
             }
         }
 
-        // Get JSON message
+        // Get JSON message --> TODO: migrate to Jackson
         InputStream jsonInputStream = App2.class.getClassLoader().getResourceAsStream("json/insa-test.json");
         Reader jsonReader = new InputStreamReader(jsonInputStream);
         JsonElement jsonElement = new JsonParser().parse(jsonReader).getAsJsonObject();
