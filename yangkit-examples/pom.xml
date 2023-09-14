@@ -54,13 +54,13 @@
         </dependency>
         <dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
-            <artifactId>yangkit-parser</artifactId>
+            <artifactId>yangkit-data-json-codec</artifactId>
             <version>${yangkit.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
-            <artifactId>yangkit-data-json-codec</artifactId>
+            <artifactId>yangkit-data-impl</artifactId>
             <version>${yangkit.version}</version>
             <scope>compile</scope>
         </dependency>

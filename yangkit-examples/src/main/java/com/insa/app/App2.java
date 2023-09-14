@@ -22,10 +22,13 @@ import org.dom4j.DocumentException;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.model.NotificationData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
+import org.yangcentral.yangkit.data.impl.model.NotificationMessageImpl;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.model.impl.stmt.ext.YangDataStructureImpl;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
 
@@ -68,16 +71,22 @@ public class App2 {
         System.out.println(jsonElement);
 
         // Validating
-        YangDataDocumentJsonCodec yangDataDocumentJsonCodec = new YangDataDocumentJsonCodec();
-        YangDataDocument document = yangDataDocumentJsonCodec.deserialize(jsonElement, new ValidatorResultBuilder());
-        ValidatorResult validatorResult = document.validate();
-
-        if (validatorResult.isOk()) {
-            System.out.println("JSON is valid");
-        } else {
-            for (ValidatorRecord<?, ?> record : validatorResult.getRecords()) {
-                System.out.println("Error: " + record.getErrorMsg().getMessage());
-            }
-        }
+//        YangDataDocumentJsonCodec yangDataDocumentJsonCodec = new YangDataDocumentJsonCodec(schemaContext); // Api not supported yet
+//        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+//        YangDataDocument document = yangDataDocumentJsonCodec.deserialize(jsonElement, validatorResultBuilder);
+//        ValidatorResult validatorResult1 = validatorResultBuilder.build();
+//
+//        if (!validatorResult1.isOk()){
+//            System.out.println("Validation of YANG error");
+//        }
+//
+//        ValidatorResult validatorResult2 = document.validate();
+//        if (validatorResult2.isOk()) {
+//            System.out.println("JSON is valid");
+//        } else {
+//            for (ValidatorRecord<?, ?> record : validatorResult2.getRecords()) {
+//                System.out.println("Error: " + record.getErrorMsg().getMessage());
+//            }
+//        }
     }
 }
