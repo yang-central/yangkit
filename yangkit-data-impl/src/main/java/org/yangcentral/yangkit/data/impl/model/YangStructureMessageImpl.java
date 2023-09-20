@@ -8,7 +8,7 @@ import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
 
 import java.util.List;
 
-public class YangStructureMessageImpl extends YangAbstractDataEntry<YangStructureMessage> implements YangStructureMessage {
+public class YangStructureMessageImpl<T extends YangStructureMessage> extends YangDataMessageImpl<T> implements YangStructureMessage<T> {
     YangDataStructure structure;
     YangDataDocument document;
     public YangStructureMessageImpl(YangDataStructure structure) {

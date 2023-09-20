@@ -29,6 +29,12 @@ public interface SchemaNode extends Entity {
 
    QName getIdentifier();
 
+   default String getJsonIdentifier() {
+      return getContext().getCurModule().getMainModule().getArgStr()
+              + ":"
+              + getIdentifier().getLocalName();
+   }
+
    boolean isAncestorNode(SchemaNode ancestor);
 
    default boolean isActive() {

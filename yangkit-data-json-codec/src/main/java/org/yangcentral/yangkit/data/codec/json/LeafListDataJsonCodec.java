@@ -8,7 +8,7 @@ import org.yangcentral.yangkit.data.api.model.LeafListData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.model.api.stmt.LeafList;
 
-public class LeafListDataJsonCodec extends TypedDataJsonCodec<LeafList, LeafListData> {
+public class LeafListDataJsonCodec extends TypedDataJsonCodec<LeafList, LeafListData<?>> {
     protected LeafListDataJsonCodec(LeafList schemaNode) {
         super(schemaNode);
     }
@@ -29,10 +29,6 @@ public class LeafListDataJsonCodec extends TypedDataJsonCodec<LeafList, LeafList
             validatorResultBuilder.addRecord(recordBuilder.build());
         }
         return null;
-    }
-
-    @Override
-    protected void buildElement(JsonNode element, YangData<?> yangData) {
     }
 
 }

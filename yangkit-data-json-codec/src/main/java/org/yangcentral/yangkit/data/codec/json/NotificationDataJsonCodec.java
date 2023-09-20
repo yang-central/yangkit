@@ -18,8 +18,5 @@ class NotificationDataJsonCodec extends YangDataJsonCodec<Notification, Notifica
         return notificationData;
     }
 
-    @Override
-    protected void buildElement(JsonNode element, YangData<?> yangData) {
 
-    }
 }

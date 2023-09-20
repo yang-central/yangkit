@@ -7,7 +7,7 @@ import org.yangcentral.yangkit.data.api.model.LeafData;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.dom4j.Element;
 
-public class LeafDataXmlCodec extends TypedDataXmlCodec<Leaf, LeafData> {
+public class LeafDataXmlCodec extends TypedDataXmlCodec<Leaf, LeafData<?>> {
     protected LeafDataXmlCodec(Leaf schemaNode) {
         super(schemaNode);
     }

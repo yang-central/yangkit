@@ -7,7 +7,7 @@ import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
 
 import java.util.List;
 
-public class NotificationMessageImpl extends YangStructureMessageImpl implements NotificationMessage {
+public class NotificationMessageImpl extends YangStructureMessageImpl<NotificationMessage> implements NotificationMessage {
     public NotificationMessageImpl(YangDataStructure structure) {
         super(structure);
     }

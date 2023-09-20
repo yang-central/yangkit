@@ -18,9 +18,10 @@ public class AnyxmlDataJsonCodec extends YangDataJsonCodec<Anyxml, AnyxmlData> {
     }
 
     @Override
-    protected void buildElement(JsonNode element, YangData<?> yangData) {
+    protected JsonNode buildElement(YangData<?> yangData) {
         AnyxmlData anyxmlData = (AnyxmlData) yangData;
         Document document = anyxmlData.getValue();
+        return null;
     }
 
 }

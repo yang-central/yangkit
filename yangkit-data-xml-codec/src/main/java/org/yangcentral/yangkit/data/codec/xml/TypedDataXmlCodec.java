@@ -19,7 +19,7 @@ import java.util.Optional;
 import static org.yangcentral.yangkit.data.codec.xml.Constants.OPERATION;
 
 
-abstract class TypedDataXmlCodec<S extends TypedDataNode,D extends TypedData<S>> extends YangDataXmlCodec<S,D> {
+abstract class TypedDataXmlCodec<S extends TypedDataNode,D extends TypedData<?,S>> extends YangDataXmlCodec<S,D> {
     protected TypedDataXmlCodec( S schemaNode) {
         super(schemaNode);
     }

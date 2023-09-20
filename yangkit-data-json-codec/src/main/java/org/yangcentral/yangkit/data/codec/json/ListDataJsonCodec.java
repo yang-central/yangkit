@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.data.codec.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
@@ -42,48 +43,6 @@ public class ListDataJsonCodec extends YangDataJsonCodec<YangList, ListData> {
         }
         ListData listData = (ListData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), keyDataList);
         return listData;
-    }
-
-    @Override
-    protected void buildElement(JsonNode element, YangData<?> yangData) {
-
-    }
-
-    @Override
-    protected void serializeChildren(JsonNode element, YangDataContainer yangDataContainer) {
-        ListData listData = (ListData) yangDataContainer;
-        YangList yangList = listData.getSchemaNode();
-        //serialize key firstly
-        for (LeafData key : listData.getKeys()) {
-            YangDataJsonCodec jsonCodec = getInstance(key.getSchemaNode());
-            JsonNode childElement = jsonCodec.serialize(key);
-            String jsonKey = key.getQName().getLocalName();
-            ((ObjectNode) element).put(jsonKey, childElement);
-
-        }
-        List<SchemaNode> schemaChildren = yangList.getTreeNodeChildren();
-        for (SchemaNode dataChild : schemaChildren) {
-            if (dataChild instanceof Leaf) {
-                Leaf leaf = (Leaf) dataChild;
-
-                if (leaf.isKey()) {
-                    continue;
-                }
-            }
-            List<YangData<?>> childData = yangDataContainer
-                    .getDataChildren(dataChild.getIdentifier());
-            for (YangData<?> childDatum : childData) {
-                if (childDatum.isDummyNode()) {
-                    continue;
-                }
-                YangDataJsonCodec jsonCodec = getInstance(childDatum.getSchemaNode());
-                JsonNode childElement = jsonCodec.serialize(childDatum);
-                String moduleName = childDatum.getSchemaNode().getContext().getCurModule().getMainModule().getArgStr();
-
-                ((ObjectNode) element).put(moduleName + ":" + childDatum.getQName().getLocalName(), childElement);
-
-            }
-        }
     }
 
 

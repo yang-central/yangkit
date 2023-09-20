@@ -65,50 +65,24 @@ public abstract class YangDataJsonCodec<S extends SchemaNode, T extends YangData
 
     abstract protected T buildData(JsonNode element, ValidatorResultBuilder validatorResultBuilder);
 
-    abstract protected void buildElement(JsonNode element, YangData<?> yangData);
-
-
-    protected void serializeChildren(JsonNode element, YangDataContainer yangDataContainer) {
-        SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) (((YangData) yangDataContainer).getSchemaNode());
-        List<SchemaNode> schemaChildren = schemaNodeContainer.getTreeNodeChildren();
-        if (schemaChildren.isEmpty()) {
-            return;
-        }
-        for (SchemaNode dataChild : schemaChildren) {
-            List<YangData<?>> childData = yangDataContainer
-                    .getDataChildren(dataChild.getIdentifier());
-            for (YangData<?> childDatum : childData) {
-                if (childDatum.isDummyNode()) {
-                    continue;
-                }
-                YangDataJsonCodec jsonCodec = getInstance(childDatum.getSchemaNode());
-                JsonNode childElement = jsonCodec.serialize(childDatum);
-                String moduleName = childDatum.getSchemaNode().getContext().getCurModule().getMainModule().getArgStr();
-                ((ObjectNode) element).put(moduleName + ":" + childDatum.getQName().getLocalName(), childElement);
-
-            }
-        }
+    protected JsonNode buildElement(YangData<?> yangData){
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.createObjectNode();
     }
+
+
+
 
     @Override
     public JsonNode serialize(YangData<?> yangData) {
         List<Attribute> list = yangData.getAttributes();
-        if (list.size() > 0) {
-            System.out.println("Datajsoncodec");
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode element = objectMapper.createObjectNode();
-        if (yangData instanceof LeafData || yangData instanceof LeafListData) {
 
-            String value = ((TypedData) yangData).getStringValue();
-            LeafSetValue temp = new LeafSetValue(new Object());
-            temp.setValue(value);
-            element = temp;
-        }
-
-        buildElement(element, yangData);
+        JsonNode element = buildElement(yangData);
         if (yangData instanceof YangDataContainer) {
-            serializeChildren(element, (YangDataContainer) yangData);
+            if(element.isObject()){
+                JsonCodecUtil.serializeChildren((ObjectNode) element, (YangDataContainer) yangData);
+            }
+
         }
 
         return element;

@@ -24,9 +24,11 @@ import org.yangcentral.yangkit.data.impl.model.YangDataDocumentImpl;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
+import org.yangcentral.yangkit.model.api.stmt.LeafList;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
+import org.yangcentral.yangkit.model.api.stmt.YangList;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.*;
@@ -122,6 +124,37 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
         return attributeList;
     }
 
+    private ValidatorResult buildChildData(YangDataContainer yangDataContainer,JsonNode child,SchemaNode childSchemaNode){
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataJsonCodec sonCodec = YangDataJsonCodec.getInstance(childSchemaNode);
+        YangData<?> sonData = sonCodec.deserialize(child, validatorResultBuilder);
+        if (null == sonData) {
+            return validatorResultBuilder.build();
+        }
+        try {
+            YangData<?> oldData = yangDataContainer.getDataChild(sonData.getIdentifier());
+            if (oldData != null) {
+                YangDataOperator dataOperator = new YangDataOperatorImpl(yangDataContainer);
+                dataOperator.merge((YangData<? extends DataNode>) sonData, false);
+            } else {
+                yangDataContainer.addDataChild(sonData, false);
+            }
+
+        } catch (YangDataException e) {
+            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+            recordBuilder.setErrorTag(e.getErrorTag());
+            recordBuilder.setErrorPath(child.toString());
+            recordBuilder.setBadElement(child);
+            recordBuilder.setErrorMessage(e.getErrorMsg());
+            validatorResultBuilder.addRecord(recordBuilder.build());
+            return validatorResultBuilder.build();
+        }
+        sonData = yangDataContainer.getDataChild(sonData.getIdentifier());
+        if (sonData instanceof YangDataContainer) {
+            validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, child));
+        }
+        return validatorResultBuilder.build();
+    }
 
     protected ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
@@ -146,40 +179,33 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
             if (sonSchemaNode == null || !sonSchemaNode.isActive()) {
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
-                recordBuilder.setErrorPath(element.toString());
+                recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
                 recordBuilder.setBadElement(child);
                 recordBuilder.setErrorMessage(new ErrorMessage(
                         "unrecognized element:" + child.toString()));
                 validatorResultBuilder.addRecord(recordBuilder.build());
                 continue;
             }
-            YangDataJsonCodec sonCodec = YangDataJsonCodec.getInstance(sonSchemaNode);
-            YangData<?> sonData = sonCodec.deserialize(child, validatorResultBuilder);
-            if (null == sonData) {
-                continue;
-            }
-            try {
-                YangData<?> oldData = yangDataContainer.getDataChild(sonData.getIdentifier());
-                if (oldData != null) {
-                    YangDataOperator dataOperator = new YangDataOperatorImpl(yangDataContainer);
-                    dataOperator.merge((YangData<? extends DataNode>) sonData, false);
+            if(child.isArray()) {
+                if((sonSchemaNode instanceof YangList) || (sonSchemaNode instanceof LeafList)) {
+                   int size = child.size();
+                   for (int i =0;i < size;i++) {
+                       JsonNode childElement = child.get(i);
+                       validatorResultBuilder.merge(buildChildData(yangDataContainer,childElement,sonSchemaNode));
+                   }
                 } else {
-                    yangDataContainer.addDataChild(sonData, false);
+                    ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+                    recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+                    recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+                    recordBuilder.setBadElement(child);
+                    recordBuilder.setErrorMessage(new ErrorMessage(
+                            "bad element:" + child.toString()));
+                    validatorResultBuilder.addRecord(recordBuilder.build());
                 }
+            } else {
+                validatorResultBuilder.merge(buildChildData(yangDataContainer,child,sonSchemaNode));
+            }
 
-            } catch (YangDataException e) {
-                ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
-                recordBuilder.setErrorTag(e.getErrorTag());
-                recordBuilder.setErrorPath(child.toString());
-                recordBuilder.setBadElement(child);
-                recordBuilder.setErrorMessage(e.getErrorMsg());
-                validatorResultBuilder.addRecord(recordBuilder.build());
-                continue;
-            }
-            sonData = yangDataContainer.getDataChild(sonData.getIdentifier());
-            if (sonData instanceof YangDataContainer) {
-                validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, child));
-            }
         }
         return validatorResultBuilder.build();
     }
@@ -190,10 +216,30 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
         if (element.isNull()) {
             return null;
         }
-        QName jsonQName = null;
-        YangDataDocument yangDataDocument = new YangDataDocumentImpl(jsonQName, yangSchemaContext);
+        int size = 0;
+        Iterator<String> fields = element.fieldNames();
+        String rootName = null;
+        while (fields.hasNext()) {
+            String field = fields.next();
+            size++;
+            rootName = field;
+        }
+        if(size == 0) {
+            return null;
+        }
+        if(size > 1) {
+            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+            recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+            recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(element));
+            recordBuilder.setBadElement(element);
+            recordBuilder.setErrorMessage(new ErrorMessage("wrong format, only one root node can be allowed."));
+            validatorResultBuilder.addRecord(recordBuilder.build());
+        }
+        JsonNode rootNode = element.get(rootName);
+        YangDataDocument yangDataDocument = new YangDataDocumentImpl(
+                JsonCodecUtil.getQNameFromJsonField(rootName,yangSchemaContext), yangSchemaContext);
         YangDataContainer yangDataContainer = yangDataDocument;
-        validatorResultBuilder.merge(buildChildrenData(yangDataContainer, element));
+        validatorResultBuilder.merge(buildChildrenData(yangDataContainer, rootNode));
         return yangDataDocument;
     }
 
@@ -203,10 +249,14 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
             return null;
         }
         List<Attribute> list = yangDataDocument.getAttributes();
-
+        String fieldName = "data";
+        if(yangDataDocument.getQName() != null) {
+            fieldName = JsonCodecUtil.getJsonFieldFromQName(yangDataDocument.getQName(),getSchemaContext());
+        }
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode root = mapper.createObjectNode();
-        root.put("data", mapper.createObjectNode());
+        ObjectNode docRoot = mapper.createObjectNode();
+        root.put(fieldName, docRoot);
         List<YangData<?>> children = yangDataDocument.getDataChildren();
         if (null == children) {
             return root;
@@ -218,11 +268,17 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
             JsonNode childElement = YangDataJsonCodec
                     .getInstance(child.getSchemaNode())
                     .serialize(child);
-
-            String moduleName = child.getSchemaNode().getContext().getCurModule().getMainModule().getArgStr();
-
-            ((ObjectNode) root.get("data")).put(moduleName + ":" + child.getQName().getLocalName(), childElement);
-            System.out.println("root.toPrettyString()" + root.toPrettyString());
+            if((child.getSchemaNode() instanceof YangList)
+            || (child.getSchemaNode() instanceof LeafList)) {
+                ArrayNode arrayNode = (ArrayNode) docRoot.get(child.getSchemaNode().getJsonIdentifier());
+                if(arrayNode == null) {
+                    arrayNode = mapper.createArrayNode();
+                    docRoot.put(child.getSchemaNode().getJsonIdentifier(),arrayNode);
+                }
+                arrayNode.add(childElement);
+            } else {
+                docRoot.put(child.getSchemaNode().getJsonIdentifier(), childElement);
+            }
         }
         return root;
     }

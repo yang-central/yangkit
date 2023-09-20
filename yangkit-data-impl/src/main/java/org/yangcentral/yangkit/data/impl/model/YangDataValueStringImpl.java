@@ -10,6 +10,7 @@ import org.yangcentral.yangkit.model.impl.codec.StringValueCodecFactory;
 public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
     Restriction<D> restriction;
     String source;
+    D value;
     StringValueCodec<D> codec;
 
     public YangDataValueStringImpl(TypedDataNode node, String source) {
@@ -17,6 +18,11 @@ public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
         this.source = source;
         codec = (StringValueCodec<D>) StringValueCodecFactory.getInstance().getStringValueCodec(node,restriction);
 
+    }
+    public YangDataValueStringImpl(TypedDataNode node, String source, StringValueCodec<D> codec) {
+        this.restriction = node.getType().getRestriction();
+        this.source = source;
+        this.codec = codec;
     }
 
     @Override
@@ -26,7 +32,11 @@ public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
 
     @Override
     public D getValue() throws YangCodecException {
-        return codec.deserialize(restriction,source);
+        if(value == null) {
+            value = codec.deserialize(restriction,source);
+        }
+
+        return value;
     }
 
     @Override
@@ -35,9 +45,15 @@ public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
     }
 
     @Override
-    public String getStringValue() {
-        return source;
+    public String getStringValue(StringValueCodec<D> codec) throws YangCodecException {
+        return codec.serialize(restriction,getValue());
     }
+
+    @Override
+    public String getStringValue() throws YangCodecException {
+        return codec.serialize(restriction,getValue());
+    }
+
 
     @Override
     public boolean equals(Object oValue){
