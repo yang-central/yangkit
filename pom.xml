@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-parent</artifactId>
-    <version>1.3.6</version>
+    <version>1.4.0</version>
     <modules>
         <module>yangkit-xpath-api</module>
         <module>yangkit-model-api</module>
@@ -70,6 +70,9 @@
         <io.github.yang-central.yangkit.yangkit-data-impl.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-impl.version>
         <io.github.yang-central.yangkit.yangkit-xpath-api.version>${project.version}</io.github.yang-central.yangkit.yangkit-xpath-api.version>
         <io.github.yang-central.yangkit.yangkit-xpath-impl.version>${project.version}</io.github.yang-central.yangkit.yangkit-xpath-impl.version>
+        <io.github.yang-central.yangkit.yangkit-data-json-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-json-codec.version>
+        <io.github.yang-central.yangkit.yangkit-data-xml-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-xml-codec.version>
+        <io.github.yang-central.yangkit.yangkit-parser.version>${project.version}</io.github.yang-central.yangkit.yangkit-parser.version>
     </properties>
 
     <profiles>
