@@ -109,9 +109,10 @@ public class DefaultYangUnknown extends YangStatementImpl implements YangUnknown
    }
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
-      assert phase == BuildPhase.GRAMMAR;
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
-      validatorResultBuilder.merge(this.validate_grammar());
+      if(phase == BuildPhase.GRAMMAR) {
+         validatorResultBuilder.merge(this.validate_grammar());
+      }
       return validatorResultBuilder.build();
    }
 

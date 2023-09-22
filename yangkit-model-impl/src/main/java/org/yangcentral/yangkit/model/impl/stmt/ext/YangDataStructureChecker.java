@@ -6,7 +6,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
-import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.base.YangStatementChecker;
 import org.yangcentral.yangkit.util.ModelUtil;
 
@@ -24,7 +24,7 @@ public class YangDataStructureChecker implements YangStatementChecker {
         if(buildPhase != BuildPhase.SCHEMA_BUILD){
             return validatorResultBuilder.build();
         }
-        if(!(child instanceof YangDataStructure)){
+        if(!(child instanceof YangStructure)){
             validatorResultBuilder.addRecord(ModelUtil.reportError(parent,
                     ErrorCode.COMMON_ERROR.getFieldName()));
             return validatorResultBuilder.build();
@@ -35,7 +35,7 @@ public class YangDataStructureChecker implements YangStatementChecker {
             return validatorResultBuilder.build();
         }
         Module module = (Module) parent;
-        YangDataStructure structure = (YangDataStructure) child;
+        YangStructure structure = (YangStructure) child;
         if(module.getContext().getSchemaNodeIdentifierCache().containsKey(structure.getArgStr())){
             validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(module.getContext().getSchemaNodeIdentifierCache()
                     .get(structure.getArgStr()),structure));

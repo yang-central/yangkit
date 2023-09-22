@@ -7,6 +7,7 @@ import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.ValueCodec;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 
 import java.util.List;
 
@@ -61,6 +62,8 @@ public class YangDataBuilder implements org.yangcentral.yangkit.data.api.builder
             return new UsesDataImpl((Uses) schemaNode);
         } else if (schemaNode instanceof Notification){
             return new NotificationDataImpl((Notification) schemaNode);
+        }else if(schemaNode instanceof YangStructure){
+            return new YangStructureDataImpl((YangStructure) schemaNode);
         }
         return null;
     }

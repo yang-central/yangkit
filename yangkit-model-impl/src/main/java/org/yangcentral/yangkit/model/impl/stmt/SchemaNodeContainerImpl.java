@@ -9,7 +9,7 @@ import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangData;
-import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.*;
@@ -98,7 +98,7 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
             if(self instanceof SchemaNode){
                schemaNode.setSchemaTreeType(((SchemaNode) self).getSchemaTreeType());
             }else if( (self instanceof YangData)
-            || (self instanceof YangDataStructure)){
+            || (self instanceof YangStructure)){
                schemaNode.setSchemaTreeType(SchemaTreeType.YANGDATATREE);
             }
          }

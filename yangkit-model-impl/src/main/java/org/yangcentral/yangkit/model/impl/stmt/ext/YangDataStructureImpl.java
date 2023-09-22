@@ -5,7 +5,7 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
-import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.model.impl.stmt.*;
 import org.yangcentral.yangkit.register.YangParentStatementInfo;
 import org.yangcentral.yangkit.register.YangUnknownParserPolicy;
@@ -13,11 +13,10 @@ import org.yangcentral.yangkit.register.YangUnknownRegister;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 
-public class YangDataStructureImpl extends SchemaNodeImpl implements YangDataStructure {
+public class YangDataStructureImpl extends SchemaNodeImpl implements YangStructure {
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
     private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();

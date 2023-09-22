@@ -16,21 +16,21 @@ public class YangDataMessageImpl<T extends YangDataMessage> extends YangAbstract
 
     @Override
     public ValidatorResult validate() {
-        return null;
+        return content.validate();
     }
 
     @Override
     public List<YangDataCompareResult> compare(T other) {
-        return null;
+        return content.compare(other.getBody());
     }
 
     @Override
-    public YangDataDocument getDocument() {
+    public YangDataDocument getBody() {
         return content;
     }
 
     @Override
-    public void setDocument(YangDataDocument document) {
+    public void setBody(YangDataDocument document) {
         this.content = document;
     }
 }

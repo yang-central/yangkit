@@ -7,25 +7,24 @@ import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
-import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
+import org.yangcentral.yangkit.data.api.model.YangStructureData;
 import org.yangcentral.yangkit.data.api.model.YangStructureMessage;
 import org.yangcentral.yangkit.data.impl.model.YangDataDocumentImpl;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 
 import java.util.Iterator;
 
-public abstract class YangDataStructureMessageJsonCodec<T extends YangStructureMessage<T>> extends YangDataMessageJsonCodec<T> {
-    private YangDataStructure structure;
+public abstract class YangStructureMessageJsonCodec<T extends YangStructureMessage<T>> extends YangDataMessageJsonCodec<T> {
+    private YangStructure structure;
 
-    public YangDataStructure getStructure() {
+    public YangStructure getStructure() {
         return structure;
     }
 
-    public YangDataStructureMessageJsonCodec(YangDataStructure structure, YangSchemaContext schemaContext) {
+    public YangStructureMessageJsonCodec(YangStructure structure, YangSchemaContext schemaContext) {
         super(schemaContext);
         this.structure = structure;
     }
@@ -53,15 +52,30 @@ public abstract class YangDataStructureMessageJsonCodec<T extends YangStructureM
             return null;
         }
         T instance = newStructureInstance();
-        YangDataDocument yangDataDocument = new YangDataDocumentImpl(structure.getIdentifier(), this.getSchemaContext());
-        instance.setDocument(yangDataDocument);
         JsonNode structureNode = document.get(structureName);
+        YangDataDocument structureDoc = new YangDataDocumentImpl(null,getSchemaContext());
+        YangStructureData yangStructureData = new YangStructureDataJsonCodec(structure).deserialize(structureNode,builder);
+        if(!builder.build().isOk()) {
+            return null;
+        }
+        try {
+            structureDoc.addChild(yangStructureData);
+        } catch (YangDataException e) {
+            ValidatorRecordBuilder validatorRecordBuilder = new ValidatorRecordBuilder();
+            validatorRecordBuilder.setErrorTag(e.getErrorTag());
+            validatorRecordBuilder.setErrorMessage(e.getErrorMsg());
+            validatorRecordBuilder.setBadElement(e.getBadElement());
+            validatorRecordBuilder.setErrorPath(e.getErrorPath());
+            builder.addRecord(validatorRecordBuilder.build());
+            return null;
+        }
+        instance.setStructureData(structureDoc);
         Iterator<String> fields = structureNode.fieldNames();
         while (fields.hasNext()){
             String field = fields.next();
             JsonNode fieldNode = structureNode.get(field);
             //check the field name according to structure
-            QName qName = JsonCodecUtil.getQNameFromJsonField(field,getSchemaContext());
+            QName qName = JsonCodecUtil.getQNameFromJsonField(field,yangStructureData);
             if(qName == null) {
                 ValidatorRecordBuilder<String,JsonNode> validatorRecordBuilder = new ValidatorRecordBuilder<>();
                 validatorRecordBuilder.setBadElement(fieldNode);
@@ -73,18 +87,7 @@ public abstract class YangDataStructureMessageJsonCodec<T extends YangStructureM
             }
             SchemaNode dataNode = structure.getTreeNodeChild(qName);
             if(dataNode != null) {
-                YangDataJsonCodec yangDataJsonCodec = YangDataJsonCodec.getInstance(dataNode);
-                YangData<?> fieldData = yangDataJsonCodec.deserialize(fieldNode,builder);
-                try {
-                    yangDataDocument.addChild(fieldData);
-                } catch (YangDataException e) {
-                    ValidatorRecordBuilder<String,JsonNode> validatorRecordBuilder = new ValidatorRecordBuilder<>();
-                    validatorRecordBuilder.setBadElement(fieldNode);
-                    validatorRecordBuilder.setErrorTag(e.getErrorTag());
-                    validatorRecordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(fieldNode));
-                    validatorRecordBuilder.setErrorMessage(new ErrorMessage(e.getMessage()));
-                    builder.addRecord(validatorRecordBuilder.build());
-                }
+                JsonCodecUtil.buildChildData(yangStructureData,fieldNode,dataNode);
             }
         }
         return instance;

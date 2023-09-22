@@ -9,6 +9,7 @@ import org.yangcentral.yangkit.data.api.codec.YangDataCodec;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 
 import java.util.List;
 
@@ -48,7 +49,10 @@ public abstract class YangDataJsonCodec<S extends SchemaNode, T extends YangData
             return new AnyxmlDataJsonCodec((Anyxml) dataSchemaNode);
         } else if (dataSchemaNode instanceof Notification) {
             return new NotificationDataJsonCodec((Notification) dataSchemaNode);
-        } else {
+        } else if (dataSchemaNode instanceof YangStructure) {
+            return new YangStructureDataJsonCodec((YangStructure) dataSchemaNode);
+        }
+        else {
             throw new IllegalArgumentException("not-support data schema type");
         }
     }

@@ -13,7 +13,7 @@ import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
-import org.yangcentral.yangkit.model.api.stmt.ext.YangDataStructure;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 
@@ -49,7 +49,7 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    private final SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
    protected Map<String, ModuleId> prefixCache = new ConcurrentHashMap<>();
 
-   private final List<YangDataStructure> structures = new ArrayList<>();
+   private final List<YangStructure> structures = new ArrayList<>();
 
    private final List<AugmentStructure> augmentStructures = new ArrayList<>();
 
@@ -224,17 +224,17 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    @Override
-   public List<YangDataStructure> getStructures() {
+   public List<YangStructure> getStructures() {
       return null;
    }
 
    @Override
-   public YangDataStructure getStructure(String name) {
+   public YangStructure getStructure(String name) {
       return null;
    }
 
    @Override
-   public ValidatorResult addStructure(YangDataStructure structure) {
+   public ValidatorResult addStructure(YangStructure structure) {
       return null;
    }
 

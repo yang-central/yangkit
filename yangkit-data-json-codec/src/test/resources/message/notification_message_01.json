@@ -1,0 +1,28 @@
+{
+  "ietf-notification:notification" : {
+    "event-time" : "2017-10-25T08:22:33.44Z",
+    "ietf-yang-push:push-change-update" : {
+      "id": "89",
+      "datastore-changes": {
+        "yang-patch" : {
+          "patch-id" : "0",
+          "edit" : {
+            "edit-id" : "edit1",
+            "operation": "replace",
+            "target": "/ietf-interfaces:interfaces",
+            "value" : {
+              "ietf-interfaces:interfaces": {
+                "interface": [
+                  {
+                    "name": "eth0",
+                    "oper-status": "down"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
