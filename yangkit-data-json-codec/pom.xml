@@ -15,7 +15,6 @@
             <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-data-api</artifactId>
             <version>${io.github.yang-central.yangkit.yangkit-data-api.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -25,14 +24,12 @@
         <dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-data-impl</artifactId>
-            <version>1.3.6</version>
-            <scope>compile</scope>
+            <version>${io.github.yang-central.yangkit.yangkit-data-impl.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-parser</artifactId>
-            <version>1.3.6</version>
-            <scope>compile</scope>
+            <version>${io.github.yang-central.yangkit.yangkit-parser.version}</version>
         </dependency>
     </dependencies>
 
