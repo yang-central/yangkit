@@ -33,7 +33,7 @@
         <developer>
             <id>lllyfeng</id>
             <name>frank</name>
-            <email>frank.fengchong@huawei.com</email>
+            <email>fengchongllly@gmail.com</email>
             <roles>
                 <role>Project Manager</role>
                 <role>Architect</role>
@@ -141,6 +141,7 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <!--
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -155,6 +156,7 @@
                             </execution>
                         </executions>
                     </plugin>
+                    -->
                 </plugins>
             </build>
 
