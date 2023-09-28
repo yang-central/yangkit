@@ -16,7 +16,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <yangkit.version>1.3.6</yangkit.version>
+        <yangkit.version>1.4.0</yangkit.version>
     </properties>
 
     <build>
