@@ -74,6 +74,7 @@
         <io.github.yang-central.yangkit.yangkit-data-json-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-json-codec.version>
         <io.github.yang-central.yangkit.yangkit-data-xml-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-xml-codec.version>
         <io.github.yang-central.yangkit.yangkit-parser.version>${project.version}</io.github.yang-central.yangkit.yangkit-parser.version>
+        <io.github.yang-central.yangkit.yangkit-examples.version>${project.version}</io.github.yang-central.yangkit.yangkit-examples.version>
     </properties>
 
     <profiles>

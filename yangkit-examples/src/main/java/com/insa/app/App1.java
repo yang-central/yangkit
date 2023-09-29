@@ -35,9 +35,9 @@ import java.util.List;
  * Schema provider at Kafka usecase: validate from yangString
  *
  */
-public class App {
+public class App1 {
     public static void main(String[] args) throws IOException {
-        InputStream inputStream = App.class.getClassLoader().getResourceAsStream("insa-test.yang");
+        InputStream inputStream = App1.class.getClassLoader().getResourceAsStream("App1/insa-test.yang");
         String yang = new String(inputStream.readAllBytes());
         System.out.println(yang);
 
