@@ -86,7 +86,7 @@ public class App4 {
         NotificationMessageJsonCodec notificationMessageJsonCodec = new NotificationMessageJsonCodec(schemaContext);
         NotificationMessage message = notificationMessageJsonCodec.deserialize(jsonElement, validatorResultBuilder);
         ValidatorResult validationResult = validatorResultBuilder.build();
-        System.out.println("Is deserialization ok? " + validationResult.isOk());
+        System.out.println("Is deserialization ok (should be true)? " + validationResult.isOk());
         if (!validationResult.isOk()) System.out.println(validationResult);
 
         validationResult = message.validate();
@@ -96,7 +96,32 @@ public class App4 {
         NotificationData notificationData = message.getNotificationData();
         ValidatorResult notifDataValid = notificationData.validate();
 
-        System.out.println("Is notification data valid? " + notifDataValid.isOk());
+        System.out.println("Is notification data valid (should be true)? " + notifDataValid.isOk());
+        if (!notifDataValid.isOk()) System.out.println(notifDataValid);
+
+        System.out.println("------------ Validating invalid message ------------");
+        jsonInputStream = App4.class.getClassLoader().getResourceAsStream("App4/json/invalid_notification.json");
+        objectMapper = new ObjectMapper();
+        jsonElement = objectMapper.readTree(jsonInputStream);
+
+        System.out.println("Valid Message: " + jsonElement);
+
+        // Validating
+        validatorResultBuilder = new ValidatorResultBuilder();
+        notificationMessageJsonCodec = new NotificationMessageJsonCodec(schemaContext);
+        message = notificationMessageJsonCodec.deserialize(jsonElement, validatorResultBuilder);
+        validationResult = validatorResultBuilder.build();
+        System.out.println("Is deserialization ok (should be false)? " + validationResult.isOk());
+        if (!validationResult.isOk()) System.out.println(validationResult);
+
+        validationResult = message.validate();
+        System.out.println("Is deserialized data valid (should be false)? " + validationResult.isOk());
+        if (!validationResult.isOk()) System.out.println(validationResult);
+
+        notificationData = message.getNotificationData();
+        notifDataValid = notificationData.validate();
+
+        System.out.println("Is notification data valid (should be false)? " + notifDataValid.isOk());
         if (!notifDataValid.isOk()) System.out.println(notifDataValid);
     }
 }

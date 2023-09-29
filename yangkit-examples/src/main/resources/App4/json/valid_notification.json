@@ -1,6 +1,6 @@
 {
   "ietf-notification:notification": {
-    "event-time": "2023-03-25T08:30:11.22Z",
+    "eventTime": "2023-03-25T08:30:11.22Z",
     "ietf-yang-push:push-update": {
       "id": 6666,
       "datastore-contents": {
