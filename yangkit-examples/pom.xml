@@ -35,12 +35,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-model-impl</artifactId>
             <version>${yangkit.version}</version>

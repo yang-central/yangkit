@@ -23,7 +23,9 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.ContainerData;
+import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.json.ContainerDataJsonCodec;
+import org.yangcentral.yangkit.data.codec.json.YangDataParser;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Container;
@@ -118,6 +120,15 @@ public class App2 {
         validationResult2 = validDeserialized.validate();
         System.out.println("-->" + deserialized.getIdentifier());
         System.out.println("Is deserialized data valid (should be false)? " + validationResult2.isOk());
+//        System.out.println("-------------------- Other test --------------------");
+//        InputStream jsonInputStream3 = App2.class.getClassLoader().getResourceAsStream("App2/json/valid.json");
+//        ObjectMapper objectMapper3 = new ObjectMapper();
+//        jsonElement = objectMapper3.readTree(jsonInputStream3);
+//        ValidatorResultBuilder validatorResultBuilder3 = new ValidatorResultBuilder();
+//        YangDataDocument yangDataDocument = new YangDataParser(jsonElement, schemaContext, false).parse(validatorResultBuilder3);
+//        yangDataDocument.update();
+//        ValidatorResult validationResult3 = validatorResultBuilder3.build();
+//        System.out.println("I---> " + validationResult3.isOk());
 
     }
 }
