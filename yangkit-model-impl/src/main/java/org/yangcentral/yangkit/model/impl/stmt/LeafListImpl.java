@@ -183,6 +183,11 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
       matched = this.getSubStatement(YangBuiltinKeyword.DEFAULT.getQName());
       if (matched.size() > 0) {
          if (this.minElements != null) {
+            YangContext minContext = this.minElements.getContext();
+            if (minContext == null) {
+               minContext = new YangContext(this.getContext());
+               this.minElements.setContext(minContext);
+            }
             validatorResultBuilder.merge(this.minElements.init());
             if (this.minElements.getValue() > 0) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(this,
@@ -191,6 +196,11 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
          }
 
          if (this.maxElements != null) {
+            YangContext maxContext = this.maxElements.getContext();
+            if (maxContext == null) {
+               maxContext = new YangContext(this.getContext());
+               this.maxElements.setContext(maxContext);
+            }
             validatorResultBuilder.merge(this.maxElements.init());
             if (matched.size() > this.maxElements.getValue()) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(this,
