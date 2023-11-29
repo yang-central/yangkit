@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "normal" : 245
+      "normal" : "true"
     }
   }
 }

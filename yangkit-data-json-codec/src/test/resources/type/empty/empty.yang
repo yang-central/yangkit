@@ -31,7 +31,7 @@ module insa-test{
     container insa-container {
         config false;
         leaf normal{
-            type boolean;
+            type empty;
         }
     }
 }

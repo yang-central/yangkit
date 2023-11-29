@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-uint8-range" : 1
+      "range" : 1
     }
   }
 }

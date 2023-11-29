@@ -476,6 +476,32 @@ public class JsonCodecDataTestStringType {
     }
 
     @Test
+    public void invalidTest7() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalid7.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
     public void invalidPatternTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidpattern1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();

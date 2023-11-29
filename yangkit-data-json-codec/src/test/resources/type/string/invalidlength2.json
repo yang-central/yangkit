@@ -1,11 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-string" : 900,
-      "data-string-pattern" : "12:45:59:",
-      "data-string-pattern-modifier" : "xml-element",
-      "data-string-length" : "abcdefghijklmnopqrstuvwxyz",
-      "data-string-all" : "xx00"
+      "length" : "abcdefghijklmnopqrstuvwxyz"
     }
   }
 }

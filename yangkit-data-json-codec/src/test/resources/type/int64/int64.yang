@@ -30,12 +30,12 @@ module insa-test{
 
     container insa-container {
         config false;
-        leaf data-int64-normal{
+        leaf normal{
             type int64;
         }
-        leaf data-int64-range{
+        leaf range{
             type int64 {
-                range "-123000..999999";
+                range "-1234000..9999999";
             }
         }
     }

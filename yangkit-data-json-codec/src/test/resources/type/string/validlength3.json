@@ -1,11 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-string-normal" : ".:/,;-_",
-      "data-string-pattern" : "10:10:10",
-      "data-string-pattern-modifier" : "enabled",
-      "data-string-length" : "abcdef",
-      "data-string-all" : "9A00"
+      "length" : "abcdef"
     }
   }
 }

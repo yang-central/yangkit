@@ -31,10 +31,10 @@ module insa-test{
     container insa-container {
         config false;
         leaf normal{
-            type uint32;
+            type uint64;
         }
         leaf range{
-            type uint32 {
+            type uint64 {
                 range "1..4";
             }
         }

@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-int8-normal" : 127
+      "normal" : 127
     }
   }
 }

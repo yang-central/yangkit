@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-int32-range" : 999999
+      "range" : "9999999"
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-uint16-normal" : 65536
+      "normal" : 65536
     }
   }
 }

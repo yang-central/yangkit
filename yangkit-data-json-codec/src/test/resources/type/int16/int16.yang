@@ -30,12 +30,12 @@ module insa-test{
 
     container insa-container {
         config false;
-        leaf data-int8-normal{
-            type int8;
+        leaf normal{
+            type int16;
         }
-        leaf data-int8-range{
-            type int8 {
-                range "1..4";
+        leaf range{
+            type int16 {
+                range "-1234..999";
             }
         }
     }

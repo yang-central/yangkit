@@ -17,12 +17,12 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JsonCodecDataTestStringType {
+public class JsonCodecDataTestInt8Type {
 
     @Test
     public void validTest1() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/valid1.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/valid1.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -42,13 +42,12 @@ public class JsonCodecDataTestStringType {
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
         assertTrue(validatorResult.isOk());
-
     }
 
     @Test
     public void validTest2() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/valid2.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/valid2.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -68,13 +67,12 @@ public class JsonCodecDataTestStringType {
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
         assertTrue(validatorResult.isOk());
-
     }
 
     @Test
     public void validTest3() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/valid3.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/valid3.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -94,13 +92,12 @@ public class JsonCodecDataTestStringType {
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
         assertTrue(validatorResult.isOk());
-
     }
 
     @Test
-    public void invalidStringTest1() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidstring1.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void validTest4() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/valid4.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -119,14 +116,13 @@ public class JsonCodecDataTestStringType {
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringPatternTest1() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidpattern1.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void validTest5() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/valid5.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -145,14 +141,13 @@ public class JsonCodecDataTestStringType {
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringPatternTest2() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidpattern2.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void validRangeTest1() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/validrange1.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -171,14 +166,13 @@ public class JsonCodecDataTestStringType {
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringModifierTest1() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidmodifier1.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void validRangeTest2() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/validrange2.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -197,14 +191,13 @@ public class JsonCodecDataTestStringType {
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringModifierTest2() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidmodifier2.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void validRangeTest3() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/validrange3.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -223,14 +216,13 @@ public class JsonCodecDataTestStringType {
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringLengthTest1() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidlength1.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void invalidTest1() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid1.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -245,18 +237,20 @@ public class JsonCodecDataTestStringType {
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
-        assertTrue(validatorResultBuilder.build().isOk());
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringLengthTest2() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidlength2.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void invalidTest2() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid2.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -271,18 +265,20 @@ public class JsonCodecDataTestStringType {
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
-        assertTrue(validatorResultBuilder.build().isOk());
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringAllTest1() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidall1.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void invalidTest3() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid3.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -297,18 +293,20 @@ public class JsonCodecDataTestStringType {
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
-        assertTrue(validatorResultBuilder.build().isOk());
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
     @Test
-    public void invalidStringAllTest2() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidall2.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+    public void invalidTest4() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid4.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
@@ -323,12 +321,349 @@ public class JsonCodecDataTestStringType {
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
-        assertTrue(validatorResultBuilder.build().isOk());
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertFalse(validatorResult.isOk());
-
+        assertTrue(validatorResult.isOk());
     }
 
+    @Test
+    public void invalidTest5() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid5.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest6() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid6.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest7() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid7.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest8() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid8.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest9() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid9.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest10() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid10.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest11() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid11.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest12() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid12.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidTest13() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalid13.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidRangeTest1() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalidrange1.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidRangeTest2() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalidrange2.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
+
+    @Test
+    public void invalidRangeTest3() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/int8/invalidrange3.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/int8/int8.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk());
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk());
+        assertEquals(parseResult.getRecords().size(), 1);
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk());
+    }
 }

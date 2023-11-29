@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-uint16-normal" : "abc"
+      "normal" : "abc"
     }
   }
 }

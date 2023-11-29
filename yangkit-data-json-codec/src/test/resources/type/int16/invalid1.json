@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-int16-normal" : -32769
+      "normal" : -32769
     }
   }
 }

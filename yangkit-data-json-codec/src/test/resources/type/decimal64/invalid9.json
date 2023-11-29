@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "normal" : ["abc", "hey"]
+      "normal" : ["abc"]
     }
   }
 }

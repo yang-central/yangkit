@@ -1,7 +1,7 @@
 {
   "data" : {
     "insa-test:insa-container" : {
-      "data-int32-normal" : "2300000000"
+      "normal" : "2300000000"
     }
   }
 }
