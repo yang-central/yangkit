@@ -18,4 +18,9 @@ public interface YangDataDocument extends YangDataContainer,YangDataEntity<YangD
    void setOnlyConfig(boolean onlyConfig);
 
    boolean onlyConfig();
+
+   String getJsonString();
+
+   String[] getModulesStrings();
+
 }
