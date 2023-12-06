@@ -80,4 +80,8 @@ public interface Module extends YangBuiltinStatement, MetaDef, SchemaNodeContain
    List<Module> getDependencies();
    void addDependency(Module module);
    void removeDependency(Module module);
+
+   String getOriginalString();
+
+   void setOriginalString(String originalString);
 }

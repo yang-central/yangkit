@@ -1,7 +1,11 @@
-module insa-test{
+module insa-test-complex{
     yang-version 1.1;
     namespace "urn:ietf:params:xml:ns:yang:insa-test";
-    prefix ity;
+    prefix ictx;
+    import insa-test-simple {
+        prefix ispl;
+        reference "ref";
+    }
 
     organization "INSA LYON";
     contact
@@ -28,8 +32,7 @@ module insa-test{
         description "Initial version.";
     }
 
-    container insa-container {
-        config false;
+    augment "/ispl:insa-container" {
         leaf complex{
             type boolean;
         }

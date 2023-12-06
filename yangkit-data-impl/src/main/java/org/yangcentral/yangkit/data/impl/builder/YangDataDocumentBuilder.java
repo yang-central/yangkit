@@ -8,6 +8,6 @@ import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 public class YangDataDocumentBuilder implements org.yangcentral.yangkit.data.api.builder.YangDataDocumentBuilder {
     @Override
     public YangDataDocument getYangDataDocument(QName qName, YangSchemaContext schemaContext) {
-        return new YangDataDocumentImpl(qName,schemaContext);
+        return new YangDataDocumentImpl(qName, schemaContext, "");
     }
 }

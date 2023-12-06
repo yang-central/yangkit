@@ -18,12 +18,16 @@ import java.util.List;
 public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument> implements YangDataDocument {
     private YangAbstractDataContainer container;
     private YangSchemaContext schemaContext;
+    private String originalString;
+
+    private String[] modulesString;
 
     private boolean onlyConfig;
-    public YangDataDocumentImpl(QName qName,YangSchemaContext yangDataContainer) {
+    public YangDataDocumentImpl(QName qName,YangSchemaContext yangDataContainer, String originalString) {
         super(qName);
         this.schemaContext = yangDataContainer;
         container = new YangAbstractDataContainer(this);
+        this.originalString = originalString;
     }
 
 
@@ -151,17 +155,18 @@ public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument
 
     @Override
     public String getJsonString() {
-        return "";
+        return this.originalString;
     }
 
     @Override
     public String[] getModulesStrings() {
+        if(this.modulesString != null) return this.modulesString;
         List<Module> modules = this.getSchemaContext().getModules();
-        String[] results = new String[modules.size()];
-        for(int i = 0; i < results.length ; i++){
-            results[i] = "";
+        this.modulesString = new String[modules.size()];
+        for(int i = 0; i < this.modulesString.length ; i++){
+            this.modulesString[i] = modules.get(i).getOriginalString();
         }
-        return results;
+        return this.modulesString;
     }
 
 }

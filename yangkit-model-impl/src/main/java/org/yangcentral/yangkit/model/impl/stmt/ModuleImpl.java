@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public abstract class ModuleImpl extends YangStatementImpl implements Module {
+
+   private String originalString;
    private YangVersion yangVersion;
    private Description description;
    private Reference reference;
@@ -1076,4 +1078,14 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       statements.addAll(this.augments);
       return statements;
    }
+   @Override
+   public String getOriginalString(){
+      return this.originalString;
+   }
+
+   @Override
+   public void setOriginalString(String originalString){
+      this.originalString = originalString;
+   }
+
 }

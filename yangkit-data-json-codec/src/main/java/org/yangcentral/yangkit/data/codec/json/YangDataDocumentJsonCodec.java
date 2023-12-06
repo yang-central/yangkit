@@ -75,7 +75,7 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
         if(qName == null){
             qName = new QName("urn:ietf:params:xml:ns:yang:ietf-restconf","ietf-restconf","data");
         }
-        YangDataDocument yangDataDocument = new YangDataDocumentImpl(qName, yangSchemaContext);
+        YangDataDocument yangDataDocument = new YangDataDocumentImpl(qName, yangSchemaContext, element.toString());
 
         validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(yangDataDocument, element.get(field)));
         return yangDataDocument;
