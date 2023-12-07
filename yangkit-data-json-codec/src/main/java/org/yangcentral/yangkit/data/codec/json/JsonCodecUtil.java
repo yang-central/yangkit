@@ -21,6 +21,7 @@ import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.text.ParseException;
@@ -395,6 +396,23 @@ public class JsonCodecUtil {
                     break;
                 }
                 if(!leaf.getType().getRestriction().evaluated(convertedU64)){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
+
+            case "decimal64":
+                BigDecimal convertedDec;
+                if(!child.isTextual()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                try{
+                    convertedDec = new BigDecimal(child.asText());
+                }catch (NumberFormatException e) {
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                if(!leaf.getType().getRestriction().evaluated(convertedDec)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
