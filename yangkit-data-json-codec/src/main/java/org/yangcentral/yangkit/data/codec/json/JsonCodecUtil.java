@@ -331,6 +331,23 @@ public class JsonCodecUtil {
                 }
                 break;
 
+            case "uint8":
+                short convertedUS;
+                if(!child.isNumber() && !child.asText().startsWith("-")){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                try{
+                    convertedUS = Short.parseShort(child.asText());
+                }catch (NumberFormatException e) {
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                if(!leaf.getType().getRestriction().evaluated(convertedUS)){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
+
             
         }
         return validatorResultBuilder.build();
