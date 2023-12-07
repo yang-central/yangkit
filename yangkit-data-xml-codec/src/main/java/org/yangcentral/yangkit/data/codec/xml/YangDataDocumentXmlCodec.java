@@ -103,7 +103,7 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
         }
         org.yangcentral.yangkit.common.api.QName docQName = Converter.convert(root.getQName());
 
-        YangDataDocument yangDataDocument = new YangDataDocumentImpl(docQName, schemaContext, root.toString());
+        YangDataDocument yangDataDocument = new YangDataDocumentImpl(docQName, schemaContext);
         processAttributers(yangDataDocument, root);
         YangDataContainer yangDataContainer = yangDataDocument;
         validatorResultBuilder.merge(buildChildrenData(yangDataContainer,root));
