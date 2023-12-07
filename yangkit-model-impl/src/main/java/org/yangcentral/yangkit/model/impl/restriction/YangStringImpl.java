@@ -57,7 +57,6 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
          return section.evaluate(BigInteger.valueOf((long) value.length()));
       }
    }
-
    
    public Length getLength() {
       return this.length;
