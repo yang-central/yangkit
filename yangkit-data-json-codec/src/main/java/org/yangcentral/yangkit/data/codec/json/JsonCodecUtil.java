@@ -254,6 +254,13 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, "boolean").build());
                 }
                 break;
+            case "string":
+                if(!child.isTextual()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, "string").build());
+                }else if(!leaf.getType().getRestriction().evaluated(child.asText())){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
         }
         return validatorResultBuilder.build();
     }
