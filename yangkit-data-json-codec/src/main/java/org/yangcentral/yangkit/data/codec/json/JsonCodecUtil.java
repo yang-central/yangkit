@@ -348,6 +348,23 @@ public class JsonCodecUtil {
                 }
                 break;
 
+            case "uint16":
+                int convertedUI;
+                if(!child.isNumber()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                try{
+                    convertedUI = Integer.parseUnsignedInt(child.asText());
+                }catch (NumberFormatException e) {
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                if(!leaf.getType().getRestriction().evaluated(convertedUI)){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
+
             
         }
         return validatorResultBuilder.build();
