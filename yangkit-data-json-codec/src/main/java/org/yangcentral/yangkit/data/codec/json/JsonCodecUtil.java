@@ -263,19 +263,35 @@ public class JsonCodecUtil {
                 }
                 break;
             case "int8":
-                byte converted;
+                byte convertedB;
                 if(!child.isNumber()){
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
                 try{
-                    converted = Byte.parseByte(child.asText());
-
+                    convertedB = Byte.parseByte(child.asText());
                 }catch (NumberFormatException e) {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(converted)){
+                if(!leaf.getType().getRestriction().evaluated(convertedB)){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
+
+            case "int16":
+                short convertedS;
+                if(!child.isNumber()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                try{
+                    convertedS = Short.parseShort(child.asText());
+                }catch (NumberFormatException e) {
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                if(!leaf.getType().getRestriction().evaluated(convertedS)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
