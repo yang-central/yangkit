@@ -22,6 +22,7 @@ import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 
 import java.net.URI;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -251,13 +252,30 @@ public class JsonCodecUtil {
         switch (builtinType){
             case "boolean":
                 if(!child.isBoolean()){
-                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, "boolean").build());
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                 }
                 break;
             case "string":
                 if(!child.isTextual()){
-                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, "string").build());
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                 }else if(!leaf.getType().getRestriction().evaluated(child.asText())){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
+            case "int8":
+                byte converted;
+                if(!child.isNumber()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                try{
+                    converted = Byte.parseByte(child.asText());
+
+                }catch (NumberFormatException e) {
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                if(!leaf.getType().getRestriction().evaluated(converted)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
