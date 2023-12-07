@@ -15,6 +15,8 @@ import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.File;
 
@@ -33,13 +35,15 @@ public class JsonCodecDataTestGetSource {
             ObjectMapper objectMapper = new ObjectMapper();
             jsonNode = objectMapper.readTree(new File(jsonFile));
         }catch (IOException ignored){}
+        assert jsonNode != null;
 
         schemaContext.validate();
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
 
-        YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
-        String result = codec.serialize(yangDataDocument).toString();
+        // YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
+        // String result = codec.serialize(yangDataDocument).toString();
+        String result = yangDataDocument.getDocString();
         assertEquals(result, jsonNode.get("data").toString());
 
         // assertEquals(result, jsonNode.toString());
@@ -62,6 +66,7 @@ public class JsonCodecDataTestGetSource {
 
         String[] result = yangDataDocument.getModulesStrings();
         assertEquals(result.length, 1);
+        assertArrayEquals(result, new String[]{readFile(yangFile)});
     }
     @Test
     public void getMultipleYangModules() throws DocumentException, IOException, YangParserException {
@@ -82,6 +87,21 @@ public class JsonCodecDataTestGetSource {
 
         String[] result = yangDataDocument.getModulesStrings();
         assertEquals(result.length, 2);
+        assertArrayEquals(result, new String[]{readFile(yangComplexFile), readFile(yangSimpleFile)});
+
+    }
+
+    public String readFile(String path){
+        StringBuilder contentBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String currentLine;
+            while ((currentLine = br.readLine()) != null) {
+                contentBuilder.append(currentLine).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return contentBuilder.toString();
     }
 
 }
