@@ -227,9 +227,22 @@ public class JsonCodecUtil {
         }
     }
 
+    public static ValidatorResult checkLeaf(JsonNode child, Leaf leaf){
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        return validatorResultBuilder.build();
+    }
+
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        if(child.isArray()) {
+
+        boolean leafEmptyType = false;
+        if(childSchemaNode instanceof Leaf){
+            Leaf leaf = (Leaf) childSchemaNode;
+            leafEmptyType = leaf.getType().getBuiltinType().getArgStr().equalsIgnoreCase("empty");
+            validatorResultBuilder.merge(checkLeaf(child, leaf));
+
+        }
+        if(child.isArray() && !leafEmptyType) {
             if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
                 int size = child.size();
                 for (int i =0;i < size;i++) {
