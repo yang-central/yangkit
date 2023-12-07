@@ -365,6 +365,23 @@ public class JsonCodecUtil {
                 }
                 break;
 
+            case "uint32":
+                long convertedUL;
+                if(!child.isNumber()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                try{
+                    convertedUL = Long.parseUnsignedLong(child.asText());
+                }catch (NumberFormatException e) {
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                if(!leaf.getType().getRestriction().evaluated(convertedUL)){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
+
             
         }
         return validatorResultBuilder.build();
