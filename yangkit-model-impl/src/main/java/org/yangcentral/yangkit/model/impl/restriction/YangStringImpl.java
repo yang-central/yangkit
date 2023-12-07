@@ -58,6 +58,7 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
       }
    }
 
+   
    public Length getLength() {
       return this.length;
    }
