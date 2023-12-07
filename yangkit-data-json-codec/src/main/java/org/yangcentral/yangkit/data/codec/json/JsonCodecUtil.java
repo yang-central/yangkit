@@ -227,22 +227,45 @@ public class JsonCodecUtil {
         }
     }
 
+    public static ValidatorRecordBuilder<String, JsonNode> getTypeErrorRecord(JsonNode child, String expectedType){
+        ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+        recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+        recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+        recordBuilder.setBadElement(child);
+        recordBuilder.setErrorMessage(new ErrorMessage("bad element:" + child.toString() + " does not match type " + expectedType ));
+        return recordBuilder;
+    }
+
+    public static ValidatorRecordBuilder<String, JsonNode> getRestrictionErrorRecord(JsonNode child, String restriction){
+        ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+        recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+        recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+        recordBuilder.setBadElement(child);
+        recordBuilder.setErrorMessage(new ErrorMessage("bad element:" + child.toString() + " does not respect restriction : " + restriction ));
+        return recordBuilder;
+    }
+
     public static ValidatorResult checkLeaf(JsonNode child, Leaf leaf){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        String builtinType = leaf.getType().getBuiltinType().getArgStr().toLowerCase();
+        switch (builtinType){
+            case "boolean":
+                if(!child.isBoolean()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, "boolean").build());
+                }
+                break;
+        }
         return validatorResultBuilder.build();
     }
 
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
 
-        boolean leafEmptyType = false;
         if(childSchemaNode instanceof Leaf){
             Leaf leaf = (Leaf) childSchemaNode;
-            leafEmptyType = leaf.getType().getBuiltinType().getArgStr().equalsIgnoreCase("empty");
             validatorResultBuilder.merge(checkLeaf(child, leaf));
-
         }
-        if(child.isArray() && !leafEmptyType) {
+        else if(child.isArray()) {
             if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
                 int size = child.size();
                 for (int i =0;i < size;i++) {
