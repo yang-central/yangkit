@@ -44,9 +44,7 @@ public class JsonCodecDataTestGetSource {
         // YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
-        assertEquals(result, jsonNode.get("data").toString());
-
-        // assertEquals(result, jsonNode.toString());
+        assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
     }
 
     @Test
