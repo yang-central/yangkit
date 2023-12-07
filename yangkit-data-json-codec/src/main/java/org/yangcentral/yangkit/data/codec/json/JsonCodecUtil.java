@@ -382,7 +382,22 @@ public class JsonCodecUtil {
                 }
                 break;
 
-            
+            case "uint64":
+                BigInteger convertedU64;
+                if(!child.isTextual()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                try{
+                    convertedU64 = new BigInteger(child.asText());
+                }catch (NumberFormatException e) {
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                    break;
+                }
+                if(!leaf.getType().getRestriction().evaluated(convertedU64)){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
         }
         return validatorResultBuilder.build();
     }
