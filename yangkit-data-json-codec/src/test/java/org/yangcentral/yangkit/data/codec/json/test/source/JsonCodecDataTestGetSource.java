@@ -1,4 +1,4 @@
-package org.yangcentral.yangkit.data.codec.json.test.type;
+package org.yangcentral.yangkit.data.codec.json.test.source;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
