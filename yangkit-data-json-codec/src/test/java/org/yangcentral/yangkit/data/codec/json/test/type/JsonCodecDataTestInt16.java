@@ -1,7 +1,8 @@
-package org.yangcentral.yangkit.data.codec.json.test;
+package org.yangcentral.yangkit.data.codec.json.test.type;
 
 import org.dom4j.DocumentException;
 import org.junit.jupiter.api.Test;
+import org.yangcentral.yangkit.data.codec.json.test.JsonCodecDataFunc;
 import org.yangcentral.yangkit.parser.YangParserException;
 
 import java.io.IOException;
