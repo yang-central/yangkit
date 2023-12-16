@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 public class JsonCodecDataFunc {
 
     public static void expectedNoError(String jsonFile, String yangFile) throws DocumentException, IOException, YangParserException {
@@ -24,20 +25,21 @@ public class JsonCodecDataFunc {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             jsonNode = objectMapper.readTree(new File(jsonFile));
-        }catch (IOException ignored){}
+        } catch (IOException ignored) {
+        }
 
         assertNotEquals(jsonNode, null);
 
         ValidatorResult validatorResult = schemaContext.validate();
-        assertTrue(validatorResult.isOk());
+        assertTrue(validatorResult.isOk(),"yang schema is not valid");
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
-        assertTrue(validatorResultBuilder.build().isOk());
+        assertTrue(validatorResultBuilder.build().isOk(), "error during first validation of json");
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertTrue(validatorResult.isOk());
+        assertTrue(validatorResult.isOk(), "error during second validation of json");
     }
 
     public static void expectedBadElementError(String jsonFile, String yangFile) throws DocumentException, IOException, YangParserException {
@@ -46,22 +48,23 @@ public class JsonCodecDataFunc {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             jsonNode = objectMapper.readTree(new File(jsonFile));
-        }catch (IOException ignored){}
+        } catch (IOException ignored) {
+        }
 
         assertNotEquals(jsonNode, null);
 
         ValidatorResult validatorResult = schemaContext.validate();
-        assertTrue(validatorResult.isOk());
+        assertTrue(validatorResult.isOk(),"yang schema is not valid");
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
         ValidatorResult parseResult = validatorResultBuilder.build();
-        assertFalse(parseResult.isOk());
-        assertEquals(parseResult.getRecords().size(), 1);
-        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element");
+        assertFalse(parseResult.isOk(), "no error during first validation of json");
+        assertEquals(parseResult.getRecords().size(), 1, "multiples errors during first validation of json");
+        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element", "no bad-element error during first validation of json");
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
-        assertTrue(validatorResult.isOk());
+        assertTrue(validatorResult.isOk(), "error during second validation of json");
     }
 }
