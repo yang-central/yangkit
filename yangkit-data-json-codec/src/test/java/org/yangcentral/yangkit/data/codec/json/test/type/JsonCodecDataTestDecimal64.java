@@ -7,7 +7,7 @@ import org.yangcentral.yangkit.parser.YangParserException;
 
 import java.io.IOException;
 
-public class JsonCodecDataTestDecimal64Type {
+public class JsonCodecDataTestDecimal64 {
 
     @Test
     public void validTest1() throws DocumentException, IOException, YangParserException {
