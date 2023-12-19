@@ -260,7 +260,7 @@ public class JsonCodecUtil {
             case "string":
                 if(!child.isTextual()){
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
-                }else if(!leaf.getType().getRestriction().evaluated(child.asText())){
+                }else if(!leaf.getType().getRestriction().evaluate(child.asText())){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -276,7 +276,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedB)){
+                if(!leaf.getType().getRestriction().evaluate(convertedB)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -293,7 +293,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedS)){
+                if(!leaf.getType().getRestriction().evaluate(convertedS)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -310,7 +310,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedI)){
+                if(!leaf.getType().getRestriction().evaluate(convertedI)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -327,7 +327,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedL)){
+                if(!leaf.getType().getRestriction().evaluate(convertedL)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -344,7 +344,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedUS)){
+                if(!leaf.getType().getRestriction().evaluate(convertedUS)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -361,7 +361,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedUI)){
+                if(!leaf.getType().getRestriction().evaluate(convertedUI)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -378,7 +378,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedUL)){
+                if(!leaf.getType().getRestriction().evaluate(convertedUL)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -395,7 +395,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedU64)){
+                if(!leaf.getType().getRestriction().evaluate(convertedU64)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -412,7 +412,7 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
                     break;
                 }
-                if(!leaf.getType().getRestriction().evaluated(convertedDec)){
+                if(!leaf.getType().getRestriction().evaluate(convertedDec)){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;

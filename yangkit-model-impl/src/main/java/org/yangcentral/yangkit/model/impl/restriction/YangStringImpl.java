@@ -47,8 +47,8 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
          }
 
       }
-      if (this.getLength() != null) {
-         return this.length.evaluate(BigInteger.valueOf((long) value.length()));
+      if (this.getLength() != null && !this.length.evaluate(BigInteger.valueOf((long) value.length()))) {
+         return false;
       }
       if (this.getDerived() != null) {
          return this.getDerived().getType().getRestriction().evaluate(value);
