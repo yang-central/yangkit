@@ -77,6 +77,24 @@ public class JsonCodecDataTestEnumeration {
         String yangFile = this.getClass().getClassLoader().getResource("type/enumeration/enumeration.yang").getFile();
         JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
     }
+    @Test
+    public void invalidTest8() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/enumeration/invalid8.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/enumeration/enumeration.yang").getFile();
+        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+    }
+    @Test
+    public void invalidTest9() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/enumeration/invalid9.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/enumeration/enumeration.yang").getFile();
+        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+    }
+    @Test
+    public void invalidTest10() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/enumeration/invalid10.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/enumeration/enumeration.yang").getFile();
+        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+    }
 
 
 }
