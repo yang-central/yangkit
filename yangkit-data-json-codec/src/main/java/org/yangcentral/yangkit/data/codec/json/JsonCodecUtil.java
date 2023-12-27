@@ -416,6 +416,13 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
+            case "binary":
+                if(!child.isTextual()){
+                    validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
+                }else if(!leaf.getType().getRestriction().evaluated(child.asText().getBytes())){
+                    validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
+                }
+                break;
         }
         return validatorResultBuilder.build();
     }
