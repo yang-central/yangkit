@@ -24,7 +24,7 @@ module insa-test{
     description
         "Yang module used for unit test";
 
-    revision 2023-11-27 {
+    revision 2023-12-27 {
         description "Initial version.";
     }
 
