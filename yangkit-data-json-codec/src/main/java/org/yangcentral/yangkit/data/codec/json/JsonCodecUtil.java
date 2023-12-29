@@ -17,6 +17,7 @@ import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.api.model.YangDataEntity;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
+import org.yangcentral.yangkit.model.api.restriction.Empty;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
@@ -366,7 +367,6 @@ public class JsonCodecUtil {
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
-
             case "uint32":
                 long convertedUL;
                 if(!child.isNumber()){
@@ -420,7 +420,7 @@ public class JsonCodecUtil {
             case "binary":
                 if(!child.isTextual()){
                     validatorResultBuilder.addRecord(getTypeErrorRecord(child, builtinType).build());
-                }else if(!leaf.getType().getRestriction().evaluated(child.asText().getBytes())){
+                }else if(!leaf.getType().getRestriction().evaluate(child.asText().getBytes())){
                     validatorResultBuilder.addRecord(getRestrictionErrorRecord(child, leaf.getType().getRestriction().toString()).build());
                 }
                 break;
@@ -431,11 +431,16 @@ public class JsonCodecUtil {
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
 
-        if(childSchemaNode instanceof Leaf){
-            Leaf leaf = (Leaf) childSchemaNode;
-            validatorResultBuilder.merge(checkLeaf(child, leaf));
+        boolean doArrayValidation = true;
+        if(childSchemaNode instanceof Container){
+            doArrayValidation = false;
         }
-        else if(child.isArray()) {
+        else if(childSchemaNode instanceof Leaf){
+            Leaf leaf = (Leaf)childSchemaNode;
+            doArrayValidation = leaf.getType() instanceof Empty;
+        }
+
+        if(child.isArray() && doArrayValidation) {
             if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
                 int size = child.size();
                 for (int i =0;i < size;i++) {

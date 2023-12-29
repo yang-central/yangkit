@@ -9,8 +9,7 @@ import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
-import org.yangcentral.yangkit.model.api.restriction.Empty;
-import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
+import org.yangcentral.yangkit.model.api.restriction.*;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 
 abstract class TypedDataJsonCodec<S extends TypedDataNode, D extends TypedData<?,S>> extends YangDataJsonCodec<S, D> {
@@ -37,6 +36,33 @@ abstract class TypedDataJsonCodec<S extends TypedDataNode, D extends TypedData<?
             } else {
                 throw new YangDataJsonCodecException(JsonCodecUtil.getJsonPath(element),element, ErrorTag.BAD_ELEMENT,
                         "wrong format for empty type, it should be [null]");
+            }
+        }
+        if(typedDataNode.getType().getRestriction() instanceof YangInteger || typedDataNode.getType().getRestriction() instanceof Decimal64){
+            boolean mustBeJsonString =  typedDataNode.getType().getRestriction() instanceof Decimal64
+                                        || typedDataNode.getType().getRestriction() instanceof Int64
+                                        || typedDataNode.getType().getRestriction() instanceof UInt64;
+
+            if(mustBeJsonString){
+                if(element.isNumber()){
+                    throw new YangDataJsonCodecException(JsonCodecUtil.getJsonPath(element),element, ErrorTag.BAD_ELEMENT,
+                            "A value of the 'int64', 'uint64', or 'decimal64' type is represented as a JSON string");
+                }
+            }else if(element.isTextual()){
+                throw new YangDataJsonCodecException(JsonCodecUtil.getJsonPath(element),element, ErrorTag.BAD_ELEMENT,
+                        "A value of the 'int8', 'int16', 'int32', 'uint8', 'uint16', or 'uint32' type is represented as a JSON number.");
+            }
+        }
+        if(typedDataNode.getType().getRestriction() instanceof YangBoolean){
+            if(!element.isBoolean()){
+                throw new YangDataJsonCodecException(JsonCodecUtil.getJsonPath(element),element, ErrorTag.BAD_ELEMENT,
+                        "A 'boolean' value is represented as the corresponding JSON literal name 'true' or 'false'");
+            }
+        }
+        if(typedDataNode.getType().getRestriction() instanceof YangString){
+            if(!element.isTextual()){
+                throw new YangDataJsonCodecException(JsonCodecUtil.getJsonPath(element),element, ErrorTag.BAD_ELEMENT,
+                        "A 'string' value is represented as a JSON string, subject to JSON string encoding rules");
             }
         }
         String text = element.asText();
