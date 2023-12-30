@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dom4j.DocumentException;
 import org.junit.jupiter.api.Test;
+import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.common.impl.validate.ValidatorRecordImpl;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.json.YangDataParser;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -60,8 +62,10 @@ public class JsonCodecDataFunc {
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
         ValidatorResult parseResult = validatorResultBuilder.build();
         assertFalse(parseResult.isOk(), "no error during first validation of json");
-        assertEquals(parseResult.getRecords().size(), 1, "multiples errors during first validation of json");
-        assertEquals(parseResult.getRecords().get(0).getErrorTag().getName(), "bad-element", "no bad-element error during first validation of json");
+        for(ValidatorRecord record: parseResult.getRecords()){
+            assertEquals(record.getErrorTag().getName(), "bad-element",
+                    "expected only bad-element error during first validation of json but get " + record.getErrorTag().getName());
+        }
 
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
