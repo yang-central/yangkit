@@ -33,7 +33,7 @@ public class JsonCodecDataFunc {
         assertNotEquals(jsonNode, null);
 
         ValidatorResult validatorResult = schemaContext.validate();
-        assertTrue(validatorResult.isOk(),"yang schema is not valid");
+        assertTrue(validatorResult.isOk(), "yang schema is not valid");
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
@@ -56,15 +56,45 @@ public class JsonCodecDataFunc {
         assertNotEquals(jsonNode, null);
 
         ValidatorResult validatorResult = schemaContext.validate();
-        assertTrue(validatorResult.isOk(),"yang schema is not valid");
+        assertTrue(validatorResult.isOk(), "yang schema is not valid");
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
         ValidatorResult parseResult = validatorResultBuilder.build();
         assertFalse(parseResult.isOk(), "no error during first validation of json");
-        for(ValidatorRecord record: parseResult.getRecords()){
+        for (ValidatorRecord record : parseResult.getRecords()) {
             assertEquals(record.getErrorTag().getName(), "bad-element",
-                    "expected only bad-element error during first validation of json but get " + record.getErrorTag().getName());
+                    "expected only bad-element error during first validation of json");
+        }
+
+        yangDataDocument.update();
+        validatorResult = yangDataDocument.validate();
+        assertTrue(validatorResult.isOk(), "error during second validation of json");
+    }
+
+    public static void expectedBadElementJsonPathError(String jsonFile, String yangFile, String jsonPath) throws DocumentException, IOException, YangParserException {
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        } catch (IOException ignored) {
+        }
+
+        assertNotEquals(jsonNode, null);
+
+        ValidatorResult validatorResult = schemaContext.validate();
+        assertTrue(validatorResult.isOk(), "yang schema is not valid");
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        ValidatorResult parseResult = validatorResultBuilder.build();
+        assertFalse(parseResult.isOk(), "no error during first validation of json");
+        for (ValidatorRecord record : parseResult.getRecords()) {
+            assertEquals(record.getErrorTag().getName(), "bad-element",
+                    "expected only bad-element error during first validation of json");
+            assertEquals(record.getErrorPath(), jsonPath,
+                    "expected json path during first validation of json is not equal to actual json path");
         }
 
         yangDataDocument.update();
