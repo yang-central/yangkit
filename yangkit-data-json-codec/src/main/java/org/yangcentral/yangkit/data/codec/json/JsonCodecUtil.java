@@ -76,6 +76,32 @@ public class JsonCodecUtil {
         return path.toString();
     }
 
+    public static JsonNode mergeJsonValidatorResult(JsonNode jsonNode, ValidatorResult validatorResult){
+        JsonNode newJsonNode = jsonNode.deepCopy();
+        ObjectMapper mapper = new ObjectMapper();
+        for(ValidatorRecord record: validatorResult.getRecords()){
+            ObjectNode temp = mapper.createObjectNode();
+            String path = record.getErrorPath().toString();
+            String container = path.substring(0,path.lastIndexOf("/"));
+            String key = path.substring(path.lastIndexOf("/")+1);
+            JsonNode valueNode = newJsonNode.at(path);
+            String valueTxt = valueNode.textValue();
+            if(!valueNode.isTextual()){
+                valueTxt = valueNode.toString();
+            }
+            temp.put("value", valueTxt);
+            temp.put("error-msg", record.getErrorMsg().getMessage());
+            temp.put("error-tag", record.getErrorTag().getName());
+            JsonNode jsonContainer = newJsonNode.at(container);
+            if(jsonContainer instanceof ArrayNode){
+                ((ArrayNode) jsonContainer).set(Integer.parseInt(key), temp);
+            }else{
+                ((ObjectNode)(jsonContainer)).set(key, temp);
+            }
+        }
+        return newJsonNode;
+    }
+
     public static QName getQNameFromJsonField(String jsonField, YangDataContainer parent){
         FName fName = new FName(jsonField);
         String moduleName = fName.getPrefix();

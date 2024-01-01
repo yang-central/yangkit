@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
+import org.yangcentral.yangkit.data.codec.json.JsonCodecUtil;
 import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
 import org.yangcentral.yangkit.data.codec.json.YangDataParser;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -45,6 +46,54 @@ public class JsonCodecDataTestGetSource {
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
         assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
+    }
+
+    @Test
+    public void getJsonDocError1() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("source/data.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("source/simple.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+        assert jsonNode != null;
+
+        schemaContext.validate();
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+
+        // YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
+        // String result = codec.serialize(yangDataDocument).toString();
+        String result = yangDataDocument.getDocString();
+        assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
+        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(jsonNode.get("data"),validatorResultBuilder.build());
+        System.out.println(withError.toPrettyString());
+    }
+
+    @Test
+    public void getJsonDocError2() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test2.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("errorPath/test2.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+        assert jsonNode != null;
+
+        schemaContext.validate();
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+
+        // YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
+        // String result = codec.serialize(yangDataDocument).toString();
+        String result = yangDataDocument.getDocString();
+        assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
+        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(jsonNode.get("data"),validatorResultBuilder.build());
+        System.out.println(withError.toPrettyString());
     }
 
     @Test
