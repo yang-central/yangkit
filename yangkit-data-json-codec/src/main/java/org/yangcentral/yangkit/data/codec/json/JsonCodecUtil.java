@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.*;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
+import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
@@ -26,11 +27,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class JsonCodecUtil {
     public static String generateJsonPathArgumentFromJson(JsonNode jsonNode, String valueSearched) {
@@ -64,8 +61,19 @@ public class JsonCodecUtil {
         return "";
     }
 
+    public static Map<JsonNode, String> jsonPath = new HashMap<>();
+    public static Map<JsonNode, JsonNode> jsonNodeParent = new HashMap<>();
     public static String getJsonPath(JsonNode jsonNode) {
-        return "";
+        StringBuilder path = new StringBuilder();
+        JsonNode parent = jsonNodeParent.get(jsonNode);
+        while(parent != null){
+            path.insert(0, jsonPath.get(jsonNode) + "/");
+            jsonNode = parent;
+            parent = jsonNodeParent.get(jsonNode);
+        }
+        path.insert(0, "/");
+        path.deleteCharAt(path.length() - 1);
+        return path.toString();
     }
 
     public static QName getQNameFromJsonField(String jsonField, YangDataContainer parent){
@@ -445,6 +453,8 @@ public class JsonCodecUtil {
                 int size = child.size();
                 for (int i =0;i < size;i++) {
                     JsonNode childElement = child.get(i);
+                    JsonCodecUtil.jsonNodeParent.put(childElement,child);
+                    JsonCodecUtil.jsonPath.put(childElement, Integer.toString(i));
                     validatorResultBuilder.merge(buildChildData(yangDataContainer,childElement,childSchemaNode));
                 }
             } else {
@@ -583,7 +593,8 @@ public class JsonCodecUtil {
             Map.Entry<String, JsonNode> field = fields.next();
             String fieldName = field.getKey();
             JsonNode child = field.getValue();
-
+            JsonCodecUtil.jsonPath.put(child, fieldName);
+            JsonCodecUtil.jsonNodeParent.put(child, element);
             if (fieldName.startsWith("@")) {
                 attributes.add(field);
                 continue;

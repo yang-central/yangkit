@@ -40,6 +40,7 @@ public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
         } catch (YangCodecException e){
             ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
             recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+            recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(element));
             validatorResultBuilder.addRecord(recordBuilder.build());
         }
         return null;

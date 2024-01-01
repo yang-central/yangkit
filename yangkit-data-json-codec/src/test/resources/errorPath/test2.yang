@@ -24,7 +24,7 @@ module insa-test{
     description
         "Yang module used for unit test";
 
-    revision 2024-01-01 {
+    revision 2023-12-27 {
         description "Initial version.";
     }
 
@@ -34,12 +34,13 @@ module insa-test{
             container b{
                 container c{
                     container d{
-                        leaf e {
-                            type boolean;
+                        leaf-list e{
+                            type int8;
                         }
                     }
                 }
             }
         }
     }
+
 }
