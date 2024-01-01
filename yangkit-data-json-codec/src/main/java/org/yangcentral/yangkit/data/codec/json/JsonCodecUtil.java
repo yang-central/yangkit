@@ -79,6 +79,9 @@ public class JsonCodecUtil {
     public static JsonNode mergeJsonValidatorResult(JsonNode jsonNode, ValidatorResult validatorResult){
         JsonNode newJsonNode = jsonNode.deepCopy();
         ObjectMapper mapper = new ObjectMapper();
+        if(validatorResult.getRecords() == null){
+            return newJsonNode;
+        }
         for(ValidatorRecord record: validatorResult.getRecords()){
             ObjectNode temp = mapper.createObjectNode();
             String path = record.getErrorPath().toString();
@@ -467,16 +470,7 @@ public class JsonCodecUtil {
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
 
-        boolean doArrayValidation = true;
-        if(childSchemaNode instanceof Container){
-            doArrayValidation = false;
-        }
-        else if(childSchemaNode instanceof Leaf){
-            Leaf leaf = (Leaf)childSchemaNode;
-            doArrayValidation = leaf.getType() instanceof Empty;
-        }
-
-        if(child.isArray() && doArrayValidation) {
+        if(child.isArray() && !child.toString().equals("[null]")) {
             if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
                 int size = child.size();
                 for (int i =0;i < size;i++) {
