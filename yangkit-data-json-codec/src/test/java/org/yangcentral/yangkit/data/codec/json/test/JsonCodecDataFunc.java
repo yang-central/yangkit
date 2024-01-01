@@ -63,7 +63,7 @@ public class JsonCodecDataFunc {
         ValidatorResult parseResult = validatorResultBuilder.build();
         assertFalse(parseResult.isOk(), "no error during first validation of json");
         for (ValidatorRecord record : parseResult.getRecords()) {
-            assertEquals(record.getErrorTag().getName(), "bad-element",
+            assertEquals("bad-element", record.getErrorTag().getName(),
                     "expected only bad-element error during first validation of json");
         }
 
@@ -91,9 +91,9 @@ public class JsonCodecDataFunc {
         ValidatorResult parseResult = validatorResultBuilder.build();
         assertFalse(parseResult.isOk(), "no error during first validation of json");
         for (ValidatorRecord record : parseResult.getRecords()) {
-            assertEquals(record.getErrorTag().getName(), "bad-element",
+            assertEquals("bad-element", record.getErrorTag().getName(),
                     "expected only bad-element error during first validation of json");
-            assertEquals(record.getErrorPath(), jsonPath,
+            assertEquals(jsonPath, record.getErrorPath(),
                     "expected json path during first validation of json is not equal to actual json path");
         }
 
