@@ -90,7 +90,9 @@ public class JsonCodecUtil {
                 valueTxt = valueNode.toString();
             }
             temp.put("value", valueTxt);
-            temp.put("error-msg", record.getErrorMsg().getMessage());
+            if(record.getErrorMsg() != null){
+                temp.put("error-msg", record.getErrorMsg().getMessage());
+            }
             temp.put("error-tag", record.getErrorTag().getName());
             JsonNode jsonContainer = newJsonNode.at(container);
             if(jsonContainer instanceof ArrayNode){

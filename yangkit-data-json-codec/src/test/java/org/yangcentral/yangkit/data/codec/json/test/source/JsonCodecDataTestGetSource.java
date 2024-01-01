@@ -97,6 +97,30 @@ public class JsonCodecDataTestGetSource {
     }
 
     @Test
+    public void getJsonDocError3() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test3.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("errorPath/test3.yang").getFile();
+        YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
+        JsonNode jsonNode = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonNode = objectMapper.readTree(new File(jsonFile));
+        }catch (IOException ignored){}
+        assert jsonNode != null;
+
+        schemaContext.validate();
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+
+        // YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
+        // String result = codec.serialize(yangDataDocument).toString();
+        String result = yangDataDocument.getDocString();
+        assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
+        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(jsonNode.get("data"),validatorResultBuilder.build());
+        System.out.println(withError.toPrettyString());
+    }
+
+    @Test
     public void getYangModule() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("source/data.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("source/simple.yang").getFile();
