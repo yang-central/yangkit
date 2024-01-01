@@ -37,6 +37,9 @@ abstract class TypedDataJsonCodec<S extends TypedDataNode, D extends TypedData<?
                 throw new YangDataJsonCodecException(JsonCodecUtil.getJsonPath(element),element, ErrorTag.BAD_ELEMENT,
                         "wrong format for empty type, it should be [null]");
             }
+        }else if(element.toString().equals("[null]")){
+            throw new YangDataJsonCodecException(JsonCodecUtil.getJsonPath(element),element, ErrorTag.BAD_ELEMENT,
+                    "empty type keyword used when expected another type");
         }
         if(typedDataNode.getType().getRestriction() instanceof YangInteger || typedDataNode.getType().getRestriction() instanceof Decimal64){
             boolean mustBeJsonString =  typedDataNode.getType().getRestriction() instanceof Decimal64
