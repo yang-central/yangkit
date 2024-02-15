@@ -459,9 +459,20 @@ public class JsonCodecUtil {
 
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-
+        if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
+            if(!child.isArray() && !((MultiInstancesDataNode)childSchemaNode).isDataArray()){
+                ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+                recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+                recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+                recordBuilder.setBadElement(child);
+                recordBuilder.setErrorMessage(new ErrorMessage("bad element: expected an array and get an element."));
+                validatorResultBuilder.addRecord(recordBuilder.build());
+                return validatorResultBuilder.build();
+            }
+        }
         if(child.isArray() && !child.toString().equals("[null]")) {
             if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
+                ((MultiInstancesDataNode)childSchemaNode).setDataIsArray();
                 int size = child.size();
                 for (int i =0;i < size;i++) {
                     JsonNode childElement = child.get(i);

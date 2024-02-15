@@ -31,6 +31,9 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
    private OrderedBy orderedBy;
    private List<Unique> uniques = new ArrayList<>();
 
+   private boolean dataIsArray = false;
+
+
    public ListImpl(String argStr) {
       super(argStr);
    }
@@ -407,5 +410,14 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       statements.addAll(this.uniques);
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
+   }
+
+   @Override
+   public boolean isDataArray() {
+      return dataIsArray;
+   }
+   @Override
+   public void setDataIsArray(){
+      this.dataIsArray = true;
    }
 }
