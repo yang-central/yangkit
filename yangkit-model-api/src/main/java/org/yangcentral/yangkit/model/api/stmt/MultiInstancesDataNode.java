@@ -13,6 +13,6 @@ public interface MultiInstancesDataNode {
 
    boolean isDataArray();
 
-   void setDataIsArray();
+   void setDataIsArrayTrue();
 
 }

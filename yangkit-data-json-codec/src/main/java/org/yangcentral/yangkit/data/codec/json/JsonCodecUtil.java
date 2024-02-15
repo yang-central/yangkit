@@ -472,7 +472,7 @@ public class JsonCodecUtil {
         }
         if(child.isArray() && !child.toString().equals("[null]")) {
             if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
-                ((MultiInstancesDataNode)childSchemaNode).setDataIsArray();
+                ((MultiInstancesDataNode)childSchemaNode).setDataIsArrayTrue();
                 int size = child.size();
                 for (int i =0;i < size;i++) {
                     JsonNode childElement = child.get(i);
