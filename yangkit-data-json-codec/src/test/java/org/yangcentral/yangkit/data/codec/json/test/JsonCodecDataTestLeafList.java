@@ -28,5 +28,12 @@ public class JsonCodecDataTestLeafList {
         String yangFile = this.getClass().getClassLoader().getResource("leaflist/leaflist.yang").getFile();
         JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
     }
+
+    @Test
+    public void invalidTest3() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("leaflist/invalid3.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("leaflist/leaflist.yang").getFile();
+        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+    }
     
 }

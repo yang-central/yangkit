@@ -98,8 +98,8 @@ public class JsonCodecDataTestGetSource {
 
     @Test
     public void getJsonDocError3() throws DocumentException, IOException, YangParserException {
-        String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test3.json").getFile();
-        String yangFile = this.getClass().getClassLoader().getResource("errorPath/test3.yang").getFile();
+        String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid1.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
