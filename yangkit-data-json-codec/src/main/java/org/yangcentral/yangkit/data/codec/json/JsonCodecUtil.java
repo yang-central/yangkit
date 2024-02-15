@@ -76,33 +76,23 @@ public class JsonCodecUtil {
         return path.toString();
     }
 
-    public static JsonNode mergeJsonValidatorResult(JsonNode jsonNode, ValidatorResult validatorResult){
-        JsonNode newJsonNode = jsonNode.deepCopy();
+    public static JsonNode mergeJsonValidatorResult(ValidatorResult validatorResult){
         ObjectMapper mapper = new ObjectMapper();
+        ObjectNode newJsonNode = mapper.createObjectNode();
         if(validatorResult.getRecords() == null){
             return newJsonNode;
         }
         for(ValidatorRecord record: validatorResult.getRecords()){
-            ObjectNode temp = mapper.createObjectNode();
-            String path = record.getErrorPath().toString();
-            String container = path.substring(0,path.lastIndexOf("/"));
-            String key = path.substring(path.lastIndexOf("/")+1);
-            JsonNode valueNode = newJsonNode.at(path);
-            String valueTxt = valueNode.textValue();
-            if(!valueNode.isTextual()){
-                valueTxt = valueNode.toString();
+            ObjectNode nodeRecord = mapper.createObjectNode();
+            if(record.getBadElement() != null){
+                nodeRecord.put("value", record.getBadElement().toString());
             }
-            temp.put("value", valueTxt);
             if(record.getErrorMsg() != null){
-                temp.put("error-msg", record.getErrorMsg().getMessage());
+                nodeRecord.put("error-msg", record.getErrorMsg().getMessage());
             }
-            temp.put("error-tag", record.getErrorTag().getName());
-            JsonNode jsonContainer = newJsonNode.at(container);
-            if(jsonContainer instanceof ArrayNode){
-                ((ArrayNode) jsonContainer).set(Integer.parseInt(key), temp);
-            }else{
-                ((ObjectNode)(jsonContainer)).set(key, temp);
-            }
+            nodeRecord.put("severity", record.getSeverity().toString());
+            nodeRecord.put("error-tag",  record.getErrorTag().getName());
+            newJsonNode.set(record.getErrorPath().toString(), nodeRecord);
         }
         return newJsonNode;
     }
