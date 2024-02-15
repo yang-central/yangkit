@@ -68,7 +68,7 @@ public class JsonCodecDataTestGetSource {
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
         assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
-        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(jsonNode.get("data"),validatorResultBuilder.build());
+        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(validatorResultBuilder.build());
         System.out.println(withError.toPrettyString());
     }
 
@@ -92,7 +92,7 @@ public class JsonCodecDataTestGetSource {
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
         assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
-        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(jsonNode.get("data"),validatorResultBuilder.build());
+        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(validatorResultBuilder.build());
         System.out.println(withError.toPrettyString());
     }
 
@@ -116,7 +116,7 @@ public class JsonCodecDataTestGetSource {
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
         assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
-        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(jsonNode.get("data"),validatorResultBuilder.build());
+        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(validatorResultBuilder.build());
         System.out.println(withError.toPrettyString());
     }
 
