@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.yangcentral.yangkit.common.api.*;
+import org.yangcentral.yangkit.common.api.Attribute;
+import org.yangcentral.yangkit.common.api.FName;
+import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
@@ -18,7 +20,6 @@ import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.api.model.YangDataEntity;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
-import org.yangcentral.yangkit.model.api.restriction.Empty;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
@@ -26,7 +27,6 @@ import org.yangcentral.yangkit.model.api.stmt.Module;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
-import java.text.ParseException;
 import java.util.*;
 
 public class JsonCodecUtil {
@@ -76,7 +76,7 @@ public class JsonCodecUtil {
         return path.toString();
     }
 
-    public static JsonNode mergeJsonValidatorResult(ValidatorResult validatorResult){
+    public static JsonNode convertValidatorResultToJson(ValidatorResult validatorResult){
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode newJsonNode = mapper.createObjectNode();
         if(validatorResult.getRecords() == null){

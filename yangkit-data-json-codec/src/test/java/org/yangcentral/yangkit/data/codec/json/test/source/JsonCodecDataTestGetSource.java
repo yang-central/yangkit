@@ -2,15 +2,11 @@ package org.yangcentral.yangkit.data.codec.json.test.source;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.io.SAXReader;
 import org.junit.jupiter.api.Test;
-import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.json.JsonCodecUtil;
-import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
 import org.yangcentral.yangkit.data.codec.json.YangDataParser;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.parser.YangParserException;
@@ -68,7 +64,7 @@ public class JsonCodecDataTestGetSource {
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
         assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
-        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(validatorResultBuilder.build());
+        JsonNode withError = JsonCodecUtil.convertValidatorResultToJson(validatorResultBuilder.build());
         System.out.println(withError.toPrettyString());
     }
 
@@ -92,7 +88,7 @@ public class JsonCodecDataTestGetSource {
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
         assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
-        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(validatorResultBuilder.build());
+        JsonNode withError = JsonCodecUtil.convertValidatorResultToJson(validatorResultBuilder.build());
         System.out.println(withError.toPrettyString());
     }
 
@@ -116,7 +112,7 @@ public class JsonCodecDataTestGetSource {
         // String result = codec.serialize(yangDataDocument).toString();
         String result = yangDataDocument.getDocString();
         assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
-        JsonNode withError = JsonCodecUtil.mergeJsonValidatorResult(validatorResultBuilder.build());
+        JsonNode withError = JsonCodecUtil.convertValidatorResultToJson(validatorResultBuilder.build());
         System.out.println(withError.toPrettyString());
     }
 
