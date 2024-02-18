@@ -11,8 +11,4 @@ public interface MultiInstancesDataNode {
 
    OrderedBy getOrderedBy();
 
-   boolean isDataArray();
-
-   void setDataIsArrayTrue();
-
 }

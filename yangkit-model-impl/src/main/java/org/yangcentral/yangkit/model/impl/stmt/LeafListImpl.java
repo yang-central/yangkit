@@ -24,8 +24,6 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
    private MaxElements maxElements;
    private OrderedBy orderedBy;
 
-   private boolean isDataArray = false;
-
    public LeafListImpl(String argStr) {
       super(argStr);
    }
@@ -270,12 +268,4 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
       return statements;
    }
 
-   @Override
-   public boolean isDataArray() {
-      return isDataArray;
-   }
-   @Override
-   public void setDataIsArrayTrue(){
-      this.isDataArray = true;
-   }
 }
