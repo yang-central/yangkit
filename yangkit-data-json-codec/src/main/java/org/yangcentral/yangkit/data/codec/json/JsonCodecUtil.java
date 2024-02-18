@@ -13,6 +13,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.common.impl.validate.ValidatorRecordImpl;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
@@ -61,19 +62,8 @@ public class JsonCodecUtil {
         return "";
     }
 
-    public static Map<JsonNode, String> jsonPath = new HashMap<>();
-    public static Map<JsonNode, JsonNode> jsonNodeParent = new HashMap<>();
     public static String getJsonPath(JsonNode jsonNode) {
-        StringBuilder path = new StringBuilder();
-        JsonNode parent = jsonNodeParent.get(jsonNode);
-        while(parent != null){
-            path.insert(0, jsonPath.get(jsonNode) + "/");
-            jsonNode = parent;
-            parent = jsonNodeParent.get(jsonNode);
-        }
-        path.insert(0, "/");
-        path.deleteCharAt(path.length() - 1);
-        return path.toString();
+        return "";
     }
 
     public static JsonNode convertValidatorResultToJson(ValidatorResult validatorResult){
@@ -458,12 +448,16 @@ public class JsonCodecUtil {
     }
 
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
+        return buildChildData(yangDataContainer, child, childSchemaNode, new ExtraValidationDataJsonCodec());
+    }
+
+    public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode, ExtraValidationDataJsonCodec extraValidationData){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
-            if(!child.isArray() && !((MultiInstancesDataNode)childSchemaNode).isDataArray()){
+            if(!child.isArray() && !extraValidationData.isNodeInJsonArray(child)){
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+                recordBuilder.setErrorPath(extraValidationData.getJsonPath(child));
                 recordBuilder.setBadElement(child);
                 recordBuilder.setErrorMessage(new ErrorMessage("bad element: expected an array and get an element."));
                 validatorResultBuilder.addRecord(recordBuilder.build());
@@ -472,18 +466,17 @@ public class JsonCodecUtil {
         }
         if(child.isArray() && !child.toString().equals("[null]")) {
             if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
-                ((MultiInstancesDataNode)childSchemaNode).setDataIsArrayTrue();
                 int size = child.size();
                 for (int i =0;i < size;i++) {
                     JsonNode childElement = child.get(i);
-                    JsonCodecUtil.jsonNodeParent.put(childElement,child);
-                    JsonCodecUtil.jsonPath.put(childElement, Integer.toString(i));
-                    validatorResultBuilder.merge(buildChildData(yangDataContainer,childElement,childSchemaNode));
+                    extraValidationData.addJsonChildArray(childElement);
+                    extraValidationData.addJsonChild(child, childElement, Integer.toString(i));
+                    validatorResultBuilder.merge(buildChildData(yangDataContainer,childElement,childSchemaNode, extraValidationData));
                 }
             } else {
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+                recordBuilder.setErrorPath(extraValidationData.getJsonPath(child));
                 recordBuilder.setBadElement(child);
                 recordBuilder.setErrorMessage(new ErrorMessage(
                         "bad element:" +childSchemaNode.getJsonIdentifier()));
@@ -516,7 +509,7 @@ public class JsonCodecUtil {
         }
         sonData = yangDataContainer.getDataChild(sonData.getIdentifier());
         if (sonData instanceof YangDataContainer) {
-            validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, child));
+            validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, child, extraValidationData));
         }
         return validatorResultBuilder.build();
     }
@@ -602,6 +595,24 @@ public class JsonCodecUtil {
         return sonData;
     }
     public static ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element) {
+        ExtraValidationDataJsonCodec extraValidationData = new ExtraValidationDataJsonCodec();
+        ValidatorResult validatorResult = buildChildrenData(yangDataContainer, element, extraValidationData);
+        if(validatorResult.getRecords() == null){
+            return validatorResult;
+        }
+        ValidatorResultBuilder validatorResultBuilderWithErrorPath = new ValidatorResultBuilder();
+        for(ValidatorRecord record : validatorResult.getRecords()){
+            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+            JsonNode tempJsonNode = (JsonNode) record.getBadElement();
+            recordBuilder.setErrorTag(record.getErrorTag());
+            recordBuilder.setErrorPath(extraValidationData.getJsonPath(tempJsonNode));
+            recordBuilder.setBadElement(tempJsonNode);
+            recordBuilder.setErrorMessage(record.getErrorMsg());
+            validatorResultBuilderWithErrorPath.addRecord(recordBuilder.build());
+        }
+        return validatorResultBuilderWithErrorPath.build();
+    }
+    public static ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element, ExtraValidationDataJsonCodec extraValidationData) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         SchemaNodeContainer schemaNodeContainer = null;
         if (yangDataContainer instanceof YangDataDocument) {
@@ -616,8 +627,7 @@ public class JsonCodecUtil {
             Map.Entry<String, JsonNode> field = fields.next();
             String fieldName = field.getKey();
             JsonNode child = field.getValue();
-            JsonCodecUtil.jsonPath.put(child, fieldName);
-            JsonCodecUtil.jsonNodeParent.put(child, element);
+            extraValidationData.addJsonChild(element, child, fieldName);
             if (fieldName.startsWith("@")) {
                 attributes.add(field);
                 continue;
@@ -627,7 +637,7 @@ public class JsonCodecUtil {
             if (sonSchemaNode == null || !sonSchemaNode.isActive()) {
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
-                recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+                recordBuilder.setErrorPath(extraValidationData.getJsonPath(child));
                 recordBuilder.setBadElement(child);
                 recordBuilder.setErrorMessage(new ErrorMessage(
                         "unrecognized element:" + fieldName));
@@ -635,7 +645,7 @@ public class JsonCodecUtil {
                 continue;
             }
 
-            validatorResultBuilder.merge(buildChildData(yangDataContainer,child,sonSchemaNode));
+            validatorResultBuilder.merge(buildChildData(yangDataContainer,child,sonSchemaNode, extraValidationData));
 
         }
         for(Map.Entry<String,JsonNode> attribute:attributes){
