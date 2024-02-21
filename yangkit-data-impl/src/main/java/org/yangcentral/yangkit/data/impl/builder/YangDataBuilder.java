@@ -53,7 +53,6 @@ public class YangDataBuilder implements org.yangcentral.yangkit.data.api.builder
                 LeafListData leafListData = new LeafListDataImpl((LeafList) schemaNode,
                         yangDataValue);
                 return leafListData;
-                //TODO: vivek catch error
             }
             return new LeafListDataImpl((LeafList) schemaNode,null);
         } else if (schemaNode instanceof YangList){

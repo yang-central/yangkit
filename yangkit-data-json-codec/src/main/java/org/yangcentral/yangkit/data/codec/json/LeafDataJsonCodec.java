@@ -26,7 +26,7 @@ public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
                         new IdentityRefJsonCodec(getSchemaNode()));
             } else {
                 leafData = (LeafData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), yangText);
-                leafData.getValue().getStringValue(); //TODO: vivek trigger error
+                leafData.getValue().getStringValue();
             }
             return leafData;
         } catch (YangDataJsonCodecException e) {
@@ -36,7 +36,7 @@ public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
             recordBuilder.setBadElement(e.getBadElement());
             recordBuilder.setErrorMessage(e.getErrorMsg());
             validatorResultBuilder.addRecord(recordBuilder.build());
-        } catch (YangCodecException e){
+        } catch (YangCodecException ignore){
             ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
             recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
             recordBuilder.setBadElement(element);
