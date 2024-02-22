@@ -26,7 +26,7 @@ public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
                         new IdentityRefJsonCodec(getSchemaNode()));
             } else {
                 leafData = (LeafData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), yangText);
-                leafData.getValue().getStringValue();
+                leafData.getValue().getStringValue(); // trigger validation error
             }
             return leafData;
         } catch (YangDataJsonCodecException e) {

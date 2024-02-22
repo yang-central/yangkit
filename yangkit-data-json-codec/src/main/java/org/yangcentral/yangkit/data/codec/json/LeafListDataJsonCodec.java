@@ -21,7 +21,7 @@ public class LeafListDataJsonCodec extends TypedDataJsonCodec<LeafList, LeafList
             String yangText = getYangText(element);
             LeafListData leafListData = (LeafListData) YangDataBuilderFactory.getBuilder()
                     .getYangData(getSchemaNode(), yangText);
-            leafListData.toString();
+            leafListData.toString(); // trigger validation error
             return leafListData;
         } catch (YangDataJsonCodecException e) {
             ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
