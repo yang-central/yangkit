@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-parent</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <modules>
         <module>yangkit-xpath-api</module>
         <module>yangkit-model-api</module>
@@ -112,9 +112,9 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.5.0</version>
+                        <version>3.6.3</version>
                         <configuration>
-                            <!--<source>8</source>-->
+                            <source>8</source>
                             <detectJavaApiLink>false</detectJavaApiLink>
                             <locale>en_US</locale>
                             <charset>UTF-8</charset>
@@ -122,7 +122,7 @@
                             <docencoding>UTF-8</docencoding>
                             <reportOutputDirectory>${project.build.directory}/apidocs</reportOutputDirectory>
                             <destDir>apidocs</destDir>
-                            <!--
+<!--
                             <doclet>ch.raffael.doclets.pegdown.PegdownDoclet</doclet>
                             <docletArtifact>
                                 <groupId>ch.raffael.pegdown-doclet</groupId>
@@ -130,7 +130,7 @@
                                 <version>1.1</version>
                             </docletArtifact>
                             <useStandardDocletOptions>true</useStandardDocletOptions>
-                            -->
+-->
                         </configuration>
                         <executions>
                             <execution>
@@ -141,11 +141,11 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!--
+<!--
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.5</version>
+                        <version>1.6</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
