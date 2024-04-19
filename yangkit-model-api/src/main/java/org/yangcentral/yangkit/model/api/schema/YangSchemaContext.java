@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.model.api.schema;
 
 import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
@@ -34,6 +35,8 @@ public interface YangSchemaContext extends SchemaNodeContainer {
    List<Module> getModule(URI uri);
 
    Optional<? extends SchemaNode> getSchemaNode(SchemaPath.Absolute path);
+
+   SchemaNode getSchemaNode(AbsolutePath absolutePath);
 
    YangSchema getYangSchema();
 
