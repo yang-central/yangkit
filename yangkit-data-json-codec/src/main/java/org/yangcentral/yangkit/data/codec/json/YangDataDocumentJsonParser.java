@@ -10,24 +10,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class YangDataParser {
-    private JsonNode doc;
+public class YangDataDocumentJsonParser {
+    private final YangSchemaContext schemaContext;
 
-    private YangSchemaContext schemaContext;
-
-    private boolean onlyConfig;
-
-    public YangDataParser(JsonNode doc, YangSchemaContext schemaContext, boolean isOnlyConfig) {
-        this.doc = doc;
+    public YangDataDocumentJsonParser(YangSchemaContext schemaContext) {
         this.schemaContext = schemaContext;
-        onlyConfig = isOnlyConfig;
         initLog4j();
     }
-
     private void initLog4j() {
         Properties props = new Properties();
         try {
-            InputStream in = YangDataParser.class.getResourceAsStream("/log4j.properties");
+            InputStream in = YangDataDocumentJsonParser.class.getResourceAsStream("/log4j.properties");
             props.load(in);
             PropertyConfigurator.configure(props);
         } catch (IOException e) {
@@ -35,13 +28,8 @@ public class YangDataParser {
         }
     }
 
-    public YangDataDocument parse(ValidatorResultBuilder validatorResultBuilder) {
-        JsonNode data = doc.get("data");
+    public YangDataDocument parse(JsonNode data, ValidatorResultBuilder validatorResultBuilder) {
         YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(schemaContext);
-        YangDataDocument yangDataDocument = codec.deserialize(data, validatorResultBuilder);
-        if (null != yangDataDocument) {
-            //yangDataDocument.setOnlyConfig(onlyConfig);
-        }
-        return yangDataDocument;
+        return codec.deserialize(data, validatorResultBuilder);
     }
 }

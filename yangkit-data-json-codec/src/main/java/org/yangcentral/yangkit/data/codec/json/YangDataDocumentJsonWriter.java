@@ -11,12 +11,12 @@ import java.io.OutputStream;
 import java.util.Properties;
 
 
-public class YangDataWriterJson {
+public class YangDataDocumentJsonWriter {
     private YangDataDocument yangDataDocument;
 
     private OutputStream out;
 
-    public YangDataWriterJson(YangDataDocument yangDataDocument, OutputStream out) {
+    public YangDataDocumentJsonWriter(YangDataDocument yangDataDocument, OutputStream out) {
         this.yangDataDocument = yangDataDocument;
         this.out = out;
         initLog4j();
@@ -25,7 +25,7 @@ public class YangDataWriterJson {
     private void initLog4j() {
         Properties props = new Properties();
         try {
-            props.load(YangDataWriterJson.class.getResourceAsStream("/log4j.properties"));
+            props.load(YangDataDocumentJsonWriter.class.getResourceAsStream("/log4j.properties"));
             PropertyConfigurator.configure(props);
         } catch (IOException e) {
             e.printStackTrace();
