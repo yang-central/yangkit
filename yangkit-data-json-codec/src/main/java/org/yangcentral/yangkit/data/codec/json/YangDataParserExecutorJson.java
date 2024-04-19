@@ -46,7 +46,7 @@ public class YangDataParserExecutorJson {
         System.out.println("read doc:" + CommonUtil.getConsumTime(parse_yang_end - parse_yang_begin));
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         YangDataDocument yangDataDocument =
-                new YangDataParser(element, schemaContext, true).parse(validatorResultBuilder);
+                new YangDataDocumentJsonParser(schemaContext).parse(element,validatorResultBuilder);
         yangDataDocument.update();
         validatorResult = yangDataDocument.validate();
         validatorResultBuilder.merge(validatorResult);
@@ -58,7 +58,7 @@ public class YangDataParserExecutorJson {
         if (!outFile.exists()) {
             outFile.createNewFile();
         }
-        YangDataWriterJson writer = new YangDataWriterJson(yangDataDocument, new FileOutputStream(outFile));
+        YangDataDocumentJsonWriter writer = new YangDataDocumentJsonWriter(yangDataDocument, new FileOutputStream(outFile));
         writer.write();
         long bak_end = System.currentTimeMillis();
         System.out.println("bak consumed time:" + CommonUtil.getConsumTime(bak_end - bak_start));

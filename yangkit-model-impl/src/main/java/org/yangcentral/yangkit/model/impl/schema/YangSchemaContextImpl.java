@@ -4,7 +4,9 @@ import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.base.YangSpecification;
+import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.XPathStep;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
@@ -125,6 +127,33 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    public Optional<? extends SchemaNode> getSchemaNode(SchemaPath.Absolute path) {
       SchemaNode schemaNode = path.getSchemaNode(this);
       return null == schemaNode ? Optional.empty() : Optional.of(schemaNode);
+   }
+
+   @Override
+   public SchemaNode getSchemaNode(AbsolutePath absolutePath) {
+      if(absolutePath == null || absolutePath.isRootPath()){
+         return null;
+      }
+      SchemaNodeContainer schemaNodeContainer = this;
+      int size = absolutePath.getSteps().size();
+      for(int i=0; i < size; i++){
+         XPathStep step = absolutePath.getSteps().get(i);
+         QName stepName = step.getStep();
+         SchemaNode schemaNode = schemaNodeContainer.getSchemaNodeChild(stepName);
+         if(schemaNode == null){
+            break;
+         }
+         if(schemaNode instanceof SchemaNodeContainer){
+            schemaNodeContainer = (SchemaNodeContainer) schemaNode;
+         } else {
+            if(i != (size-1)){
+               break;
+            }
+            return schemaNode;
+         }
+      }
+
+      return null;
    }
 
    public YangSchema getYangSchema() {
