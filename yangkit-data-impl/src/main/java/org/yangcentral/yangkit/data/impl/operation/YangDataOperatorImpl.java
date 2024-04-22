@@ -16,6 +16,8 @@ public class YangDataOperatorImpl implements YangDataOperator {
 
     private DataChangeNotifier dataChangeNotifier;
 
+    private AbsolutePath operatedPath;
+
     public YangDataOperatorImpl(YangDataContainer operatedData) {
         this.operatedData = operatedData;
     }
@@ -33,7 +35,19 @@ public class YangDataOperatorImpl implements YangDataOperator {
         this.dataChangeNotifier = dataChangeNotifier;
     }
 
+    @Override
+    public AbsolutePath getOperatedPath() {
+        return operatedPath;
+    }
+
+    public void setOperatedPath(AbsolutePath operatedPath) {
+        this.operatedPath = operatedPath;
+    }
+
     private AbsolutePath getOperateDataPath(){
+        if(operatedPath != null){
+            return operatedPath;
+        }
         if(operatedData instanceof YangDataDocument){
             return new AbsolutePath();
         }
