@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.yangcentral.yangkit.common.api.Attribute;
-import org.yangcentral.yangkit.common.api.FName;
-import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.*;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
@@ -21,12 +19,8 @@ import org.yangcentral.yangkit.data.api.model.YangDataEntity;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
-import org.yangcentral.yangkit.model.api.stmt.LeafList;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
-import org.yangcentral.yangkit.model.api.stmt.YangList;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -285,6 +279,86 @@ public class JsonCodecUtil {
         return validatorResultBuilder.build();
     }
 
+    /**
+     * build child data according to parent schema and json
+     * @param schemaNodeContainer parent schema or schema context
+     * @param child  json representation of child
+     * @param validatorResultBuilder validator result builder
+     * @return YangData representation
+     */
+    public static YangData<?> buildChildData(SchemaNodeContainer schemaNodeContainer,
+                                             JsonNode child,
+                                             ValidatorResultBuilder validatorResultBuilder){
+        if (child.isNull()) {
+            return null;
+        }
+        int size = 0;
+        Iterator<String> fields = child.fieldNames();
+        while (fields.hasNext()) {
+            fields.next();
+            size++;
+        }
+        if(size == 0) {
+            return null;
+        }
+        if(size > 1) {
+            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+            recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+            recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+            recordBuilder.setBadElement(child);
+            recordBuilder.setErrorMessage(new ErrorMessage("wrong format, only one root node can be allowed."));
+            validatorResultBuilder.addRecord(recordBuilder.build());
+            return null;
+        }
+        Map.Entry<String,JsonNode> entry = child.fields().next();
+        String fieldName = entry.getKey();
+        JsonNode value = entry.getValue();
+        YangSchemaContext schemaContext = null;
+        if( schemaNodeContainer instanceof YangSchemaContext){
+            schemaContext= (YangSchemaContext) schemaNodeContainer;
+        } else {
+            SchemaNode schemaNode = (SchemaNode) schemaNodeContainer;
+            schemaContext = schemaNode.getContext().getSchemaContext();
+        }
+        QName fieldQName = getQNameFromJsonField(fieldName,schemaContext);
+        if(null == fieldQName){
+            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+            recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+            recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+            recordBuilder.setBadElement(child);
+            recordBuilder.setErrorMessage(new ErrorMessage("unrecognized node:"+ fieldName));
+            validatorResultBuilder.addRecord(recordBuilder.build());
+            return null;
+        }
+        SchemaNode childSchemaNode = schemaNodeContainer.getDataNodeChild(fieldQName);
+        if(null == childSchemaNode){
+            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+            recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+            recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
+            recordBuilder.setBadElement(child);
+            recordBuilder.setErrorMessage(new ErrorMessage("unrecognized node:"+ fieldName));
+            validatorResultBuilder.addRecord(recordBuilder.build());
+            return null;
+        }
+        JsonNode childJson = null;
+        if(childSchemaNode instanceof MultiInstancesDataNode){
+            ArrayNode arrayNode = (ArrayNode) value;
+            childJson = arrayNode.get(0);
+        } else {
+            childJson = value;
+        }
+
+        YangDataJsonCodec<?,?> sonCodec = YangDataJsonCodec.getInstance(childSchemaNode);
+        YangData<?> sonData = sonCodec.deserialize(childJson, validatorResultBuilder);
+        if (null == sonData) {
+            return null;
+        }
+
+        if (sonData instanceof YangDataContainer) {
+            validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, childJson));
+        }
+        return sonData;
+    }
     public static ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         SchemaNodeContainer schemaNodeContainer = null;
