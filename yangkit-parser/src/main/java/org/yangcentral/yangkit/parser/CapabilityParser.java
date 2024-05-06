@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.parser;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,17 +12,34 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 public class CapabilityParser {
-   private String capabilityFile;
+   private Element root;
 
    public CapabilityParser(String capabilityFile) {
-      this.capabilityFile = capabilityFile;
+      SAXReader reader = new SAXReader();
+      Document capabilitiesDoc = null;
+      try {
+         capabilitiesDoc = reader.read(new File(capabilityFile));
+      } catch (DocumentException e) {
+         throw new RuntimeException(e);
+      }
+      this.root = capabilitiesDoc.getRootElement();
+   }
+   public CapabilityParser(InputStream inputStream) {
+      SAXReader reader = new SAXReader();
+      Document capabilitiesDoc = null;
+      try {
+         capabilitiesDoc = reader.read(inputStream);
+      } catch (DocumentException e) {
+         throw new RuntimeException(e);
+      }
+      this.root = capabilitiesDoc.getRootElement();
+   }
+   public CapabilityParser(Element element){
+      this.root = element;
    }
 
-   List<Capability> parse() throws DocumentException {
+   List<Capability> parse()  {
       List<Capability> capabilities = new ArrayList<>();
-      SAXReader reader = new SAXReader();
-      Document capabilitiesDoc = reader.read(new File(this.capabilityFile));
-      Element root = capabilitiesDoc.getRootElement();
       Element capabilitiesElement = root.element("capabilities");
 
       for (Element element: capabilitiesElement.elements()) {
