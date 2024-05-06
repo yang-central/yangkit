@@ -156,10 +156,23 @@ public class YangYinParser {
     */
 
    public static YangSchemaContext parse(String yangDir, String capabilities) throws IOException, YangParserException, DocumentException {
+      CapabilityParser capabilityParser = new CapabilityParser(capabilities);
+      List<Capability> capabilityList = capabilityParser.parse();
+      return parse(yangDir,capabilityList);
+   }
+   /**
+    * parse yang modules from a directory and with capabilities
+    * @param yangDir  a directory contains yang/yin modules
+    * @param capabilityList capabilities
+    * @return yang schema context
+    * @throws IOException
+    * @throws YangParserException
+    * @throws DocumentException
+    */
+
+   public static YangSchemaContext parse(String yangDir, List<Capability> capabilityList) throws IOException, YangParserException, DocumentException {
       YangSchemaContext schemaContext = parse(yangDir);
-      if (capabilities != null) {
-         CapabilityParser capabilityParser = new CapabilityParser(capabilities);
-         List<Capability> capabilityList = capabilityParser.parse();
+      if (capabilityList != null) {
          List<Module> unMatchedModules = new ArrayList<>();
          ModuleSet moduleSet = new ModuleSet();
 
