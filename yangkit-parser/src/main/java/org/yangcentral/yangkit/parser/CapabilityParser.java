@@ -38,7 +38,7 @@ public class CapabilityParser {
       this.root = element;
    }
 
-   List<Capability> parse()  {
+   public List<Capability> parse()  {
       List<Capability> capabilities = new ArrayList<>();
       Element capabilitiesElement = root.element("capabilities");
 
