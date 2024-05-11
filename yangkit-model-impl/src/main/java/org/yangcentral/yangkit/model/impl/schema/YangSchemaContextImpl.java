@@ -143,13 +143,13 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          if(schemaNode == null){
             break;
          }
+         if(i == (size-1)){
+            return schemaNode;
+         }
          if(schemaNode instanceof SchemaNodeContainer){
             schemaNodeContainer = (SchemaNodeContainer) schemaNode;
          } else {
-            if(i != (size-1)){
-               break;
-            }
-            return schemaNode;
+            break;
          }
       }
 
