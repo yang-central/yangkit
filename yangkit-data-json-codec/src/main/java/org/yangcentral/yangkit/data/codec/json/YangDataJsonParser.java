@@ -3,6 +3,8 @@ package org.yangcentral.yangkit.data.codec.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.log4j.PropertyConfigurator;
 import org.yangcentral.yangkit.common.api.AbsolutePath;
+import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.XPathStep;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
@@ -11,6 +13,7 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 public class YangDataJsonParser {
@@ -38,6 +41,9 @@ public class YangDataJsonParser {
            return null;
         }
         YangDataJsonCodec<?,?> codec = YangDataJsonCodec.getInstance(schemaNode);
+        List<XPathStep> stepList = path.getSteps();
+        int size = stepList.size();
+        XPathStep lastStep = stepList.get(size-1);
         YangData<?> yangData = codec.deserialize(data, validatorResultBuilder);
         if(yangData instanceof YangDataContainer) {
             validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData((YangDataContainer) yangData, data));

@@ -84,7 +84,7 @@ public class JsonCodecUtil {
                 schemaContext = yangDataDocument.getSchemaContext();
             } else {
                 YangData<?> yangData = (YangData<?>) parent;
-                schemaContext = yangData.getContext().getDocument().getSchemaContext();
+                schemaContext = yangData.getSchemaNode().getContext().getSchemaContext();
             }
             Optional<Module> moduleOp = schemaContext.getLatestModule(moduleName);
             if(!moduleOp.isPresent()){
@@ -129,7 +129,7 @@ public class JsonCodecUtil {
         } else {
             YangData<?> yangData = (YangData<?>) parent;
             parentQName = yangData.getQName();
-            schemaContext = yangData.getContext().getDocument().getSchemaContext();
+            schemaContext = yangData.getSchemaNode().getContext().getSchemaContext();
         }
         if(parentQName != null && parentQName.getNamespace().equals(qName.getNamespace())){
             return qName.getLocalName();
