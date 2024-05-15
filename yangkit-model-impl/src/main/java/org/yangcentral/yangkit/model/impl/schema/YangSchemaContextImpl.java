@@ -139,7 +139,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       for(int i=0; i < size; i++){
          XPathStep step = absolutePath.getSteps().get(i);
          QName stepName = step.getStep();
-         SchemaNode schemaNode = schemaNodeContainer.getSchemaNodeChild(stepName);
+         SchemaNode schemaNode = schemaNodeContainer.getDataNodeChild(stepName);
          if(schemaNode == null){
             break;
          }
