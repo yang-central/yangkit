@@ -188,7 +188,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
         while( !descendants.isEmpty()) {
             SchemaNode descendant = descendants.pop();
             YangData<?> descendantData = null;
-            if(descendant == child.getSchemaNode()){
+            if(descendant.equals(child.getSchemaNode())){
                 yangDataContainer.addChild(child,autoDelete);
                 break;
             } else {
