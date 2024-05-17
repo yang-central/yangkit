@@ -35,21 +35,21 @@ public class InputImpl extends SchemaNodeImpl implements Input {
       super("input");
    }
 
-   public SchemaPath.Absolute getSchemaPath() {
-      SchemaPath.Absolute schemaPath = super.getSchemaPath();
-      if (null == schemaPath) {
-         SchemaNodeContainer parent = this.getParentSchemaNode();
-         if (parent instanceof SchemaNode) {
-            schemaPath = new AbsoluteSchemaPath(((SchemaNode)parent).getSchemaPath().getPath());
-            schemaPath.addStep(this.getIdentifier());
-         } else {
-            schemaPath = new AbsoluteSchemaPath();
-            schemaPath.addStep(this.getIdentifier());
-         }
-      }
-
-      return schemaPath;
-   }
+//   public SchemaPath.Absolute getSchemaPath() {
+//      SchemaPath.Absolute schemaPath = super.getSchemaPath();
+//      if (null == schemaPath) {
+//         SchemaNodeContainer parent = this.getParentSchemaNode();
+//         if (parent instanceof SchemaNode) {
+//            schemaPath = new AbsoluteSchemaPath(((SchemaNode)parent).getSchemaPath().getPath());
+//            schemaPath.addStep(this.getIdentifier());
+//         } else {
+//            schemaPath = new AbsoluteSchemaPath();
+//            schemaPath.addStep(this.getIdentifier());
+//         }
+//      }
+//
+//      return schemaPath;
+//   }
 
    public void setContext(YangContext context) {
       super.setContext(context);

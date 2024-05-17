@@ -881,15 +881,45 @@ public abstract class YangStatementImpl implements YangStatement {
       return sb.toString();
    }
 
+   public List<YangStatement> getSubStatements(){
+      List<YangStatement> statements = new ArrayList<>();
+      for(YangElement yangElement:subElements){
+         if(yangElement instanceof YangStatement){
+            statements.add((YangStatement) yangElement);
+         }
+      }
+      return statements;
+   }
+
    public boolean equals(Object o) {
+      if(o == null){
+         return false;
+      }
       if (this == o) {
          return true;
-      } else if (!(o instanceof YangStatementImpl)) {
-         return false;
-      } else {
-         YangStatementImpl that = (YangStatementImpl)o;
-         return Objects.equals(this.getArgStr(), that.getArgStr()) && Objects.equals(this.getYangKeyword(), that.getYangKeyword());
       }
+      if (!(o instanceof YangStatementImpl)) {
+         return false;
+      }
+
+      YangStatementImpl that = (YangStatementImpl)o;
+      if (!Objects.equals(this.getArgStr(), that.getArgStr()) && Objects.equals(this.getYangKeyword(), that.getYangKeyword())){
+         return false;
+      }
+      List<YangStatement> subStatements = this.getSubStatements();
+      List<YangStatement> thatSubStatements = that.getSubStatements();
+      if(subStatements.size() != thatSubStatements.size()){
+         return false;
+      }
+      int size = this.getSubStatements().size();
+      for(int i=0; i<size;i++){
+         YangStatement subStatement = subStatements.get(i);
+         if(that.getSubStatement(subStatement.getYangKeyword(),subStatement.getArgStr()) == null){
+            return false;
+         }
+      }
+      return true;
+
    }
 
    public int hashCode() {

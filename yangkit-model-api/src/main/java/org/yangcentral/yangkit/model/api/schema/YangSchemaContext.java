@@ -53,4 +53,6 @@ public interface YangSchemaContext extends SchemaNodeContainer {
    ValidatorResult validate();
 
    ValidatorResult getValidateResult();
+
+   void buildDependencies();
 }

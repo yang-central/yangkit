@@ -169,16 +169,21 @@ public class YangSchemaContextImpl implements YangSchemaContext {
             return;
          }
       }
+      this.modules.add(module);
       List<Module> filterModules = this.moduleMap.get(module.getArgStr());
       if(filterModules == null || filterModules.isEmpty()) {
          filterModules = new ArrayList<>();
          this.moduleMap.put(module.getArgStr(), filterModules);
       }
       filterModules.add(module);
-      this.modules.add(module);
+
    }
 
    public void addImportOnlyModule(Module module) {
+      if(isImportOnly(module)){
+         return;
+      }
+      importOnlyModules.add(module);
       if(getModule(module.getModuleId()).isPresent()){
          return;
       }
@@ -188,7 +193,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          this.moduleMap.put(module.getArgStr(), filterModules);
       }
       filterModules.add(module);
-      importOnlyModules.add(module);
+
    }
 
    public boolean isImportOnly(Module module) {
@@ -209,29 +214,27 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    public Module removeModule(ModuleId moduleId) {
       if (!this.moduleMap.containsKey(moduleId.getModuleName())) {
          return null;
-      } else {
-         List<Module> filterModules = this.moduleMap.get(moduleId.getModuleName());
-         Module matchedModule = null;
+      }
+      List<Module> filterModules = this.moduleMap.get(moduleId.getModuleName());
+      Module matchedModule = null;
 
-         for (Module module : filterModules) {
-            if (module.getModuleId().equals(moduleId)) {
-               matchedModule = module;
-               break;
-            }
-         }
-
-         if (matchedModule == null) {
-            return null;
-         } else {
-            filterModules.remove(matchedModule);
-            for(SchemaNode schemaNode:matchedModule.getSchemaNodeChildren()){
-               this.removeSchemaNodeChild(schemaNode);
-            }
-            this.modules.remove(matchedModule);
-            this.importOnlyModules.remove(matchedModule);
-            return matchedModule;
+      for (Module module : filterModules) {
+         if (module.getModuleId().equals(moduleId)) {
+            matchedModule = module;
+            break;
          }
       }
+
+      if (matchedModule == null) {
+         return null;
+      }
+      filterModules.remove(matchedModule);
+      for(SchemaNode schemaNode:matchedModule.getSchemaNodeChildren()){
+         this.removeSchemaNodeChild(schemaNode);
+      }
+      this.modules.remove(matchedModule);
+      this.importOnlyModules.remove(matchedModule);
+      return matchedModule;
    }
 
    public Map<String, List<YangElement>> getParseResult() {
@@ -242,7 +245,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       return this.schemaNodeContainer.getMandatoryDescendant();
    }
 
-   private void buildDependencies(){
+   public void buildDependencies(){
       List<Module> modules = new ArrayList<>();
       modules.addAll(this.getModules());
       modules.addAll(this.getImportOnlyModules());
@@ -268,6 +271,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
 
             Optional<Module> importModuleOp = this.getModule(moduleName,revisionDate);
             if(importModuleOp.isPresent()){
+               module.addDependency(importModuleOp.get());
                importModuleOp.get().addDependentBy(module);
             }
          }
@@ -340,6 +344,9 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    public ValidatorResult addSchemaNodeChild(SchemaNode schemaNode) {
+      if(isImportOnly(schemaNode.getContext().getCurModule())){
+         return new ValidatorResultBuilder().build();
+      }
       return this.schemaNodeContainer.addSchemaNodeChild(schemaNode);
    }
 

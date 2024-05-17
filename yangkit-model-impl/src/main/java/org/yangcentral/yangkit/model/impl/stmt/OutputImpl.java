@@ -270,21 +270,25 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
       }
    }
 
-   public SchemaPath.Absolute getSchemaPath() {
-      SchemaPath.Absolute schemaPath = super.getSchemaPath();
-      if (null == schemaPath) {
-         SchemaNodeContainer parent = this.getParentSchemaNode();
-         if (parent instanceof SchemaNode) {
-            schemaPath = new AbsoluteSchemaPath(((SchemaNode)parent).getSchemaPath().getPath());
-            schemaPath.addStep(this.getIdentifier());
-         } else {
-            schemaPath = new AbsoluteSchemaPath();
-            schemaPath.addStep(this.getIdentifier());
-         }
-      }
-
-      return schemaPath;
-   }
+//   public SchemaPath.Absolute getSchemaPath() {
+//      SchemaPath.Absolute schemaPath = super.getSchemaPath();
+//      if (null == schemaPath) {
+//         SchemaNodeContainer parent = this.getParentSchemaNode();
+//         if (parent instanceof SchemaNode) {
+//            SchemaPath parentSchemaPath = ((SchemaNode)parent).getSchemaPath();
+//            if(parentSchemaPath == null){
+//               return null;
+//            }
+//            schemaPath = new AbsoluteSchemaPath(parentSchemaPath.getPath());
+//            schemaPath.addStep(this.getIdentifier());
+//         } else {
+//            schemaPath = new AbsoluteSchemaPath();
+//            schemaPath.addStep(this.getIdentifier());
+//         }
+//      }
+//
+//      return schemaPath;
+//   }
 
    @Override
    public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) {

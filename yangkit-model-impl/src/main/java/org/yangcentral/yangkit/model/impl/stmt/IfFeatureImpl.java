@@ -202,7 +202,7 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
             Feature feature = module.getFeature(this.refFeature.getLocalName());
             if (feature == null) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(IfFeatureImpl.this,
-                       ErrorCode.UNRECOGNIZED_FEATURE.toString(new String[]{"name=" + this.refFeature})));
+                       ErrorCode.UNRECOGNIZED_FEATURE.toString(new String[]{"name=" + this.refFeature.toString()})));
                return validatorResultBuilder.build();
             }
 

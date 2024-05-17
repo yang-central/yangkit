@@ -46,6 +46,8 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    private final List<Augment> augments = new ArrayList<>();
    private final List<Deviation> deviations = new ArrayList<>();
    private final List<Module> dependentBys = new ArrayList<>();
+
+   private final List<Module> dependencies = new ArrayList<>();
    private final SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
    protected Map<String, ModuleId> prefixCache = new ConcurrentHashMap<>();
 
@@ -516,6 +518,8 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                      subResultBuilder.addRecord(ModelUtil.reportError(augment,
                          ErrorCode.MISSING_TARGET.getFieldName()));
                      errorCache.add(augment);
+                     //debug
+                     targetPath.getSchemaNode(this.getContext().getSchemaContext());
                      continue;
                   }
 
@@ -659,6 +663,26 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    public void removeDependentBy(Module module) {
       dependentBys.remove(module);
 
+   }
+
+   @Override
+   public List<Module> getDependencies() {
+      return dependencies;
+   }
+
+   @Override
+   public void addDependency(Module module) {
+      for(Module org:dependencies){
+         if(org == module){
+            return;
+         }
+      }
+      dependencies.add(module);
+   }
+
+   @Override
+   public void removeDependency(Module module) {
+      dependencies.remove(module);
    }
 
    @Override

@@ -172,6 +172,7 @@ public class YangYinParser {
 
    public static YangSchemaContext parse(String yangDir, List<Capability> capabilityList) throws IOException, YangParserException, DocumentException {
       YangSchemaContext schemaContext = parse(yangDir);
+      schemaContext.buildDependencies();
       if (capabilityList != null) {
          List<Module> unMatchedModules = new ArrayList<>();
          ModuleSet moduleSet = new ModuleSet();
@@ -231,8 +232,9 @@ public class YangYinParser {
 
          for (Module unMatchedModule : unMatchedModules) {
             schemaContext.removeModule(unMatchedModule.getModuleId());
-            schemaContext.addImportOnlyModule(unMatchedModule);
+            //schemaContext.addImportOnlyModule(unMatchedModule);
          }
+
 
          YangSchema yangSchema = schemaContext.getYangSchema();
          if (yangSchema == null) {
