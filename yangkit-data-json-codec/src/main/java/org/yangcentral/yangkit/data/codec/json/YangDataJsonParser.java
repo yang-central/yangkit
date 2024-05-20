@@ -56,6 +56,10 @@ public class YangDataJsonParser {
             value = data.get(schemaNode.getJsonIdentifier());
         }
         YangData<?> yangData = codec.deserialize(value, validatorResultBuilder);
+        if(yangData == null){
+            return null;
+        }
+        yangData.setPath(path);
         if(yangData instanceof ListData){
             ListData listData = (ListData) yangData;
             YangList yangList = (YangList) schemaNode;

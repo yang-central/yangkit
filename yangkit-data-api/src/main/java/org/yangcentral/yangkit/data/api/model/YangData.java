@@ -29,6 +29,8 @@ public interface YangData<S extends SchemaNode> extends YangDataEntity<YangData>
 
    AbsolutePath getPath();
 
+   void setPath(AbsolutePath path);
+
    boolean checkWhen() throws JaxenException;
 
 

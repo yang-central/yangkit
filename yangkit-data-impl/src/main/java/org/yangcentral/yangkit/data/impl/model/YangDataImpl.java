@@ -37,6 +37,8 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
 
     protected DataIdentifier identifier;
 
+    private AbsolutePath path;
+
     private Logger logger = LoggerFactory.getLogger(YangDataImpl.class);
 
     public YangDataImpl(S schemaNode) {
@@ -94,6 +96,9 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
     }
     @Override
     public AbsolutePath getPath() {
+        if(this.path != null){
+            return this.path;
+        }
         AbsolutePath parentPath;
         YangDataContainer parent = this.getContext().getParent();
         if(parent == null){
@@ -110,6 +115,11 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
         }
         parentPath.addStep(translate2Step((YangData<? extends DataNode>) this));
         return parentPath;
+    }
+
+    @Override
+    public void setPath(AbsolutePath path) {
+        this.path = path;
     }
 
     @Override
