@@ -72,6 +72,7 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
     public void detach() {
         getContext().setParent(null);
         getContext().setDocument(null);
+        this.path = null;
         update();
     }
 
@@ -113,8 +114,13 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
         if(this.isVirtual()){
             return parentPath;
         }
-        parentPath.addStep(translate2Step((YangData<? extends DataNode>) this));
-        return parentPath;
+        AbsolutePath thisPath = new AbsolutePath();
+        for(XPathStep step:parentPath.getSteps()){
+            thisPath.addStep(step);
+        }
+        thisPath.addStep(translate2Step((YangData<? extends DataNode>) this));
+        this.path = thisPath;
+        return thisPath;
     }
 
     @Override
