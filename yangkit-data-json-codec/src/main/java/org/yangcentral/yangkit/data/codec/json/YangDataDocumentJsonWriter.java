@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.data.codec.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.log4j.PropertyConfigurator;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 
@@ -12,13 +13,7 @@ import java.util.Properties;
 
 
 public class YangDataDocumentJsonWriter {
-    private YangDataDocument yangDataDocument;
-
-    private OutputStream out;
-
-    public YangDataDocumentJsonWriter(YangDataDocument yangDataDocument, OutputStream out) {
-        this.yangDataDocument = yangDataDocument;
-        this.out = out;
+    public YangDataDocumentJsonWriter() {
         initLog4j();
     }
 
@@ -32,15 +27,10 @@ public class YangDataDocumentJsonWriter {
         }
     }
 
-    public void write() throws IOException {
+    public JsonNode write(YangDataDocument yangDataDocument)  {
         YangDataDocumentJsonCodec codec =
                 new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
         JsonNode root = codec.serialize(yangDataDocument);
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        String json = mapper.writeValueAsString(root);
-        out.write(json.getBytes());
-        out.flush();
-        out.close();
+        return root;
     }
 }

@@ -102,6 +102,9 @@ public class JsonCodecUtil {
         if(moduleName == null) {
             return null;
         }
+        if(moduleName.equals("ietf-restconf")){
+            return new QName("urn:ietf:params:xml:ns:yang:ietf-restconf","ietf-restconf",fName.getLocalName());
+        }
         Optional<Module> moduleOp = schemaContext.getLatestModule(moduleName);
         if(!moduleOp.isPresent()){
             return null;
@@ -112,6 +115,12 @@ public class JsonCodecUtil {
     }
 
     public static String getJsonFieldFromQName(QName qName,YangSchemaContext schemaContext) {
+        if(qName == null){
+            return null;
+        }
+        if(qName.getNamespace().toString().equals("urn:ietf:params:xml:ns:yang:ietf-restconf")){
+            return "ietf-restconf:"+ qName.getLocalName();
+        }
         List<Module> modules = schemaContext.getModule(qName.getNamespace());
         if(modules.isEmpty()) {
             return qName.getQualifiedName();
@@ -120,6 +129,12 @@ public class JsonCodecUtil {
         return moduleName + ":" + qName.getLocalName();
     }
     public static String getJsonFieldFromQName(QName qName,YangDataContainer parent) {
+        if(qName == null){
+            return null;
+        }
+        if(qName.getNamespace().toString().equals("urn:ietf:params:xml:ns:yang:ietf-restconf")){
+            return "ietf-restconf:"+ qName.getLocalName();
+        }
         QName parentQName = null;
         YangSchemaContext schemaContext = null;
         if(parent instanceof YangDataDocument){
@@ -168,23 +183,27 @@ public class JsonCodecUtil {
             }
         }
     }
-/*
+
     public static void processAttribute(String key, JsonNode attributeValue, YangDataContainer yangDataContainer) {
         List<Attribute> attributeList = new ArrayList<>();
+        YangSchemaContext schemaContext = null;
+        if(yangDataContainer instanceof YangDataDocument){
+            schemaContext = ((YangDataDocument) yangDataContainer).getSchemaContext();
+        } else {
+            YangData<?> yangData = (YangData<?>) yangDataContainer;
+            schemaContext = yangData.getSchemaNode().getContext().getSchemaContext();
+        }
         if (key.equals("@")) {
-            attributeList = getAttributeList(attributeValue);
+            attributeList = getAttributeList(attributeValue,schemaContext);
             if (attributeList.size() > 0) {
                 for (Attribute attribute : attributeList) {
                     ((YangDataEntity) yangDataContainer).addAttribute(attribute);
                 }
             }
-        } else {
+        } else {//TODO
             String ckey = key.substring(1);
             QName qName = JsonCodecUtil.getQNameFromJsonField(ckey,yangDataContainer);
-            attributeList = getAttributeList(attributeValue);
-            if (yangDataContainer.getDataChildren(qName) == null) {
-                attributeCache.put(qName, attributeList);
-            }
+            attributeList = getAttributeList(attributeValue,schemaContext);
             if (attributeList.size() > 0) {
 
                 List<YangData<?>> children = yangDataContainer.getDataChildren(qName);
@@ -195,12 +214,12 @@ public class JsonCodecUtil {
         }
     }
 
-    public static void jsonObjectAddAttribute(JsonNode attributeValue, List<Attribute> list) {
+    public static void jsonObjectAddAttribute(JsonNode attributeValue, List<Attribute> list,YangSchemaContext schemaContext) {
         Iterator<Map.Entry<String, JsonNode>> childEntries = attributeValue.fields();
         while (childEntries.hasNext()) {
             Map.Entry<String, JsonNode> childEntry = childEntries.next();
             String childEntryKey = childEntry.getKey();
-            QName qName = JsonCodecUtil.getQNameFromJsonField(childEntryKey,yangSchemaContext);
+            QName qName = JsonCodecUtil.getQNameFromJsonField(childEntryKey,schemaContext);
             String attr = childEntry.getValue().asText();
             Attribute attribute = new Attribute(qName, attr);
             list.add(attribute);
@@ -209,10 +228,10 @@ public class JsonCodecUtil {
     }
 
 
-    public static List<Attribute> getAttributeList(JsonNode attributeValue) {
+    public static List<Attribute> getAttributeList(JsonNode attributeValue,YangSchemaContext schemaContext) {
         List<Attribute> attributeList = new ArrayList<>();
         if (attributeValue.isObject()) {
-            jsonObjectAddAttribute(attributeValue, attributeList);
+            jsonObjectAddAttribute(attributeValue, attributeList,schemaContext);
         } else if (attributeValue.isArray()) {
             ArrayNode attributeArray = (ArrayNode) attributeValue;
             for (int i = 0; i < attributeArray.size(); i++) {
@@ -221,14 +240,14 @@ public class JsonCodecUtil {
                     continue;
                 } else if (childElement.isObject()) {
                     ObjectNode attributeObject = (ObjectNode) childElement;
-                    jsonObjectAddAttribute(attributeObject, attributeList);
+                    jsonObjectAddAttribute(attributeObject, attributeList,schemaContext);
                 }
             }
         }
         return attributeList;
     }
 
- */
+
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         if(child.isArray()) {
@@ -369,13 +388,14 @@ public class JsonCodecUtil {
             schemaNodeContainer = (SchemaNodeContainer) yangData.getSchemaNode();
         }
         Iterator<Map.Entry<String, JsonNode>> fields = element.fields();
+        List<Map.Entry<String, JsonNode>> attributes = new ArrayList<>();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> field = fields.next();
             String fieldName = field.getKey();
             JsonNode child = field.getValue();
 
             if (fieldName.startsWith("@")) {
-               // processAttribute(fieldName, child, yangDataContainer);
+                attributes.add(field);
                 continue;
             }
             QName qName = JsonCodecUtil.getQNameFromJsonField(fieldName,yangDataContainer);
@@ -393,6 +413,9 @@ public class JsonCodecUtil {
 
             validatorResultBuilder.merge(buildChildData(yangDataContainer,child,sonSchemaNode));
 
+        }
+        for(Map.Entry<String,JsonNode> attribute:attributes){
+            processAttribute(attribute.getKey(), attribute.getValue(), yangDataContainer);
         }
         return validatorResultBuilder.build();
     }

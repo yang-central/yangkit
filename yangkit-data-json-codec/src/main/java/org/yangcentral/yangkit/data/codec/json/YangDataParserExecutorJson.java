@@ -24,8 +24,8 @@ public class YangDataParserExecutorJson {
     public static void main(String[] args)
             throws IOException, DocumentException, YangParserException, CloneNotSupportedException {
         System.setProperty("LOGDIR", System.getProperty("user.dir"));
-        String jsonFile = "/Users/caowei/Documents/javaworkplace/yangkit/test.json";
-        String yangPath = "/Users/caowei/Documents/javaworkplace/yangkit/yangfiles";
+        String jsonFile = args[0];
+        String yangPath = args[1];
         long parse_yang_begin = System.currentTimeMillis();
         // load yang files
         YangSchemaContext schemaContext = YangYinParser.parse(yangPath);
@@ -58,8 +58,14 @@ public class YangDataParserExecutorJson {
         if (!outFile.exists()) {
             outFile.createNewFile();
         }
-        YangDataDocumentJsonWriter writer = new YangDataDocumentJsonWriter(yangDataDocument, new FileOutputStream(outFile));
-        writer.write();
+        YangDataDocumentJsonWriter writer = new YangDataDocumentJsonWriter();
+        JsonNode jsonNode = writer.write(yangDataDocument);
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(outFile));
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(jsonNode);
+        bufferedOutputStream.write(json.getBytes());
+        bufferedOutputStream.flush();
+        bufferedOutputStream.close();
         long bak_end = System.currentTimeMillis();
         System.out.println("bak consumed time:" + CommonUtil.getConsumTime(bak_end - bak_start));
     }

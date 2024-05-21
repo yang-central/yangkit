@@ -258,6 +258,9 @@ public class YangParser {
                   statement.setElementPosition(new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())));
                   return statement;
                } else if (!YangBuiltinKeyword.isKeyword(keyword)) {
+//                  if(keyword.equals("callback") || keyword.equals("discriminator")){
+//                     return null;
+//                  }
                   throw new YangParserException(Severity.ERROR, new Position(env.getFilename(), new LineColumnLocation(env.getCurLine(), env.getCurColumn())), ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName());
                } else {
                   statement = YangStatementRegister.getInstance().getYangStatementInstance(new QName(Yang.NAMESPACE, keyword),value);

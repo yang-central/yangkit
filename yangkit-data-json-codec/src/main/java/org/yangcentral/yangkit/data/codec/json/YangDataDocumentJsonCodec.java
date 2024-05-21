@@ -49,12 +49,6 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
     }
 
 
-
-
-
-
-
-
     @Override
     public YangDataDocument deserialize(JsonNode element, ValidatorResultBuilder validatorResultBuilder) {
         if (element.isNull()) {
@@ -62,8 +56,9 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
         }
         int size = 0;
         Iterator<String> fields = element.fieldNames();
+        String field = null;
         while (fields.hasNext()) {
-            fields.next();
+            field = fields.next();
             size++;
         }
         if(size == 0) {
@@ -78,8 +73,11 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
             validatorResultBuilder.addRecord(recordBuilder.build());
             return null;
         }
-
-        YangDataDocument yangDataDocument = new YangDataDocumentImpl(null, yangSchemaContext);
+        QName qName = JsonCodecUtil.getQNameFromJsonField(field,yangSchemaContext);
+        if(qName == null){
+            qName = new QName("urn:ietf:params:xml:ns:yang:ietf-restconf","ietf-restconf","data");
+        }
+        YangDataDocument yangDataDocument = new YangDataDocumentImpl(qName, yangSchemaContext);
 
         validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(yangDataDocument, element));
         return yangDataDocument;
@@ -94,7 +92,13 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode root = mapper.createObjectNode();
-        JsonCodecUtil.serializeChildren(root,yangDataDocument);
+        ObjectNode dataNode = mapper.createObjectNode();
+        QName qName = yangDataDocument.getQName();
+        if(qName == null){
+            qName = new QName("urn:ietf:params:xml:ns:yang:ietf-restconf","ietf-restconf","data");
+        }
+        root.put(JsonCodecUtil.getJsonFieldFromQName(qName,yangDataDocument),dataNode);
+        JsonCodecUtil.serializeChildren(dataNode,yangDataDocument);
         return root;
     }
 
