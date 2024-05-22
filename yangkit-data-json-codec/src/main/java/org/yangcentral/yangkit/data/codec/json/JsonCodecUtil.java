@@ -3,7 +3,6 @@ package org.yangcentral.yangkit.data.codec.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.*;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
@@ -184,7 +183,7 @@ public class JsonCodecUtil {
         }
     }
 
-    public static void processAttribute(String key, JsonNode attributeValue, YangDataContainer yangDataContainer) {
+    public static void processAttribute(String key, JsonNode attributeValue, YangDataContainer yangDataContainer) throws YangDataJsonCodecException {
         List<Attribute> attributeList = new ArrayList<>();
         YangSchemaContext schemaContext = null;
         if(yangDataContainer instanceof YangDataDocument){
@@ -193,60 +192,40 @@ public class JsonCodecUtil {
             YangData<?> yangData = (YangData<?>) yangDataContainer;
             schemaContext = yangData.getSchemaNode().getContext().getSchemaContext();
         }
+        AttributeBlock attributeBlock = new AttributeBlock(attributeValue,schemaContext);
         if (key.equals("@")) {
-            attributeList = getAttributeList(attributeValue,schemaContext);
+            //container/anydata/list
+            attributeList = attributeBlock.getAttributes();
             if (attributeList.size() > 0) {
                 for (Attribute attribute : attributeList) {
                     ((YangDataEntity) yangDataContainer).addAttribute(attribute);
                 }
             }
-        } else {//TODO
-            String ckey = key.substring(1);
-            QName qName = JsonCodecUtil.getQNameFromJsonField(ckey,yangDataContainer);
-            attributeList = getAttributeList(attributeValue,schemaContext);
-            if (attributeList.size() > 0) {
-
-                List<YangData<?>> children = yangDataContainer.getDataChildren(qName);
-                for (int i = 0; i < children.size(); i++) {
-                    children.get(i).addAttribute(attributeList.get(i));
-                }
+        } else {
+            String cKey = key.substring(1);
+            QName qName = JsonCodecUtil.getQNameFromJsonField(cKey,yangDataContainer);
+            List<YangData<?>> children = yangDataContainer.getDataChildren(qName);
+            if( children.isEmpty()){
+                return;
             }
-        }
-    }
-
-    public static void jsonObjectAddAttribute(JsonNode attributeValue, List<Attribute> list,YangSchemaContext schemaContext) {
-        Iterator<Map.Entry<String, JsonNode>> childEntries = attributeValue.fields();
-        while (childEntries.hasNext()) {
-            Map.Entry<String, JsonNode> childEntry = childEntries.next();
-            String childEntryKey = childEntry.getKey();
-            QName qName = JsonCodecUtil.getQNameFromJsonField(childEntryKey,schemaContext);
-            String attr = childEntry.getValue().asText();
-            Attribute attribute = new Attribute(qName, attr);
-            list.add(attribute);
-        }
-
-    }
-
-
-    public static List<Attribute> getAttributeList(JsonNode attributeValue,YangSchemaContext schemaContext) {
-        List<Attribute> attributeList = new ArrayList<>();
-        if (attributeValue.isObject()) {
-            jsonObjectAddAttribute(attributeValue, attributeList,schemaContext);
-        } else if (attributeValue.isArray()) {
-            ArrayNode attributeArray = (ArrayNode) attributeValue;
-            for (int i = 0; i < attributeArray.size(); i++) {
-                JsonNode childElement = attributeArray.get(i);
-                if (childElement.isNull()) {
-                    continue;
-                } else if (childElement.isObject()) {
-                    ObjectNode attributeObject = (ObjectNode) childElement;
-                    jsonObjectAddAttribute(attributeObject, attributeList,schemaContext);
+            if(!attributeBlock.getChildren().isEmpty()){
+                //leaf-list
+                int size = attributeBlock.getChildren().size();
+                if(size > children.size()){
+                    throw new YangDataJsonCodecException(getJsonPath(attributeBlock.getJsonNode()),
+                            attributeBlock.getJsonNode(),ErrorTag.BAD_ELEMENT,
+                            "The size of annotations are greater than instances' size.");
                 }
+                for(int i =0; i< size;i++){
+                    children.get(i).setAttributes(attributeBlock.getChildren().get(i).getAttributes());
+                }
+            } else {
+                //anyxml or leaf-list
+                children.get(0).setAttributes(attributeBlock.getAttributes());
             }
-        }
-        return attributeList;
-    }
 
+        }
+    }
 
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
@@ -415,7 +394,18 @@ public class JsonCodecUtil {
 
         }
         for(Map.Entry<String,JsonNode> attribute:attributes){
-            processAttribute(attribute.getKey(), attribute.getValue(), yangDataContainer);
+            try {
+                processAttribute(attribute.getKey(), attribute.getValue(), yangDataContainer);
+            } catch (YangDataJsonCodecException e) {
+                ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+                recordBuilder.setErrorTag(e.getErrorTag());
+                recordBuilder.setErrorMessage(e.getErrorMsg());
+                recordBuilder.setErrorPath(e.getErrorPath());
+                recordBuilder.setBadElement(e.getBadElement());
+                recordBuilder.setSeverity(e.getSeverity());
+                recordBuilder.setErrorAppTag(e.getErrorAppTag());
+                validatorResultBuilder.addRecord(recordBuilder.build());
+            }
         }
         return validatorResultBuilder.build();
     }

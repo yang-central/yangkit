@@ -37,8 +37,6 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
 
     private YangSchemaContext yangSchemaContext;
 
-    private AttributeCache attributeCache = new AttributeCache();
-
     public YangDataDocumentJsonCodec(YangSchemaContext yangSchemaContext) {
         this.yangSchemaContext = yangSchemaContext;
     }
