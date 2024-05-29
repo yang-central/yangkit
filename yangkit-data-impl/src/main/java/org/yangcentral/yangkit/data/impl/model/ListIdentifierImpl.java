@@ -78,6 +78,6 @@ public class ListIdentifierImpl extends DataIdentifierImpl implements ListIdenti
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), getKeys());
+        return Objects.hash(super.hashCode(), toString());
     }
 }
