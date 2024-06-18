@@ -144,47 +144,53 @@ public class IfFeatureImpl extends YangSimpleStatementImpl implements IfFeature 
          YangSchema yangSchema = schemaContext.getYangSchema();
          if (yangSchema == null) {
             return true;
-         } else {
-            Module curModule = this.feature.getContext().getCurModule();
-            List<ModuleSet> moduleSets = yangSchema.getModuleSets();
+         }
+         if(this.feature == null){
+            validate();
+            if(this.feature == null){
+               return false;
+            }
+         }
 
-            for (ModuleSet moduleSet : moduleSets) {
-               boolean matchedModule = false;
+         Module curModule = this.feature.getContext().getCurModule();
+         List<ModuleSet> moduleSets = yangSchema.getModuleSets();
 
-               for (YangModuleDescription moduleDescription : moduleSet.getModules()) {
-                  if (curModule instanceof MainModule) {
-                     if (moduleDescription.getModuleId().equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? curModule.getCurRevisionDate().get() : null))) {
-                        matchedModule = true;
-                     }
-                  } else {
+         for (ModuleSet moduleSet : moduleSets) {
+            boolean matchedModule = false;
 
-                     for (ModuleId subModuleDescription : moduleDescription.getSubModules()) {
-                        if (subModuleDescription.equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? curModule.getCurRevisionDate().get() : null))) {
-                           matchedModule = true;
-                           break;
-                        }
-                     }
+            for (YangModuleDescription moduleDescription : moduleSet.getModules()) {
+               if (curModule instanceof MainModule) {
+                  if (moduleDescription.getModuleId().equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? curModule.getCurRevisionDate().get() : null))) {
+                     matchedModule = true;
                   }
+               } else {
 
-                  if (matchedModule) {
-                     Iterator<String> iterator = moduleDescription.getFeatures().iterator();
-
-                     String featureStr;
-                     do {
-                        if (!iterator.hasNext()) {
-                           return false;
-                        }
-
-                        featureStr = iterator.next();
-                     } while (!this.feature.getArgStr().equals(featureStr));
-
-                     return true;
+                  for (ModuleId subModuleDescription : moduleDescription.getSubModules()) {
+                     if (subModuleDescription.equals(new ModuleId(curModule.getArgStr(), curModule.getCurRevisionDate().isPresent() ? curModule.getCurRevisionDate().get() : null))) {
+                        matchedModule = true;
+                        break;
+                     }
                   }
                }
-            }
 
-            return false;
+               if (matchedModule) {
+                  Iterator<String> iterator = moduleDescription.getFeatures().iterator();
+
+                  String featureStr;
+                  do {
+                     if (!iterator.hasNext()) {
+                        return false;
+                     }
+
+                     featureStr = iterator.next();
+                  } while (!this.feature.getArgStr().equals(featureStr));
+
+                  return true;
+               }
+            }
          }
+
+         return false;
       }
 
       public ValidatorResult validate() {
