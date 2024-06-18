@@ -160,6 +160,11 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       return this.schema;
    }
 
+   @Override
+   public void setYangSchema(YangSchema yangSchema) {
+      this.schema = yangSchema;
+   }
+
    public void addModule(Module module) {
       if(getModule(module.getModuleId()).isPresent()) {
          Module matchedModule = getModule(module.getModuleId()).get();

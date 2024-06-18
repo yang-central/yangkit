@@ -239,6 +239,7 @@ public class YangYinParser {
          YangSchema yangSchema = schemaContext.getYangSchema();
          if (yangSchema == null) {
             yangSchema = new YangSchema();
+            schemaContext.setYangSchema(yangSchema);
          }
 
          yangSchema.addModuleSet(moduleSet);

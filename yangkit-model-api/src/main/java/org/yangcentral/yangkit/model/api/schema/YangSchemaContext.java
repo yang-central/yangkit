@@ -40,6 +40,8 @@ public interface YangSchemaContext extends SchemaNodeContainer {
 
    YangSchema getYangSchema();
 
+   void setYangSchema(YangSchema yangSchema);
+
    void addModule(Module module);
 
    void addImportOnlyModule(Module module);
