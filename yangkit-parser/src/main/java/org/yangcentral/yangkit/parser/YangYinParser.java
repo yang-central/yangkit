@@ -14,6 +14,7 @@ import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.utils.file.FileUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.ArrayList;
@@ -174,80 +175,83 @@ public class YangYinParser {
       YangSchemaContext schemaContext = parse(yangDir);
       schemaContext.buildDependencies();
       if (capabilityList != null) {
-         List<Module> unMatchedModules = new ArrayList<>();
-         ModuleSet moduleSet = new ModuleSet();
+         schemaContext = filter(schemaContext,capabilityList);
+      }
 
-         for (Module module : schemaContext.getModules()) {
-            boolean match = false;
+      return schemaContext;
+   }
 
-            for (Capability capability : capabilityList) {
-               if (!(capability instanceof ModuleSupportCapability)) {
-                  continue;
+   public static YangSchemaContext filter(@Nonnull YangSchemaContext schemaContext, @Nonnull List<Capability> capabilityList){
+      List<Module> unMatchedModules = new ArrayList<>();
+      ModuleSet moduleSet = new ModuleSet();
+
+      for (Module module : schemaContext.getModules()) {
+         boolean match = false;
+
+         for (Capability capability : capabilityList) {
+            if (!(capability instanceof ModuleSupportCapability)) {
+               continue;
+            }
+            ModuleSupportCapability moduleSupportCapability = (ModuleSupportCapability) capability;
+            if (moduleSupportCapability.match(module.getModuleId())) {
+               match = true;
+               YangModuleDescription moduleDescription = moduleSet.getModule(module.getModuleId());
+               if (null == moduleDescription) {
+                  moduleDescription = new YangModuleDescription(module.getModuleId());
+                  moduleSet.addModule(moduleDescription);
                }
-               ModuleSupportCapability moduleSupportCapability = (ModuleSupportCapability) capability;
-               if (moduleSupportCapability.match(module.getModuleId())) {
+               if (!moduleSupportCapability.getFeatures().isEmpty()) {
+                  for (String feature : moduleSupportCapability.getFeatures()) {
+                     moduleDescription.addFeature(feature);
+                  }
+               }
+
+               if (!moduleSupportCapability.getDeviations().isEmpty()) {
+                  for (String deviation : moduleSupportCapability.getDeviations()) {
+                     moduleDescription.addDeviation(deviation);
+                  }
+               }
+               break;
+            }
+
+
+            if (module instanceof SubModule) {
+               SubModule subModule = (SubModule) module;
+               YangStatement belongsTo = subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
+               String mainModuleName = belongsTo.getArgStr();
+               if (moduleSupportCapability.getModule().equals(mainModuleName)) {
                   match = true;
-                  YangModuleDescription moduleDescription = moduleSet.getModule(module.getModuleId());
-                  if (null == moduleDescription) {
-                     moduleDescription = new YangModuleDescription(module.getModuleId());
+                  ModuleId mainModuleId = new ModuleId(moduleSupportCapability.getModule(), moduleSupportCapability.getRevision());
+                  YangModuleDescription moduleDescription = moduleSet.getModule(mainModuleId);
+                  if (moduleDescription == null) {
+                     moduleDescription = new YangModuleDescription(mainModuleId);
                      moduleSet.addModule(moduleDescription);
                   }
-                  if (!moduleSupportCapability.getFeatures().isEmpty()) {
-                     for (String feature : moduleSupportCapability.getFeatures()) {
-                        moduleDescription.addFeature(feature);
-                     }
-                  }
 
-                  if (!moduleSupportCapability.getDeviations().isEmpty()) {
-                     for (String deviation : moduleSupportCapability.getDeviations()) {
-                        moduleDescription.addDeviation(deviation);
-                     }
-                  }
+                  moduleDescription.addSubModule(subModule.getModuleId());
                   break;
                }
-
-
-               if (module instanceof SubModule) {
-                  SubModule subModule = (SubModule) module;
-                  YangStatement belongsTo = subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
-                  String mainModuleName = belongsTo.getArgStr();
-                  if (moduleSupportCapability.getModule().equals(mainModuleName)) {
-                     match = true;
-                     ModuleId mainModuleId = new ModuleId(moduleSupportCapability.getModule(), moduleSupportCapability.getRevision());
-                     YangModuleDescription moduleDescription = moduleSet.getModule(mainModuleId);
-                     if (moduleDescription == null) {
-                        moduleDescription = new YangModuleDescription(mainModuleId);
-                        moduleSet.addModule(moduleDescription);
-                     }
-
-                     moduleDescription.addSubModule(subModule.getModuleId());
-                     break;
-                  }
-               }
-            }
-            if (!match) {
-               unMatchedModules.add(module);
             }
          }
-
-         for (Module unMatchedModule : unMatchedModules) {
-            schemaContext.removeModule(unMatchedModule.getModuleId());
-            //schemaContext.addImportOnlyModule(unMatchedModule);
+         if (!match) {
+            unMatchedModules.add(module);
          }
+      }
 
-
-         YangSchema yangSchema = schemaContext.getYangSchema();
-         if (yangSchema == null) {
-            yangSchema = new YangSchema();
-            schemaContext.setYangSchema(yangSchema);
-         }
-
-         yangSchema.addModuleSet(moduleSet);
-
+      for (Module unMatchedModule : unMatchedModules) {
+         schemaContext.removeModule(unMatchedModule.getModuleId());
+         //schemaContext.addImportOnlyModule(unMatchedModule);
       }
 
 
-      return schemaContext;
+      YangSchema yangSchema = schemaContext.getYangSchema();
+      if (yangSchema == null) {
+         yangSchema = new YangSchema();
+         schemaContext.setYangSchema(yangSchema);
+      }
+
+      yangSchema.addModuleSet(moduleSet);
+      return  schemaContext;
    }
 
    /**
