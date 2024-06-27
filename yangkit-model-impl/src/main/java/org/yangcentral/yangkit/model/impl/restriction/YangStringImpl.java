@@ -38,18 +38,19 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
          while(patternIterator.hasNext()) {
             Pattern pattern = (Pattern)patternIterator.next();
             if (pattern.getModifier() != null) {
-               if (!pattern.getPattern().matcher(value).matches()) {
-                  return true;
+               if (pattern.getPattern().matcher(value).matches()) {
+                  return false;
                }
-            } else if (pattern.getPattern().matcher(value).matches()) {
-               return true;
+            } else if (!pattern.getPattern().matcher(value).matches()) {
+               return false;
             }
          }
 
-         return false;
-      } else if (this.getLength() != null) {
+      }
+      if (this.getLength() != null) {
          return this.length.evaluate(BigInteger.valueOf((long) value.length()));
-      } else if (this.getDerived() != null) {
+      }
+      if (this.getDerived() != null) {
          return this.getDerived().getType().getRestriction().evaluate(value);
       } else {
          Section section = new Section(this.getHighBound(), this.getLowBound());

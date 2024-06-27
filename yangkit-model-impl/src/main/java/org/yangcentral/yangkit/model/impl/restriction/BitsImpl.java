@@ -149,9 +149,11 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
          } else {
             return this.getDerived() != null ? this.getDerived().getType().getRestriction().evaluate(value) : false;
          }
-      } else {
-         return false;
       }
+      if(getDerived() != null) {
+         return getDerived().getType().getRestriction().evaluate(value);
+      }
+      return false;
    }
 
    public List<Bit> getEffectiveBits() {

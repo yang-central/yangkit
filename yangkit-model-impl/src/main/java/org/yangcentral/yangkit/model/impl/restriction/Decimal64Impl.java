@@ -91,7 +91,10 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
          } while(value.compareTo((BigDecimal)section.getMin()) < 0 || value.compareTo((BigDecimal)section.getMax()) > 0);
 
          return true;
-      } else {
+      } else if(getDerived() != null){
+         return getDerived().getType().getRestriction().evaluate(value);
+      }
+      else {
          return value.compareTo(this.getRangeMin()) >= 0 && value.compareTo(this.getRangeMax()) <= 0;
       }
    }

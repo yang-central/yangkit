@@ -71,7 +71,7 @@ public class UnionStringValueCodecImpl extends ComplexStringValueCodecImpl<Objec
       if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
-         List<Type> types = ((Union)restriction).getTypes();
+         List<Type> types = ((Union)restriction).getActualTypes();
          String s = null;
          Iterator iterator = types.iterator();
 

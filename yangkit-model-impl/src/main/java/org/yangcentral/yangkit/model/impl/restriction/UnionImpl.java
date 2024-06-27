@@ -27,6 +27,9 @@ public class UnionImpl extends RestrictionImpl<Object> implements Union {
             return true;
          }
       }
+      if(getDerived()!= null){
+         return getDerived().getType().getRestriction().evaluate(value);
+      }
       return false;
    }
 
