@@ -28,7 +28,7 @@ public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>>
          }
       }
 
-      boolean bool = restriction.evaluated(ret);
+      boolean bool = restriction.evaluate(ret);
       if (!bool) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
@@ -37,7 +37,7 @@ public class BitsStringValueCodecImpl extends StringValueCodecImpl<List<String>>
    }
 
    public String serialize(Restriction<List<String>> restriction, List<String> output) throws YangCodecException {
-      boolean bool = restriction.evaluated(output);
+      boolean bool = restriction.evaluate(output);
       if (!bool) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {

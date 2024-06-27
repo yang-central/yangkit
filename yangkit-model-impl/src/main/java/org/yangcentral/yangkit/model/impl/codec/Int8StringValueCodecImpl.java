@@ -13,7 +13,7 @@ public class Int8StringValueCodecImpl extends StringValueCodecImpl<Byte> impleme
       } catch (NumberFormatException e) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       }
-      if (!restriction.evaluated(b)) {
+      if (!restriction.evaluate(b)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return b;
@@ -21,7 +21,7 @@ public class Int8StringValueCodecImpl extends StringValueCodecImpl<Byte> impleme
    }
 
    public String serialize(Restriction<Byte> restriction, Byte output) throws YangCodecException {
-      if (!restriction.evaluated(output)) {
+      if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return output.toString();

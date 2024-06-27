@@ -10,7 +10,6 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.restriction.*;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
 import org.yangcentral.yangkit.model.api.stmt.type.Range;
-import org.yangcentral.yangkit.model.impl.stmt.type.RangeImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionImpl<T> implements YangInteger<T> {
@@ -24,14 +23,14 @@ public abstract class YangIntegerImpl<T extends Comparable> extends RestrictionI
       super(context);
    }
 
-   public boolean evaluated(T value) {
+   public boolean evaluate(T value) {
       if (this.getRange() != null) {
          return this.getRange().evaluate(value);
       } else if (this.getDerived() == null) {
          Section section = new Section(this.getHighBound(), this.getLowBound());
          return section.evaluate(value);
       } else {
-         return this.getDerived().getType().getRestriction().evaluated(value);
+         return this.getDerived().getType().getRestriction().evaluate(value);
       }
    }
 

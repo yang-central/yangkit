@@ -34,7 +34,7 @@ public class IdentityRefJsonCodec extends ComplexStringValueCodecImpl<QName> imp
         }
         URI ns = moduleOptional.get().getMainModule().getNamespace().getUri();
         QName qName = new QName(ns,localName);
-        if(!restriction.evaluated(qName)){
+        if(!restriction.evaluate(qName)){
             throw new YangCodecException("invalid value:" + input);
         }
         return qName;
@@ -42,7 +42,7 @@ public class IdentityRefJsonCodec extends ComplexStringValueCodecImpl<QName> imp
 
     @Override
     public String serialize(Restriction<QName> restriction, QName output) throws YangCodecException {
-        if(!restriction.evaluated(output)) {
+        if(!restriction.evaluate(output)) {
             throw new YangCodecException("invalid value:" + output);
         }
         URI ns = output.getNamespace();

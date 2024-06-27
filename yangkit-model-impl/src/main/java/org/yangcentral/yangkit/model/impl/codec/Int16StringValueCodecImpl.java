@@ -13,7 +13,7 @@ public class Int16StringValueCodecImpl extends StringValueCodecImpl<Short> imple
       } catch (NumberFormatException e) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       }
-      if (!restriction.evaluated(s)) {
+      if (!restriction.evaluate(s)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return s;
@@ -21,7 +21,7 @@ public class Int16StringValueCodecImpl extends StringValueCodecImpl<Short> imple
    }
 
    public String serialize(Restriction<Short> restriction, Short output) throws YangCodecException {
-      if (!restriction.evaluated(output)) {
+      if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return output.toString();

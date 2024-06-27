@@ -7,7 +7,7 @@ import org.yangcentral.yangkit.model.api.restriction.Restriction;
 
 public class StringStringValueCodecImpl extends StringValueCodecImpl<String> implements StringStringValueCodec {
    public String deserialize(Restriction<String> restriction, String input) throws YangCodecException {
-      if (!restriction.evaluated(input)) {
+      if (!restriction.evaluate(input)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return input;
@@ -15,7 +15,7 @@ public class StringStringValueCodecImpl extends StringValueCodecImpl<String> imp
    }
 
    public String serialize(Restriction<String> restriction, String output) throws YangCodecException {
-      if (!restriction.evaluated(output)) {
+      if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return output;

@@ -44,7 +44,7 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
       return false;
    }
 
-   public boolean evaluated(QName value) {
+   public boolean evaluate(QName value) {
       URI namespace = value.getNamespace();
       List<Module> modules = this.getContext().getSchemaContext().getModule(namespace);
       if (modules.isEmpty()) {
@@ -55,7 +55,7 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
          if (identity == null) {
             return false;
          } else if (this.bases.size() == 0) {
-            return this.getDerived().getType().getRestriction().evaluated(value);
+            return this.getDerived().getType().getRestriction().evaluate(value);
          } else {
             Iterator baseIterator = this.bases.iterator();
 

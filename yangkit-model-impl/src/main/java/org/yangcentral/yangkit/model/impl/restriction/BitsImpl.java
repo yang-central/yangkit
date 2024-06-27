@@ -130,7 +130,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
       return bit;
    }
 
-   public boolean evaluated(List<String> value) {
+   public boolean evaluate(List<String> value) {
       if (null != value && value.size() != 0) {
          if (this.bits.size() > 0) {
             Iterator iterator = value.iterator();
@@ -147,7 +147,7 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
 
             return false;
          } else {
-            return this.getDerived() != null ? this.getDerived().getType().getRestriction().evaluated(value) : false;
+            return this.getDerived() != null ? this.getDerived().getType().getRestriction().evaluate(value) : false;
          }
       } else {
          return false;

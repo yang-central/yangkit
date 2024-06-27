@@ -76,7 +76,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
       }
 
       QName qName = new QName(namespace, prefix, fName.getLocalName());
-      if (!restriction.evaluated(qName)) {
+      if (!restriction.evaluate(qName)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return qName;
@@ -84,7 +84,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
    }
 
    public String serialize(Restriction<QName> restriction, QName output) throws YangCodecException {
-      if (!restriction.evaluated(output)) {
+      if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return output.getQualifiedName();

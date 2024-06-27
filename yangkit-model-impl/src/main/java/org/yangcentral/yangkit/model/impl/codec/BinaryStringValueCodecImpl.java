@@ -13,7 +13,7 @@ public class BinaryStringValueCodecImpl extends StringValueCodecImpl<byte[]> imp
       if (!(restriction instanceof Binary)) {
          throw new IllegalArgumentException("wrong restriction type");
       } else {
-         boolean bool = restriction.evaluated(output);
+         boolean bool = restriction.evaluate(output);
          if (bool) {
             throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
          } else {
@@ -30,7 +30,7 @@ public class BinaryStringValueCodecImpl extends StringValueCodecImpl<byte[]> imp
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       }
 
-      boolean bool = restriction.evaluated(decode);
+      boolean bool = restriction.evaluate(decode);
       if (!bool) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {

@@ -14,7 +14,7 @@ public class EmptyImpl extends RestrictionImpl<ObjectUtils.Null> implements Empt
       super(context);
    }
 
-   public boolean evaluated(ObjectUtils.Null value) {
+   public boolean evaluate(ObjectUtils.Null value) {
       return true;
    }
 

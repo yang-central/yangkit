@@ -71,7 +71,10 @@ public class LeafRefImpl extends RestrictionImpl<Object> implements LeafRef {
       this.referencedNode = typedDataNode;
    }
 
-   public boolean evaluated(Object value) {
+   public boolean evaluate(Object value) {
+      if(referencedNode != null){
+         return referencedNode.getType().getRestriction().evaluate(value);
+      }
       return false;
    }
 

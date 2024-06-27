@@ -68,7 +68,7 @@ public class UnionStringValueCodecImpl extends ComplexStringValueCodecImpl<Objec
    }
 
    public String serialize(Restriction<Object> restriction, Object output) throws YangCodecException {
-      if (!restriction.evaluated(output)) {
+      if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          List<Type> types = ((Union)restriction).getTypes();

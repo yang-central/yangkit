@@ -13,7 +13,7 @@ public class YangBooleanImpl extends RestrictionImpl<Boolean> implements YangBoo
       super(context);
    }
 
-   public boolean evaluated(Boolean value) {
+   public boolean evaluate(Boolean value) {
       return true;
    }
 

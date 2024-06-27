@@ -15,7 +15,7 @@ public class UInt64StringValueCodecImpl extends StringValueCodecImpl<BigInteger>
       } catch (NumberFormatException e) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       }
-      if (!restriction.evaluated(bi)) {
+      if (!restriction.evaluate(bi)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return bi;
@@ -23,7 +23,7 @@ public class UInt64StringValueCodecImpl extends StringValueCodecImpl<BigInteger>
    }
 
    public String serialize(Restriction<BigInteger> restriction, BigInteger output) throws YangCodecException {
-      if (!restriction.evaluated(output)) {
+      if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return output.toString();

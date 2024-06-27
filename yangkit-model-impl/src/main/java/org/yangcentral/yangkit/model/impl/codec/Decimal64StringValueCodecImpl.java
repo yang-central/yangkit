@@ -15,7 +15,7 @@ public class Decimal64StringValueCodecImpl extends StringValueCodecImpl<BigDecim
       } catch (NumberFormatException e) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       }
-      if (!restriction.evaluated(bigDecimal)) {
+      if (!restriction.evaluate(bigDecimal)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return bigDecimal;
@@ -23,7 +23,7 @@ public class Decimal64StringValueCodecImpl extends StringValueCodecImpl<BigDecim
    }
 
    public String serialize(Restriction<BigDecimal> restriction, BigDecimal output) throws YangCodecException {
-      if (!restriction.evaluated(output)) {
+      if (!restriction.evaluate(output)) {
          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
       } else {
          return output.toString();

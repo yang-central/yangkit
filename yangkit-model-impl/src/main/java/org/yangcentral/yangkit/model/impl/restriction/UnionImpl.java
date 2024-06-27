@@ -21,7 +21,12 @@ public class UnionImpl extends RestrictionImpl<Object> implements Union {
       super(context);
    }
 
-   public boolean evaluated(Object value) {
+   public boolean evaluate(Object value) {
+      for(Type type: types){
+         if(type.getRestriction().evaluate(value)){
+            return true;
+         }
+      }
       return false;
    }
 

@@ -12,7 +12,6 @@ import org.yangcentral.yangkit.model.api.restriction.Section;
 import org.yangcentral.yangkit.model.api.restriction.YangString;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
 import org.yangcentral.yangkit.model.api.stmt.type.Length;
-import org.yangcentral.yangkit.model.impl.stmt.type.LengthImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.math.BigInteger;
@@ -69,11 +68,11 @@ public class BinaryImpl extends RestrictionImpl<byte[]> implements Binary {
       return this.length != null ? (BigInteger)this.getLength().getMin() : this.getLowBound();
    }
 
-   public boolean evaluated(byte[] value) {
+   public boolean evaluate(byte[] value) {
       if (this.getLength() != null) {
          return this.length.evaluate(BigInteger.valueOf((long) value.length));
       } else if (this.getDerived() != null) {
-         return this.getDerived().getType().getRestriction().evaluated(value);
+         return this.getDerived().getType().getRestriction().evaluate(value);
       } else {
          Section section = new Section(this.getHighBound(), this.getLowBound());
          return section.evaluate(BigInteger.valueOf((long) value.length));

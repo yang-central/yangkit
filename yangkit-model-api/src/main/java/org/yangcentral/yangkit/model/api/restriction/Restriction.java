@@ -24,5 +24,5 @@ public interface Restriction<T> {
     * @author frank feng
     * @since 7/8/2022
     */
-   boolean evaluated(T value);
+   boolean evaluate(T value);
 }

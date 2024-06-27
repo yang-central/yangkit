@@ -77,7 +77,7 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
       }
    }
 
-   public boolean evaluated(BigDecimal value) {
+   public boolean evaluate(BigDecimal value) {
       if (this.getRange() != null) {
          Iterator<Section> iterator = this.getRange().getSections().iterator();
 
