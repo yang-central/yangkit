@@ -404,4 +404,84 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    public void removeSchemaNodeChild(SchemaNode schemaNode) {
       this.schemaNodeContainer.removeSchemaNodeChild(schemaNode);
    }
+
+   private boolean hasLocalImport(YangSchemaContext context, Module module) {
+      for (Import currentImport : module.getImports()) {
+         List<Module> list = context.getModule(currentImport.getArgStr());
+         if (list != null && !list.isEmpty()) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   private HashSet<Module> getGraph(Module m){
+      HashSet<Module> graph = new HashSet<>();
+      Deque<Module> todo = new LinkedList<>(Collections.singleton(m));
+      Module current = todo.pollFirst();
+      while(current != null) {
+         graph.add(current);
+         todo.addAll(current.getDependentBys());
+         current = todo.pollFirst();
+      }
+      return graph;
+   }
+
+   private List<List<Module>> mergeLevel0(List<Module> lvl0, HashMap<Module, HashSet<Module>> graphs) {
+      List<List<Module>> newLvl0 = new ArrayList<>();
+      HashSet<Module> alreadyInGraph = new HashSet<>();
+      for (Module m1 : lvl0) {
+         List<Module> temp = new ArrayList<>(Collections.singleton(m1));
+         if (alreadyInGraph.contains(m1)) continue;
+         alreadyInGraph.add(m1);
+         for (Module m2 : lvl0) {
+            if (m1 == m2 || alreadyInGraph.contains(m2)) continue;
+            HashSet<Module> tg1 = new HashSet<>(graphs.get(m1));
+            tg1.retainAll(graphs.get(m2));
+            if (!tg1.isEmpty()) {
+               alreadyInGraph.add(m2);
+               temp.add(m2);
+            }
+         }
+         newLvl0.add(temp);
+      }
+      return newLvl0;
+   }
+
+   @Override
+   public List<List<Module>> resolvesImportOrder() {
+      List<List<Module>> correctOrder = new ArrayList<>();
+      List<Module> level0Module = new ArrayList<>();
+      HashMap<Module, Integer> cost = new HashMap<>();
+      HashMap<Module, HashSet<Module>> graphs = new HashMap<>();
+      for (Module m : modules) {
+         if (!hasLocalImport(this, m)) {
+            level0Module.add(m);
+            graphs.put(m, getGraph(m));
+         }
+         cost.put(m, m.getImports().size());
+      }
+      level0Module.sort(Comparator.comparing(Module::getArgStr));
+      List<List<Module>> mergedLevel0 = mergeLevel0(level0Module, graphs);
+      for (List<Module> l0List : mergedLevel0) {
+         List<Module> tempCorrectOrder = new ArrayList<>();
+         Deque<Module> moduleStack = new LinkedList<>(l0List);
+         Module current = moduleStack.pollFirst();
+         while (current != null) {
+            List<Module> dependencies = current.getDependentBys();
+            dependencies.sort(Comparator.comparing(Module::getArgStr));
+            for (Module dependency : dependencies) {
+               int newCost = cost.get(dependency) - 1;
+               cost.replace(dependency, newCost);
+               if (newCost == 0) {
+                  moduleStack.add(dependency);
+               }
+            }
+            tempCorrectOrder.add(current);
+            current = moduleStack.pollFirst();
+         }
+         correctOrder.add(tempCorrectOrder);
+      }
+      return correctOrder;
+   }
 }
