@@ -86,22 +86,27 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       if (this.self != null) {
          schemaNode.setParentSchemaNode(this.self);
       }
-      if(schemaNode instanceof Input ){
-         schemaNode.setSchemaTreeType(SchemaTreeType.INPUTTREE);
-      } else if(schemaNode instanceof Output ){
-         schemaNode.setSchemaTreeType(SchemaTreeType.OUTPUTTREE);
-      } else if(schemaNode instanceof Notification){
-         schemaNode.setSchemaTreeType(SchemaTreeType.NOTIFICATIONTREE);
-      }
-      else {
-         if(this.self != null){
-            if(self instanceof SchemaNode){
-               schemaNode.setSchemaTreeType(((SchemaNode) self).getSchemaTreeType());
-            }else if( (self instanceof YangData)
-            || (self instanceof YangStructure)){
-               schemaNode.setSchemaTreeType(SchemaTreeType.YANGDATATREE);
-            }
+      //set tree type
+      if(this.self instanceof SchemaNode){
+         //inherit parent's tree type by default
+         schemaNode.setSchemaTreeType(((SchemaNode) self).getSchemaTreeType());
+         if(schemaNode instanceof Input ){
+            schemaNode.setSchemaTreeType(SchemaTreeType.INPUTTREE);
+         } else if(schemaNode instanceof Output ){
+            schemaNode.setSchemaTreeType(SchemaTreeType.OUTPUTTREE);
          }
+
+      } else {
+         //set tree type according to schema node
+         if(schemaNode instanceof DataDefinition){
+            schemaNode.setSchemaTreeType(SchemaTreeType.DATATREE);
+         } else if(schemaNode instanceof Notification){
+            schemaNode.setSchemaTreeType(SchemaTreeType.NOTIFICATIONTREE);
+         }
+      }
+      if( (self instanceof YangData)
+              || (self instanceof YangStructure)){
+         schemaNode.setSchemaTreeType(SchemaTreeType.YANGDATATREE);
       }
 
       return validatorResultBuilder.build();
@@ -134,7 +139,9 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
                return (DataNode) schemaNode;
             }
 
-         }else {
+         }else if ((schemaNode instanceof VirtualSchemaNode)
+                 || (schemaNode instanceof Choice)
+                 || (schemaNode instanceof Case)){
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
             DataNode node = schemaNodeContainer.getDataNodeChild(identifier);
             if (node != null) {
@@ -151,7 +158,10 @@ public class SchemaNodeContainerImpl implements SchemaNodeContainer {
       for (SchemaNode schemaNode : this.schemaNodes) {
          if (schemaNode instanceof DataNode) {
             dataNodeChildren.add((DataNode) schemaNode);
-         } else {
+         }
+         else if ((schemaNode instanceof VirtualSchemaNode)
+                 || (schemaNode instanceof Choice)
+                 || (schemaNode instanceof Case)){
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) schemaNode;
             dataNodeChildren.addAll(schemaNodeContainer.getDataNodeChildren());
          }

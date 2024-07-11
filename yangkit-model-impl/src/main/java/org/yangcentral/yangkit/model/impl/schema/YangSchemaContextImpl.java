@@ -29,7 +29,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    private YangSchema schema;
 
    private ValidatorResult validatorResult;
-   private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(null);
+   private SchemaNodeContainerImpl schemaNodeContainer;
 
    public List<Module> getModules() {
       return this.modules;
@@ -44,6 +44,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    }
 
    public YangSchemaContextImpl() {
+      schemaNodeContainer = new SchemaNodeContainerImpl(this);
    }
 
 
