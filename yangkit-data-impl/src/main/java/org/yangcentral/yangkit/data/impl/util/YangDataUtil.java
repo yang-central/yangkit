@@ -5,6 +5,7 @@ import org.yangcentral.yangkit.common.api.Predict;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.XPathStep;
 import org.yangcentral.yangkit.data.api.model.*;
+import org.yangcentral.yangkit.data.impl.model.YangCompareResultImpl;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
@@ -189,5 +190,20 @@ public class YangDataUtil {
             YangData yangData = (YangData) yangDataContainer;
             return onlyConfig(yangData);
         }
+    }
+    public static List<YangDataCompareResult> compare(YangData base, YangData another){
+        List<YangDataCompareResult> results = new ArrayList<>();
+        if((base == null) && (another == null)) {
+            return results;
+        }
+        if(base == null) {
+            results.add(new YangCompareResultImpl(another.getPath(),DifferenceType.NEW,another));
+            return results;
+        }
+        if(another == null) {
+            results.add(new YangCompareResultImpl(base.getPath(),DifferenceType.NONE,base));
+            return results;
+        }
+        return base.compare(another);
     }
 }
