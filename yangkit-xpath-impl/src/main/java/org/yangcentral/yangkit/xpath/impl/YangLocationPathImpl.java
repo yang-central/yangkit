@@ -98,7 +98,7 @@ public abstract class YangLocationPathImpl implements YangLocationPath {
 
    public static SchemaNode getXPathSchemaChild(SchemaNodeContainer parent, QName child) {
       SchemaNode childNode = null;
-      childNode = parent.getDataNodeChild(child);
+      childNode = parent.getTreeNodeChild(child);
       return childNode;
    }
 

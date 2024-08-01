@@ -1,6 +1,8 @@
 package org.yangcentral.yangkit.xpath.impl;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.jaxen.expr.AdditiveExpr;
@@ -128,108 +130,160 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       }
    }
 
-   private Object visitStep(Step step, Object context, Object currentNode) throws ModelException {
-      if(currentNode == null){
-         throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
-                 ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().toString());
-      }
-      if (step.getAxis() == Axis.PARENT) {
-         if (currentNode instanceof SchemaNodeContainer && ((SchemaNodeContainer)currentNode).isSchemaTreeRoot()) {
-            throw new ModelException(Severity.WARNING, (this.getContext()).getDefineNode(), ErrorCode.INVALID_XPATH.getFieldName() + " xpath:" + this.getYangXPath().toString());
+   private Object visitChildStep(Step step, Object context, Object currentNode) throws ModelException{
+      if (step instanceof YangNameStep) {
+         YangNameStep nameStep = (YangNameStep)step;
+         if(nameStep.isMatchesAnyName()){
+            SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) currentNode;
+            currentNode = schemaNodeContainer.getTreeNodeChildren();
+            return currentNode;
          }
-         SchemaNodeContainer parent = YangLocationPathImpl.getXPathSchemaParent((SchemaNode)currentNode);
-         currentNode = parent;
+         String prefix = nameStep.getPrefix();
+         String localName = nameStep.getLocalName();
+         URI namespace = null;
+         if (prefix != null && prefix.length() > 0) {
+            Module module = ModelUtil.findModuleByPrefix(this.getContext().getYangContext(), prefix);
+            if (null == module) {
+               throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + prefix}));
+            }
 
-      } else if (step.getAxis() == Axis.CHILD) {
-
-         if (step instanceof NameStep) {
-            NameStep nameStep = (NameStep)step;
-            String prefix = nameStep.getPrefix();
-            String localName = nameStep.getLocalName();
-            URI namespace = null;
-            if (prefix != null && prefix.length() > 0) {
-               Module module = ModelUtil.findModuleByPrefix(this.getContext().getYangContext(), prefix);
-               if (null == module) {
-                  throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + prefix}));
-               }
-
-               namespace = module.getMainModule().getNamespace().getUri();
+            namespace = module.getMainModule().getNamespace().getUri();
+         } else {
+            Object contextNode = this.getContext().getContextNode();
+            if (contextNode instanceof Module) {
+               Module curModule = (Module)contextNode;
+               namespace = curModule.getMainModule().getNamespace().getUri();
+               prefix = curModule.getSelfPrefix();
             } else {
-               Object contextNode = this.getContext().getContextNode();
-               if (contextNode instanceof Module) {
-                  Module curModule = (Module)contextNode;
-                  namespace = curModule.getMainModule().getNamespace().getUri();
-                  prefix = curModule.getSelfPrefix();
-               } else {
-                  namespace = ((SchemaNode)contextNode).getIdentifier().getNamespace();
-                  prefix = ((SchemaNode)contextNode).getIdentifier().getPrefix();
-               }
+               namespace = ((SchemaNode)contextNode).getIdentifier().getNamespace();
+               prefix = ((SchemaNode)contextNode).getIdentifier().getPrefix();
             }
-
-            QName childQName = new QName(namespace, prefix, localName);
-            if (!(currentNode instanceof SchemaNodeContainer)) {
-               throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_TERMIANL_HAS_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + ((SchemaNode)currentNode).getIdentifier().getQualifiedName(), "keyword=" + ((SchemaNode)currentNode).getYangKeyword().getLocalName()}));
-            }
-
-            SchemaNodeContainer parent = (SchemaNodeContainer)currentNode;
-            SchemaNode child = YangLocationPathImpl.getXPathSchemaChild(parent, childQName);
-            if (child == null) {
-               throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_UNRECOGNIZED_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
-            }
-
-            if (this.getContext().getDefineNode().isActive() && !child.isActive()) {
-               throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_INACTIVE_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
-            }
-
-            if (this.getContext().getContextNode() instanceof SchemaNode && ((SchemaNode) this.getContext().getContextNode()).isConfig() && !child.isConfig()) {
-               throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_UNCMPATIBLE_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "context=" + ((SchemaNode) this.getContext().getContextNode()).getIdentifier().getQualifiedName()}));
-            }
-
-            if (child instanceof WhenSupport && this.validateType == VALIDATE_TYPE_WHEN) {
-               WhenSupport whenSupport = (WhenSupport)child;
-               if (whenSupport.getWhen() != null) {
-                  ValidatorResult whenResult = whenSupport.validateWhen();
-                  if (!whenResult.isOk()) {
-                     throw new ModelException(Severity.WARNING, child, whenResult.toString());
-                  }
-               }
-            }
-
-            currentNode = child;
          }
-      } else if (step.getAxis() != Axis.SELF) {
-         throw new IllegalArgumentException("un-support axis.");
-      }
 
-      if (step instanceof Predicated) {
-         List predicates = step.getPredicates();
-         if (predicates.size() > 0) {
+         QName childQName = new QName(namespace, prefix, localName);
+         if (!(currentNode instanceof SchemaNodeContainer)) {
+            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_TERMIANL_HAS_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + ((SchemaNode)currentNode).getIdentifier().getQualifiedName(), "keyword=" + ((SchemaNode)currentNode).getYangKeyword().getLocalName()}));
+         }
 
-            for (Object o1 : predicates) {
-               Predicate predicate = (Predicate) o1;
-               ValidatorResult predicateResult;
-               if (this.validateType == VALIDATE_TYPE_LEAFREF) {
-                  predicateResult = this.checkPredicateForLeafref(predicate, currentNode);
-                  if (!predicateResult.isOk()) {
-                     throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), predicateResult.toString());
-                  }
-               }
-               predicateResult = this.visit(predicate.getExpr(), currentNode);
-               if (!predicateResult.isOk()) {
-                  throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), predicateResult.toString());
-               }
-               if (predicate.getExpr() instanceof FunctionCallExpr && ((FunctionCallExpr) predicate.getExpr()).getFunctionName().equals("current")) {
-                  throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
-                      ErrorCode.PREDICATES_MUST_EXPRESSION.toString(new String[]{"xpath=" + this.getYangXPath().toString()})
-                  );
+         SchemaNodeContainer parent = (SchemaNodeContainer)currentNode;
+         SchemaNode child = YangLocationPathImpl.getXPathSchemaChild(parent, childQName);
+         if (child == null) {
+            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_UNRECOGNIZED_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
+         }
+
+         if (this.getContext().getDefineNode().isActive() && !child.isActive()) {
+            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_INACTIVE_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
+         }
+
+         if (this.getContext().getContextNode() instanceof SchemaNode && ((SchemaNode) this.getContext().getContextNode()).isConfig() && !child.isConfig()) {
+            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_UNCMPATIBLE_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "context=" + ((SchemaNode) this.getContext().getContextNode()).getIdentifier().getQualifiedName()}));
+         }
+
+         if (child instanceof WhenSupport && this.validateType == VALIDATE_TYPE_WHEN) {
+            WhenSupport whenSupport = (WhenSupport)child;
+            if (whenSupport.getWhen() != null) {
+               ValidatorResult whenResult = whenSupport.validateWhen();
+               if (!whenResult.isOk()) {
+                  throw new ModelException(Severity.WARNING, child, whenResult.toString());
                }
             }
          }
-      }
 
+         currentNode = child;
+      }
       return currentNode;
    }
 
+   //AI_CREATE:CHAT:1722416336929:10:32
+   private void validatePredicates (Step step, Object currentNode) throws ModelException {
+      List<Predicate> predicates = step.getPredicates();
+      if (!predicates.isEmpty()) {
+         for (Predicate predicate : predicates) {
+            validateSinglePredicate(predicate, currentNode);
+         }
+      }
+   }
+
+   private void validateSinglePredicate (Predicate predicate, Object currentNode) throws ModelException {
+      ValidatorResult predicateResult;
+      if (this.validateType == VALIDATE_TYPE_LEAFREF) {
+         predicateResult = this.checkPredicateForLeafref(predicate, currentNode);
+         if (!predicateResult.isOk()) {
+            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), predicateResult.toString());
+         }
+      }
+      predicateResult = this.visit(predicate.getExpr(), currentNode);
+      if (!predicateResult.isOk()) {
+         throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), predicateResult.toString());
+      }
+      if (isCurrentFunctionCall(predicate)) {
+         throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                 ErrorCode.PREDICATES_MUST_EXPRESSION.toString(new String[]{"xpath=" + this.getYangXPath().toString()})
+         );
+      }
+   }
+
+   private boolean isCurrentFunctionCall (Predicate predicate){
+      return predicate.getExpr() instanceof FunctionCallExpr &&
+              "current".equals(((FunctionCallExpr) predicate.getExpr()).getFunctionName());
+   }
+
+
+   //AI_CREATE:CHAT:1722416741533:62:62
+   private Object visitStep(Step step, Object context, Object currentNode) throws ModelException {
+      if (currentNode == null) {
+         throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                 ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().toString());
+      }
+
+      if (currentNode instanceof List) {
+         List<SchemaNode> currentNodes = (List<SchemaNode>) currentNode;
+         List<SchemaNode> newCurrentNodes = new ArrayList<>();
+         ModelException modelException = null;
+         for (SchemaNode curNode : currentNodes) {
+            try{
+               Object curChildren = visitStep(step,context,curNode);
+               if(curChildren instanceof List){
+                  newCurrentNodes.addAll((List<? extends SchemaNode>) curChildren);
+               } else {
+                  newCurrentNodes.add((SchemaNode)curChildren );
+               }
+
+            }catch (ModelException e){
+               if(null != modelException){
+                  modelException = e;
+               }
+            }
+         }
+         if(newCurrentNodes.isEmpty()){
+            throw modelException;
+         }
+         return newCurrentNodes;
+      } else {
+         if (step.getAxis() == Axis.PARENT) {
+            if (currentNode instanceof SchemaNodeContainer && ((SchemaNodeContainer) currentNode).isSchemaTreeRoot()) {
+               throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                       ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().toString());
+            }
+            SchemaNodeContainer parent = YangLocationPathImpl.getXPathSchemaParent((SchemaNode) currentNode);
+            currentNode = parent;
+         } else if (step.getAxis() == Axis.CHILD) {
+            currentNode = visitChildStep(step, context, currentNode);
+         } else if (step.getAxis() == Axis.SELF) {
+            // Do nothing, currentNode remains the same
+         } else {
+            throw new IllegalArgumentException("un-support axis.");
+         }
+         return currentNode;
+      }
+   }
+
+   /**
+    * validate the location expression
+    * @param expr xpath expression
+    * @param context the context module or schema node
+    * @return
+    */
    public ValidatorResult visitLocationExpr(LocationPath expr, Object context) {
       Builder<ValidatorResult> builder = this.getBuilderFactory().getBuilder();
       Object currentNode = context;
@@ -248,6 +302,9 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
 
          try {
             currentNode = this.visitStep(step, context, currentNode);
+            if(step instanceof Predicated){
+               validatePredicates(step,currentNode);
+            }
             if (currentNode instanceof YangList) {
                YangList listNode = (YangList) currentNode;
                if (listNode.getKey() != null) {

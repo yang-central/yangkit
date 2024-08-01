@@ -17,12 +17,13 @@ public class XPathUtil {
    public static Object getXPathContextNode(SchemaNode current) {
       if (current == null) {
          return null;
-      } else if (!(current instanceof DataNode) && !(current instanceof Rpc) && !(current instanceof Action) && !(current instanceof Notification)) {
-         SchemaNodeContainer closestAncestorNode = current.getClosestAncestorNode();
-         return closestAncestorNode instanceof Module ? new YangXPathRoot((Module)closestAncestorNode) : closestAncestorNode;
-      } else {
+      }
+      if(current instanceof TreeNode){
          return current;
       }
+
+      SchemaNodeContainer closestAncestorNode = current.getClosestAncestorNode();
+      return closestAncestorNode instanceof Module ? new YangXPathRoot((Module)closestAncestorNode) : closestAncestorNode;
    }
 
    public static Identity getIdentity(YangSchemaContext schemaContext, String uri, String identityName) {
