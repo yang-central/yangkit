@@ -240,11 +240,11 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       return null;
    }
 
-   private <T extends YangStatement> ValidatorResult mergeDefintion(Map<String, T> source, List<T> candidate) {
-      return this.mergeDefintion(source, candidate, false);
+   private <T extends YangStatement> ValidatorResult mergeDefinition(Map<String, T> source, List<T> candidate) {
+      return this.mergeDefinition(source, candidate, false);
    }
 
-   private <T extends YangStatement> ValidatorResult mergeDefintion(Map<String, T> source, List<T> candidate, boolean ignoreDuplicate) {
+   private <T extends YangStatement> ValidatorResult mergeDefinition(Map<String, T> source, List<T> candidate, boolean ignoreDuplicate) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
 
       for (T entry : candidate) {
@@ -268,11 +268,11 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       return validatorResultBuilder.build();
    }
 
-   private <T extends YangStatement> ValidatorResult mergeDefintion(Map<String, T> source, Map<String, T> candidate) {
-      return this.mergeDefintion(source, candidate, false);
+   private <T extends YangStatement> ValidatorResult mergeDefinition(Map<String, T> source, Map<String, T> candidate) {
+      return this.mergeDefinition(source, candidate, false);
    }
 
-   private <T extends YangStatement> ValidatorResult mergeDefintion(Map<String, T> source, Map<String, T> candidate, boolean ignoreDuplicate) {
+   private <T extends YangStatement> ValidatorResult mergeDefinition(Map<String, T> source, Map<String, T> candidate, boolean ignoreDuplicate) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
 
       for (Map.Entry<String, T> entry : candidate.entrySet()) {
@@ -290,11 +290,11 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       return validatorResultBuilder.build();
    }
 
-   private <T extends YangStatement> ValidatorResult mergeDefintion(List<T> source, List<T> candidate) {
-      return this.mergeDefintion(source, candidate, false);
+   private <T extends YangStatement> ValidatorResult mergeDefinition(List<T> source, List<T> candidate) {
+      return this.mergeDefinition(source, candidate, false);
    }
 
-   private <T extends YangStatement> ValidatorResult mergeDefintion(List<T> source, List<T> candidate, boolean ignoreDuplicate) {
+   private <T extends YangStatement> ValidatorResult mergeDefinition(List<T> source, List<T> candidate, boolean ignoreDuplicate) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
       Iterator<T> iterator = candidate.iterator();
       Map<String, T> sourceMap = source.stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
@@ -322,8 +322,8 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             continue;
          }
          SubModule includeModule = include.getInclude().get();
-         validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getTypedefIdentifierCache(), includeModule.getTypedefs()));
-         validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getGroupingIdentifierCache(), includeModule.getGroupings()));
+         validatorResultBuilder.merge(this.mergeDefinition(this.getContext().getTypedefIdentifierCache(), includeModule.getTypedefs()));
+         validatorResultBuilder.merge(this.mergeDefinition(this.getContext().getGroupingIdentifierCache(), includeModule.getGroupings()));
 
          for (DataDefinition dataDefinition : includeModule.getDataDefChildren()) {
             if (!(dataDefinition instanceof Uses)) {
@@ -339,9 +339,9 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
             this.getContext().getSchemaNodeIdentifierCache().put(notification.getArgStr(), notification);
          }
 
-         validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getExtensionCache(), includeModule.getExtensions()));
-         validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getIdentityCache(), includeModule.getIdentities()));
-         validatorResultBuilder.merge(this.mergeDefintion(this.getContext().getFeatureCache(), includeModule.getFeatures()));
+         validatorResultBuilder.merge(this.mergeDefinition(this.getContext().getExtensionCache(), includeModule.getExtensions()));
+         validatorResultBuilder.merge(this.mergeDefinition(this.getContext().getIdentityCache(), includeModule.getIdentities()));
+         validatorResultBuilder.merge(this.mergeDefinition(this.getContext().getFeatureCache(), includeModule.getFeatures()));
 
       }
 
@@ -375,12 +375,12 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       for (Include include : this.includes) {
          if (include.getInclude().isPresent()) {
             SubModule includeModule = include.getInclude().get();
-            this.mergeDefintion(includeModule.getContext().getTypedefIdentifierCache(), this.getContext().getTypedefIdentifierCache(), true);
-            this.mergeDefintion(includeModule.getContext().getGroupingIdentifierCache(), this.getContext().getGroupingIdentifierCache(), true);
-            this.mergeDefintion(includeModule.getContext().getSchemaNodeIdentifierCache(), this.getContext().getSchemaNodeIdentifierCache(), true);
-            this.mergeDefintion(includeModule.getContext().getExtensionCache(), this.getContext().getExtensionCache(), true);
-            this.mergeDefintion(includeModule.getContext().getIdentityCache(), this.getContext().getIdentityCache(), true);
-            this.mergeDefintion(includeModule.getContext().getFeatureCache(), this.getContext().getFeatureCache(), true);
+            this.mergeDefinition(includeModule.getContext().getTypedefIdentifierCache(), this.getContext().getTypedefIdentifierCache(), true);
+            this.mergeDefinition(includeModule.getContext().getGroupingIdentifierCache(), this.getContext().getGroupingIdentifierCache(), true);
+            this.mergeDefinition(includeModule.getContext().getSchemaNodeIdentifierCache(), this.getContext().getSchemaNodeIdentifierCache(), true);
+            this.mergeDefinition(includeModule.getContext().getExtensionCache(), this.getContext().getExtensionCache(), true);
+            this.mergeDefinition(includeModule.getContext().getIdentityCache(), this.getContext().getIdentityCache(), true);
+            this.mergeDefinition(includeModule.getContext().getFeatureCache(), this.getContext().getFeatureCache(), true);
          }
       }
 
