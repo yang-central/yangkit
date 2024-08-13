@@ -415,19 +415,32 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       return false;
    }
 
-   private HashSet<Module> getGraph(Module m){
-      HashSet<Module> graph = new HashSet<>();
-      Deque<Module> todo = new LinkedList<>(Collections.singleton(m));
-      Module current = todo.pollFirst();
-      while(current != null) {
-         graph.add(current);
-         todo.addAll(current.getDependentBys());
-         current = todo.pollFirst();
+   private boolean isNodesConnected(Module start, Module end) {
+      if (start.getArgStr().equals(end.getArgStr())) return true;
+      Set<Module> visited = new HashSet<>();
+      Deque<Module> stack = new LinkedList<>();
+      stack.add(start);
+      while (!stack.isEmpty()) {
+         Module current = stack.pop();
+         System.out.println(current.getArgStr());
+         if (!visited.contains(current)) {
+            visited.add(current);
+            for (Module m : current.getDependentBys()) {
+               if (m.getArgStr().equals(end.getArgStr())) return true;
+               stack.add(m);
+            }
+            for (Import i : current.getImports()) {
+               for (Module m : this.getModule(i.getArgStr())) {
+                  if (m.getArgStr().equals(end.getArgStr())) return true;
+                  stack.add(m);
+               }
+            }
+         }
       }
-      return graph;
+      return false;
    }
 
-   private List<List<Module>> mergeLevel0(List<Module> lvl0, HashMap<Module, HashSet<Module>> graphs) {
+   private List<List<Module>> mergeLevel0(List<Module> lvl0) {
       List<List<Module>> newLvl0 = new ArrayList<>();
       HashSet<Module> alreadyInGraph = new HashSet<>();
       for (Module m1 : lvl0) {
@@ -436,9 +449,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          alreadyInGraph.add(m1);
          for (Module m2 : lvl0) {
             if (m1 == m2 || alreadyInGraph.contains(m2)) continue;
-            HashSet<Module> tg1 = new HashSet<>(graphs.get(m1));
-            tg1.retainAll(graphs.get(m2));
-            if (!tg1.isEmpty()) {
+            if (isNodesConnected(m1, m2)) {
                alreadyInGraph.add(m2);
                temp.add(m2);
             }
@@ -453,16 +464,14 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       List<List<Module>> correctOrder = new ArrayList<>();
       List<Module> level0Module = new ArrayList<>();
       HashMap<Module, Integer> cost = new HashMap<>();
-      HashMap<Module, HashSet<Module>> graphs = new HashMap<>();
       for (Module m : modules) {
          if (!hasLocalImport(this, m)) {
             level0Module.add(m);
-            graphs.put(m, getGraph(m));
          }
          cost.put(m, m.getImports().size());
       }
       level0Module.sort(Comparator.comparing(Module::getArgStr));
-      List<List<Module>> mergedLevel0 = mergeLevel0(level0Module, graphs);
+      List<List<Module>> mergedLevel0 = mergeLevel0(level0Module);
       for (List<Module> l0List : mergedLevel0) {
          List<Module> tempCorrectOrder = new ArrayList<>();
          Deque<Module> moduleStack = new LinkedList<>(l0List);
