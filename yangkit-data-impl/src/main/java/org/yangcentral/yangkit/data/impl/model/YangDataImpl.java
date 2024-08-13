@@ -115,9 +115,12 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
             return parentPath;
         }
         AbsolutePath thisPath = new AbsolutePath();
-        for(XPathStep step:parentPath.getSteps()){
-            thisPath.addStep(step);
+        if(!parentPath.isRootPath()){
+            for(XPathStep step:parentPath.getSteps()){
+                thisPath.addStep(step);
+            }
         }
+
         thisPath.addStep(translate2Step((YangData<? extends DataNode>) this));
         this.path = thisPath;
         return thisPath;
