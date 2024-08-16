@@ -20,6 +20,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class YangYinParser {
    static {
@@ -211,6 +212,7 @@ public class YangYinParser {
                continue;
             }
          }
+
          unMatchedModules.add(module);
       }
 
@@ -222,6 +224,16 @@ public class YangYinParser {
          schemaContext.addImportOnlyModule(importOnlyModule);
       }
 
+      for (Module module : schemaContext.getModules()){
+         List<Module> dependencies = module.getDependencies();
+         for(Module dependency: dependencies){
+             Optional<Module> moduleOp = schemaContext.getModule(dependency.getModuleId());
+             if(!moduleOp.isPresent()){
+                schemaContext.addImportOnlyModule(dependency);
+                moduleSet.addImportOnlyModule(new YangModuleDescription(dependency.getModuleId()));
+             }
+         }
+      }
 
       YangSchema yangSchema = schemaContext.getYangSchema();
       if (yangSchema == null) {
