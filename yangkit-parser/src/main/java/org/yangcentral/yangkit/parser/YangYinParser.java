@@ -183,64 +183,43 @@ public class YangYinParser {
 
    public static YangSchemaContext filter(@Nonnull YangSchemaContext schemaContext, @Nonnull List<Capability> capabilityList){
       List<Module> unMatchedModules = new ArrayList<>();
-      ModuleSet moduleSet = new ModuleSet();
+      ModuleSet moduleSet = CapabilityParser.toModuleSet(capabilityList);
 
+      List<Module> importOnlyModules = new ArrayList<>();
       for (Module module : schemaContext.getModules()) {
-         boolean match = false;
+         if(moduleSet.getModule(module.getModuleId()) != null){
+            continue;
+         }
+         if(moduleSet.getImportOnlyModule(module.getModuleId()) != null){
+            importOnlyModules.add(module);
+            continue;
+         }
 
-         for (Capability capability : capabilityList) {
-            if (!(capability instanceof ModuleSupportCapability)) {
+         if (module instanceof SubModule) {
+            SubModule subModule = (SubModule) module;
+            YangStatement belongsTo = subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
+            String mainModuleName = belongsTo.getArgStr();
+            YangModuleDescription yangModuleDescription = moduleSet.getModule(mainModuleName);
+            if (yangModuleDescription != null) {
+               yangModuleDescription.addSubModule(subModule.getModuleId());
                continue;
             }
-            ModuleSupportCapability moduleSupportCapability = (ModuleSupportCapability) capability;
-            if (moduleSupportCapability.match(module.getModuleId())) {
-               match = true;
-               YangModuleDescription moduleDescription = moduleSet.getModule(module.getModuleId());
-               if (null == moduleDescription) {
-                  moduleDescription = new YangModuleDescription(module.getModuleId());
-                  moduleSet.addModule(moduleDescription);
-               }
-               if (!moduleSupportCapability.getFeatures().isEmpty()) {
-                  for (String feature : moduleSupportCapability.getFeatures()) {
-                     moduleDescription.addFeature(feature);
-                  }
-               }
-
-               if (!moduleSupportCapability.getDeviations().isEmpty()) {
-                  for (String deviation : moduleSupportCapability.getDeviations()) {
-                     moduleDescription.addDeviation(deviation);
-                  }
-               }
-               break;
-            }
-
-
-            if (module instanceof SubModule) {
-               SubModule subModule = (SubModule) module;
-               YangStatement belongsTo = subModule.getSubStatement(YangBuiltinKeyword.BELONGSTO.getQName()).get(0);
-               String mainModuleName = belongsTo.getArgStr();
-               if (moduleSupportCapability.getModule().equals(mainModuleName)) {
-                  match = true;
-                  ModuleId mainModuleId = new ModuleId(moduleSupportCapability.getModule(), moduleSupportCapability.getRevision());
-                  YangModuleDescription moduleDescription = moduleSet.getModule(mainModuleId);
-                  if (moduleDescription == null) {
-                     moduleDescription = new YangModuleDescription(mainModuleId);
-                     moduleSet.addModule(moduleDescription);
-                  }
-
-                  moduleDescription.addSubModule(subModule.getModuleId());
-                  break;
-               }
+            yangModuleDescription = moduleSet.getImportOnlyModule(mainModuleName);
+            if (yangModuleDescription != null) {
+               yangModuleDescription.addSubModule(subModule.getModuleId());
+               importOnlyModules.add(module);
+               continue;
             }
          }
-         if (!match) {
-            unMatchedModules.add(module);
-         }
+         unMatchedModules.add(module);
       }
 
       for (Module unMatchedModule : unMatchedModules) {
          schemaContext.removeModule(unMatchedModule.getModuleId());
-         //schemaContext.addImportOnlyModule(unMatchedModule);
+      }
+      for (Module importOnlyModule : importOnlyModules) {
+         schemaContext.removeModule(importOnlyModule.getModuleId());
+         schemaContext.addImportOnlyModule(importOnlyModule);
       }
 
 

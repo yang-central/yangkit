@@ -48,6 +48,20 @@ public class ModuleSet {
 
       return moduleDescription;
    }
+   public YangModuleDescription getModule(String moduleName) {
+      Iterator moduleDescriptionIterator = this.modules.iterator();
+
+      YangModuleDescription moduleDescription;
+      do {
+         if (!moduleDescriptionIterator.hasNext()) {
+            return null;
+         }
+
+         moduleDescription = (YangModuleDescription)moduleDescriptionIterator.next();
+      } while(!moduleDescription.getModuleId().getModuleName().equals(moduleName));
+
+      return moduleDescription;
+   }
 
    public void addImportOnlyModule(YangModuleDescription module) {
       this.importOnlyModules.add(module);
@@ -64,6 +78,20 @@ public class ModuleSet {
 
          moduleDescription = (YangModuleDescription)moduleDescriptionIterator.next();
       } while(!moduleDescription.getModuleId().equals(moduleId));
+
+      return moduleDescription;
+   }
+   public YangModuleDescription getImportOnlyModule(String moduleName) {
+      Iterator moduleDescriptionIterator = this.importOnlyModules.iterator();
+
+      YangModuleDescription moduleDescription;
+      do {
+         if (!moduleDescriptionIterator.hasNext()) {
+            return null;
+         }
+
+         moduleDescription = (YangModuleDescription)moduleDescriptionIterator.next();
+      } while(!moduleDescription.getModuleId().getModuleName().equals(moduleName));
 
       return moduleDescription;
    }
@@ -90,4 +118,6 @@ public class ModuleSet {
 
       return true;
    }
+
+
 }
