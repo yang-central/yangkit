@@ -17,10 +17,7 @@ import org.yangcentral.yangkit.utils.file.FileUtil;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class YangYinParser {
    static {
@@ -182,6 +179,20 @@ public class YangYinParser {
       return schemaContext;
    }
 
+   private static Map<ModuleId,Module> searchDependencyChain(YangSchemaContext schemaContext,Module module){
+      Map<ModuleId,Module> moduleMap = new HashMap<>();
+      List<Module> dependencies = module.getDependencies();
+      for(Module dependency: dependencies){
+         Optional<Module> moduleOp = schemaContext.getModule(dependency.getModuleId());
+         if(!moduleOp.isPresent()){
+            //if not found, add
+            moduleMap.putIfAbsent(dependency.getModuleId(),dependency);
+         }
+         moduleMap.putAll(searchDependencyChain(schemaContext,dependency));
+      }
+      return moduleMap;
+   }
+
    public static YangSchemaContext filter(@Nonnull YangSchemaContext schemaContext, @Nonnull List<Capability> capabilityList){
       List<Module> unMatchedModules = new ArrayList<>();
       ModuleSet moduleSet = CapabilityParser.toModuleSet(capabilityList);
@@ -224,15 +235,16 @@ public class YangYinParser {
          schemaContext.addImportOnlyModule(importOnlyModule);
       }
 
+      Map<ModuleId,Module> moduleMap = new HashMap<>();
       for (Module module : schemaContext.getModules()){
-         List<Module> dependencies = module.getDependencies();
-         for(Module dependency: dependencies){
-             Optional<Module> moduleOp = schemaContext.getModule(dependency.getModuleId());
-             if(!moduleOp.isPresent()){
-                schemaContext.addImportOnlyModule(dependency);
-                moduleSet.addImportOnlyModule(new YangModuleDescription(dependency.getModuleId()));
-             }
-         }
+         moduleMap.putAll(searchDependencyChain(schemaContext,module));
+      }
+
+      Iterator<Map.Entry<ModuleId,Module>> it = moduleMap.entrySet().iterator();
+      while (it.hasNext()){
+         Map.Entry<ModuleId,Module> entry = it.next();
+         schemaContext.addImportOnlyModule(entry.getValue());
+         moduleSet.addImportOnlyModule(new YangModuleDescription(entry.getValue().getModuleId()));
       }
 
       YangSchema yangSchema = schemaContext.getYangSchema();

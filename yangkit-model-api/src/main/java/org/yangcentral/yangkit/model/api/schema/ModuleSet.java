@@ -63,10 +63,28 @@ public class ModuleSet {
       return moduleDescription;
    }
 
+   public YangModuleDescription removeModule(String moduleName){
+      int size = this.modules.size();
+      for(int i = 0; i < size;i++){
+         if(moduleName.equals(this.modules.get(i).getModuleId().getModuleName())){
+            return this.modules.remove(i);
+         }
+      }
+      return null;
+   }
+
    public void addImportOnlyModule(YangModuleDescription module) {
       this.importOnlyModules.add(module);
    }
-
+   public YangModuleDescription removeImportOnlyModule(ModuleId moduleId){
+      int size = this.importOnlyModules.size();
+      for(int i = 0; i < size;i++){
+         if(moduleId.equals(this.modules.get(i).getModuleId())){
+            return this.importOnlyModules.remove(i);
+         }
+      }
+      return null;
+   }
    public YangModuleDescription getImportOnlyModule(ModuleId moduleId) {
       Iterator moduleDescriptionIterator = this.importOnlyModules.iterator();
 
