@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.parser;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ModuleSupportCapability extends Capability {
@@ -32,12 +33,12 @@ public class ModuleSupportCapability extends Capability {
    }
 
    public List<String> getFeatures() {
-      return this.features;
+      return Collections.unmodifiableList(this.features);
    }
 
-   public void setFeatures(List<String> features) {
-      this.features = features;
-   }
+//   public void setFeatures(List<String> features) {
+//      this.features = features;
+//   }
 
    public void addFeature(String feature) {
       if (null != feature) {
@@ -52,12 +53,12 @@ public class ModuleSupportCapability extends Capability {
    }
 
    public List<String> getDeviations() {
-      return this.deviations;
+      return Collections.unmodifiableList(this.deviations);
    }
 
-   public void setDeviations(List<String> deviations) {
-      this.deviations = deviations;
-   }
+//   public void setDeviations(List<String> deviations) {
+//      this.deviations = deviations;
+//   }
 
    public void addDeviation(String deviation) {
       if (null != deviation) {
