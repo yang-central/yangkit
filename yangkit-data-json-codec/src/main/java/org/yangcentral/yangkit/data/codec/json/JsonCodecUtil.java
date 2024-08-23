@@ -242,7 +242,7 @@ public class JsonCodecUtil {
                 recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
                 recordBuilder.setBadElement(child);
                 recordBuilder.setErrorMessage(new ErrorMessage(
-                        "bad element:" + child.toString()));
+                        "bad element:" +childSchemaNode.getJsonIdentifier()));
                 validatorResultBuilder.addRecord(recordBuilder.build());
             }
             return validatorResultBuilder.build();
@@ -385,7 +385,7 @@ public class JsonCodecUtil {
                 recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(child));
                 recordBuilder.setBadElement(child);
                 recordBuilder.setErrorMessage(new ErrorMessage(
-                        "unrecognized element:" + child.toString()));
+                        "unrecognized element:" + fieldName));
                 validatorResultBuilder.addRecord(recordBuilder.build());
                 continue;
             }

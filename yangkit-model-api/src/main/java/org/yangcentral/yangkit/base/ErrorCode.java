@@ -82,6 +82,9 @@ public enum ErrorCode {
    PROPERTY_NOT_EXIST("property:${name} not exists."),
    PROPERTY_NOT_MATCH("property:${name} not match."),
    RANGE_OR_LENGTH_NOT_SUBSET_OF_DERIVED("range or length is not subset of derived type or builtin-type's range."),
+
+   REVISION_SEQ_ERROR(Severity.WARNING,"the sequence of revision is error, the revision date:${curDate} is newer " +
+           "than last revision:${lastDate}"),
    REFERENCE_NODE_NOT_FOUND("can not find the reference node "),
    SECTIONS_MUST_ASCEND_ORDER("sections in range or length MUST be ascend order"),
    TARGET_CAN_NOT_AUGMENTED("the target node can not be augmented."),

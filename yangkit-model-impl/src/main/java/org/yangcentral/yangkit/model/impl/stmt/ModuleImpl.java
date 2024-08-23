@@ -17,12 +17,7 @@ import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -128,12 +123,16 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
    }
 
    public Optional<Revision> getCurRevision() {
-      return this.revisions.size() == 0 ? Optional.empty() : Optional.of(this.revisions.get(0));
+      if(this.revisions.isEmpty()){
+         return Optional.empty();
+      }
+      Collections.sort(this.revisions, (o1, o2) -> o2.getArgStr().compareTo(o1.getArgStr()));
+      return Optional.of(this.revisions.get(0));
    }
 
    public Optional<String> getCurRevisionDate() {
-      Optional<Revision> revisionOptional = this.getCurRevision();
-      return !revisionOptional.isPresent() ? Optional.empty() : Optional.of(revisionOptional.get().getArgStr());
+      Optional<Revision> revision = getCurRevision();
+      return revision.isPresent()?Optional.of(revision.get().getArgStr()):Optional.empty();
    }
 
    public List<Extension> getExtensions() {
@@ -183,7 +182,12 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
 
    public ModuleId getModuleId() {
       List<YangStatement> revisions = this.getSubStatement(YangBuiltinKeyword.REVISION.getQName());
-      return revisions.isEmpty() ? new ModuleId(this.getArgStr(), "") : new ModuleId(this.getArgStr(), revisions.get(0).getArgStr());
+      if(revisions.isEmpty()){
+         return new ModuleId(this.getArgStr(), "");
+      }
+
+      Collections.sort(revisions,((o1, o2) -> o2.getArgStr().compareTo(o1.getArgStr())));
+      return new ModuleId(this.getArgStr(), revisions.get(0).getArgStr());
    }
 
    public Optional<ModuleId> findModuleByPrefix(String prefix) {
@@ -828,6 +832,20 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
                if (null != revision) {
                   validatorResultBuilder.addRecord(ModelUtil.reportDuplicateError(revision, newRevision, Severity.WARNING));
                } else {
+                  if(!revisions.isEmpty()){
+                     int size = revisions.size();
+                     if(revisions.get(size-1).getArgStr().compareTo(newRevision.getArgStr()) < 0){
+                        ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder<>();
+                        validatorRecordBuilder.setBadElement(newRevision);
+                        validatorRecordBuilder.setSeverity(Severity.WARNING);
+                        validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+                        validatorRecordBuilder.setErrorPath(newRevision.getElementPosition());
+                        validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.REVISION_SEQ_ERROR.toString(
+                                new String[]{"curDate="+ newRevision.getArgStr(),"lastDate="+revisions.get(size-1).getArgStr()}
+                        )));
+                        validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                     }
+                  }
                   this.revisions.add(newRevision);
                }
                break;
