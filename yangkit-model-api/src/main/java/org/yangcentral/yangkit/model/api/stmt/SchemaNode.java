@@ -4,6 +4,8 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
 
+import java.util.List;
+
 public interface SchemaNode extends Entity {
    SchemaPath.Absolute getSchemaPath();
 
@@ -30,7 +32,12 @@ public interface SchemaNode extends Entity {
    QName getIdentifier();
 
    default String getJsonIdentifier() {
-      return getContext().getCurModule().getMainModule().getArgStr()
+      QName qName = getIdentifier();
+      List<Module> modules = getContext().getSchemaContext().getModule(qName.getNamespace());
+      if(modules.isEmpty()){
+         return null;
+      }
+      return modules.get(0).getMainModule().getArgStr()
               + ":"
               + getIdentifier().getLocalName();
    }
