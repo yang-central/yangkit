@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.github.yang-central.yangkit</groupId>
         <artifactId>yangkit-parent</artifactId>
-        <version>1.4.0</version>
+        <version>1.4.5</version>
     </parent>
 
     <groupId>com.insa.app</groupId>
@@ -16,7 +16,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <yangkit.version>1.4.0</yangkit.version>
+        <yangkit.version>1.4.5</yangkit.version>
     </properties>
 
     <build>
