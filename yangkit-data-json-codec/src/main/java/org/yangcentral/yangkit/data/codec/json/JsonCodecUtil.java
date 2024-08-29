@@ -427,7 +427,11 @@ public class JsonCodecUtil {
             ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
             JsonNode tempJsonNode = (JsonNode) record.getBadElement();
             recordBuilder.setErrorTag(record.getErrorTag());
-            recordBuilder.setErrorPath(record.getErrorPath() != null ? record.getErrorPath().toString() : extraValidationData.getJsonPath(tempJsonNode));
+            if(record.getErrorPath() != null && !record.getErrorPath().toString().isEmpty()) {
+                recordBuilder.setErrorPath(record.getErrorPath().toString());
+            }else {
+                recordBuilder.setErrorPath(extraValidationData.getJsonPath(tempJsonNode));
+            }
             recordBuilder.setBadElement(tempJsonNode);
             recordBuilder.setErrorMessage(record.getErrorMsg());
             validatorResultBuilderWithErrorPath.addRecord(recordBuilder.build());
