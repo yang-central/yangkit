@@ -1,6 +1,5 @@
 package org.yangcentral.yangkit.test.parser;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.dom4j.DocumentException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
