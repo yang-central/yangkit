@@ -3,13 +3,11 @@ package org.yangcentral.yangkit.data.codec.json.test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dom4j.DocumentException;
-import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.common.impl.validate.ValidatorRecordImpl;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
-import org.yangcentral.yangkit.data.codec.json.YangDataParser;
+import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonParser;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
@@ -36,7 +34,7 @@ public class JsonCodecDataFunc {
         assertTrue(validatorResult.isOk(), "yang schema is not valid");
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        YangDataDocument yangDataDocument = new YangDataDocumentJsonParser(schemaContext).parse(jsonNode,validatorResultBuilder);
         assertTrue(validatorResultBuilder.build().isOk(), "error during first validation of json");
 
         yangDataDocument.update();
@@ -59,7 +57,7 @@ public class JsonCodecDataFunc {
         assertTrue(validatorResult.isOk(), "yang schema is not valid");
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        YangDataDocument yangDataDocument = new YangDataDocumentJsonParser(schemaContext).parse(jsonNode,validatorResultBuilder);
         ValidatorResult parseResult = validatorResultBuilder.build();
         assertFalse(parseResult.isOk(), "no error during first validation of json");
         for (ValidatorRecord record : parseResult.getRecords()) {
@@ -87,7 +85,7 @@ public class JsonCodecDataFunc {
         assertTrue(validatorResult.isOk(), "yang schema is not valid");
 
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        YangDataDocument yangDataDocument = new YangDataParser(jsonNode, schemaContext, false).parse(validatorResultBuilder);
+        YangDataDocument yangDataDocument = new YangDataDocumentJsonParser(schemaContext).parse(jsonNode,validatorResultBuilder);
         ValidatorResult parseResult = validatorResultBuilder.build();
         assertFalse(parseResult.isOk(), "no error during first validation of json");
         for (ValidatorRecord record : parseResult.getRecords()) {

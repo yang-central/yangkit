@@ -24,3 +24,5 @@ target/
 
 */apidocs/*
 *.log
+
+.DS_Store
