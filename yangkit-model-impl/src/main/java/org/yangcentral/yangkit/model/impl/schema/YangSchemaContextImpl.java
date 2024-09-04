@@ -422,7 +422,6 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       stack.add(start);
       while (!stack.isEmpty()) {
          Module current = stack.pop();
-         System.out.println(current.getArgStr());
          if (!visited.contains(current)) {
             visited.add(current);
             for (Module m : current.getDependentBys()) {
