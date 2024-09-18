@@ -197,11 +197,11 @@ public class YangDataUtil {
             return results;
         }
         if(base == null) {
-            results.add(new YangCompareResultImpl(another.getPath(),DifferenceType.NEW,another));
+            results.add(new YangCompareResultImpl(another.getPath(),DifferenceType.NEW,another,null));
             return results;
         }
         if(another == null) {
-            results.add(new YangCompareResultImpl(base.getPath(),DifferenceType.NONE,base));
+            results.add(new YangCompareResultImpl(base.getPath(),DifferenceType.NONE,null,base));
             return results;
         }
         return base.compare(another);

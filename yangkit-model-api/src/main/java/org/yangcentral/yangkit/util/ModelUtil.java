@@ -298,6 +298,9 @@ public class ModelUtil {
          if(parentStatement == null){
             if(statement instanceof SchemaNode){
                SchemaNode schemaNode = (SchemaNode) statement;
+               if(!(schemaNode.getParentSchemaNode() instanceof YangStatement)){
+                  break;
+               }
                parentStatement = (YangStatement) schemaNode.getParentSchemaNode();
             }
          }

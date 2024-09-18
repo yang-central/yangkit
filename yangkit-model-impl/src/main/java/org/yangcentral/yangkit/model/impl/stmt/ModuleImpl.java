@@ -126,7 +126,11 @@ public abstract class ModuleImpl extends YangStatementImpl implements Module {
       if(this.revisions.isEmpty()){
          return Optional.empty();
       }
-      Collections.sort(this.revisions, (o1, o2) -> o2.getArgStr().compareTo(o1.getArgStr()));
+      synchronized(this) {
+         Collections.sort(this.revisions, (o1, o2) -> o2.getArgStr().compareTo(o1.getArgStr()));
+      }
+
+
       return Optional.of(this.revisions.get(0));
    }
 

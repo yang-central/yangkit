@@ -12,10 +12,13 @@ public class YangCompareResultImpl implements YangDataCompareResult {
 
     private YangData<?> changed;
 
-    public YangCompareResultImpl(AbsolutePath path, DifferenceType differenceType, YangData<?> changed) {
+    private YangData<?> previous;
+
+    public YangCompareResultImpl(AbsolutePath path, DifferenceType differenceType, YangData<?> changed,YangData<?> previous) {
         this.path = path;
         this.differenceType = differenceType;
         this.changed = changed;
+        this.previous = previous;
     }
 
     public AbsolutePath getPath() {
@@ -29,6 +32,11 @@ public class YangCompareResultImpl implements YangDataCompareResult {
     @Override
     public YangData<?> getChanged() {
         return changed;
+    }
+
+    @Override
+    public YangData<?> getPrevious() {
+        return previous;
     }
 
 }

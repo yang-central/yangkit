@@ -370,7 +370,7 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
         List<YangDataCompareResult> results = new ArrayList<>();
         if (this instanceof TypedData) {
             if (!equals(data)) {
-                results.add(new YangCompareResultImpl(getPath(), DifferenceType.CHANGED, data));
+                results.add(new YangCompareResultImpl(getPath(), DifferenceType.CHANGED, data,this));
                 return results;
             }
         }

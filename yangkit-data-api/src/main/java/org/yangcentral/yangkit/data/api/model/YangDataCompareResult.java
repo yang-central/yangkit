@@ -8,4 +8,6 @@ public interface YangDataCompareResult {
    DifferenceType getDifferenceType();
 
    YangData<?> getChanged();
+
+   YangData<?> getPrevious();
 }

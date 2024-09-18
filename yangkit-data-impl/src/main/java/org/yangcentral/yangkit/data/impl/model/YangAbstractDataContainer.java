@@ -445,7 +445,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
             YangData<?> oChild = another.getDataChild(child.getIdentifier());
             if(oChild == null){
                 //delete
-                results.add(new YangCompareResultImpl(path,DifferenceType.NONE,child));
+                results.add(new YangCompareResultImpl(path,DifferenceType.NONE,null,child));
             } else {
                 //change?
                 results.addAll(child.compare(oChild));
@@ -455,7 +455,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
         for(YangData<?> oChild:another.getDataChildren()){
             if(map.get(oChild.getIdentifier())== null){
                 //new
-                results.add(new YangCompareResultImpl(path,DifferenceType.NEW,oChild));
+                results.add(new YangCompareResultImpl(path,DifferenceType.NEW,oChild,null));
             }
         }
         return results;
