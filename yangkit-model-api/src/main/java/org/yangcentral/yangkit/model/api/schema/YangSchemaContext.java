@@ -57,4 +57,6 @@ public interface YangSchemaContext extends SchemaNodeContainer {
    ValidatorResult getValidateResult();
 
    void buildDependencies();
+
+   List<List<Module>> resolvesImportOrder();
 }

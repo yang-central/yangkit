@@ -10,4 +10,5 @@ public interface MultiInstancesDataNode {
    void setMaxElements(MaxElements maxElements);
 
    OrderedBy getOrderedBy();
+
 }

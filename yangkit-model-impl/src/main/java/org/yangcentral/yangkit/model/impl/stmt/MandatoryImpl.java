@@ -14,7 +14,7 @@ public class MandatoryImpl extends YangSimpleStatementImpl implements Mandatory 
    }
 
    public boolean getValue() {
-      return Boolean.getBoolean(this.getArgStr());
+      return this.getArgStr().equals("true");
    }
 
    public QName getYangKeyword() {

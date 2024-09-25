@@ -14,7 +14,7 @@ public class BinaryStringValueCodecImpl extends StringValueCodecImpl<byte[]> imp
          throw new IllegalArgumentException("wrong restriction type");
       } else {
          boolean bool = restriction.evaluate(output);
-         if (bool) {
+         if (!bool) {
             throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
          } else {
             return Base64.getEncoder().encodeToString(output);

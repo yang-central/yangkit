@@ -90,12 +90,11 @@ public class Decimal64Impl extends RestrictionImpl<BigDecimal> implements Decima
             section = iterator.next();
          } while(value.compareTo((BigDecimal)section.getMin()) < 0 || value.compareTo((BigDecimal)section.getMax()) > 0);
 
-         return true;
+         return value.scale() <= this.getEffectiveFractionDigits().getValue();
       } else if(getDerived() != null){
          return getDerived().getType().getRestriction().evaluate(value);
-      }
-      else {
-         return value.compareTo(this.getRangeMin()) >= 0 && value.compareTo(this.getRangeMax()) <= 0;
+      } else {
+         return value.compareTo(this.getRangeMin()) >= 0 && value.compareTo(this.getRangeMax()) <= 0 && value.scale() <= this.getEffectiveFractionDigits().getValue();
       }
    }
 

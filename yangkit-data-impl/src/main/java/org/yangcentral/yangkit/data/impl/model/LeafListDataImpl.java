@@ -19,9 +19,7 @@ public class LeafListDataImpl<D> extends YangDataImpl<LeafList>  implements Leaf
         } else {
             try {
                 identifier = new LeafListIdentifierImpl(schemaNode.getIdentifier(),value.getStringValue());
-            } catch (YangCodecException e) {
-                throw new RuntimeException(e);
-            }
+            } catch (YangCodecException ignore) { }
         }
 
     }

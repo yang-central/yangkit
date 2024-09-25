@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.test.parser;
 
 import org.dom4j.DocumentException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.common.api.exception.Severity;
@@ -47,7 +48,7 @@ public class YangParserTest {
 
             ValidatorResult validatorResult = schemaContext.validate();
             if(!validatorResult.isOk()){
-                System.out.println(validatorResult.print(Severity.ERROR));
+                System.out.println(validatorResult);
             }
         } catch (IOException | YangParserException | DocumentException e) {
             throw new RuntimeException(e);

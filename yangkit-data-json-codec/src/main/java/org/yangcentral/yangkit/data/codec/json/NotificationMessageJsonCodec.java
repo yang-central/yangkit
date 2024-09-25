@@ -60,7 +60,7 @@ public class NotificationMessageJsonCodec extends YangStructureMessageJsonCodec<
                 builder.addRecord(validatorRecordBuilder.build());
                 continue;
             }
-            YangDataDocument body = new YangDataDocumentImpl(null,getSchemaContext());
+            YangDataDocument body = new YangDataDocumentImpl(null,getSchemaContext(), document.toString());
             builder.merge(JsonCodecUtil.buildChildData(body,fieldNode,contentSchemaNode));
             m.setBody(body);
             return;

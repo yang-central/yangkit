@@ -408,4 +408,5 @@ public class ListImpl extends ContainerDataNodeImpl implements YangList {
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }
+
 }

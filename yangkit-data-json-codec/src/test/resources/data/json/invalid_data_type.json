@@ -1,0 +1,6 @@
+{
+  "insa-test:insa-container": {
+    "computer": "computer",
+    "router": "router-id"
+  }
+}
