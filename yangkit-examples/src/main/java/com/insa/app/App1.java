@@ -26,6 +26,7 @@ import org.yangcentral.yangkit.parser.YangParserEnv;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
+import sun.misc.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +39,9 @@ import java.util.List;
 public class App1 {
     public static void main(String[] args) throws IOException {
         InputStream inputStream = App1.class.getClassLoader().getResourceAsStream("App1/insa-test.yang");
-        String yang = new String(inputStream.readAllBytes());
+        assert inputStream != null;
+        String yang = new String(IOUtils.readAllBytes(inputStream));
+        inputStream.close();
         System.out.println(yang);
 
         YangStatementImplRegister.registerImpl();
