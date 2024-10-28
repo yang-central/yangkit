@@ -16,6 +16,7 @@
         <module>yangkit-data-impl</module>
         <module>yangkit-data-json-codec</module>
         <module>yangkit-data-xml-codec</module>
+        <module>yangkit-examples</module>
     </modules>
     <packaging>pom</packaging>
     <name>yangkit</name>
@@ -54,7 +55,7 @@
         <org.slf4j.slf4j-api.version>2.0.6</org.slf4j.slf4j-api.version>
         <org.slf4j.slf4j-reload4j.version>2.0.6</org.slf4j.slf4j-reload4j.version>
         <org.apache.commons.commons-lang3.version>3.12.0</org.apache.commons.commons-lang3.version>
-        <junit.junit.version>4.13.2</junit.junit.version>
+        <junit.jupyter.version>5.9.3</junit.jupyter.version>
         <com.github.albfernandez.juniversalchardet.version>2.4.0</com.github.albfernandez.juniversalchardet.version>
         <org.antlr.antlr4-runtime.version>4.9.3</org.antlr.antlr4-runtime.version>
         <com.google.code.gson.version>2.10.1</com.google.code.gson.version>
@@ -73,6 +74,7 @@
         <io.github.yang-central.yangkit.yangkit-data-json-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-json-codec.version>
         <io.github.yang-central.yangkit.yangkit-data-xml-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-xml-codec.version>
         <io.github.yang-central.yangkit.yangkit-parser.version>${project.version}</io.github.yang-central.yangkit.yangkit-parser.version>
+        <io.github.yang-central.yangkit.yangkit-examples.version>${project.version}</io.github.yang-central.yangkit.yangkit-examples.version>
     </properties>
 
     <profiles>

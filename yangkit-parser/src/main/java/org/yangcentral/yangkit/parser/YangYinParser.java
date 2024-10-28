@@ -329,8 +329,9 @@ public class YangYinParser {
          context = YangStatementRegister.getInstance().getSchemeContextInstance();
       }
 
+      String yangString = "";
       if (isYang) {
-         String yangString = readString(inputStream);
+         yangString = readString(inputStream);
          YangParser yangParser = new YangParser();
          YangParserEnv env = new YangParserEnv();
          env.setYangStr(yangString);
@@ -351,6 +352,7 @@ public class YangYinParser {
       for(YangElement yangElement: yangElements){
          if(yangElement instanceof Module){
             Module module = (Module) yangElement;
+            module.setOriginalString(yangString);
             if(context.getYangSchema() != null){
                YangSchema yangSchema = context.getYangSchema();
                String revision = null;

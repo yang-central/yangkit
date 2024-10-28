@@ -71,9 +71,9 @@
             <version>${org.antlr.antlr4-runtime.version}</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.junit.version}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupyter.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

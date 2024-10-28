@@ -53,7 +53,7 @@ public abstract class YangStructureMessageJsonCodec<T extends YangStructureMessa
         }
         T instance = newStructureInstance();
         JsonNode structureNode = document.get(structureName);
-        YangDataDocument structureDoc = new YangDataDocumentImpl(null,getSchemaContext());
+        YangDataDocument structureDoc = new YangDataDocumentImpl(null,getSchemaContext(), document.toString());
         YangStructureData yangStructureData = new YangStructureDataJsonCodec(structure).deserialize(structureNode,builder);
         if(!builder.build().isOk()) {
             return null;

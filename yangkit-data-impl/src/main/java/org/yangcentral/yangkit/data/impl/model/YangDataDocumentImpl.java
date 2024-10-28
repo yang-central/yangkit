@@ -6,21 +6,36 @@ import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
+import org.yangcentral.yangkit.model.api.stmt.MainModule;
+import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.model.impl.stmt.MainModuleImpl;
+import org.yangcentral.yangkit.model.impl.stmt.ModuleImpl;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument> implements YangDataDocument {
     private YangAbstractDataContainer container;
     private YangSchemaContext schemaContext;
+    private String docString;
+
+    private String[] modulesString;
 
     private boolean onlyConfig;
+
     public YangDataDocumentImpl(QName qName,YangSchemaContext yangDataContainer) {
         super(qName);
         this.schemaContext = yangDataContainer;
         container = new YangAbstractDataContainer(this);
+        this.docString = null;
     }
-
+    public YangDataDocumentImpl(QName qName,YangSchemaContext yangDataContainer, String docString) {
+        super(qName);
+        this.schemaContext = yangDataContainer;
+        container = new YangAbstractDataContainer(this);
+        this.docString = docString;
+    }
 
     @Override
     public YangSchemaContext getSchemaContext() {
@@ -142,6 +157,22 @@ public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument
     @Override
     public List<YangDataCompareResult> compareChildren(YangDataContainer another) {
         return container.compareChildren(another);
+    }
+
+    @Override
+    public String getDocString() {
+        return this.docString;
+    }
+
+    @Override
+    public String[] getModulesStrings() {
+        if(this.modulesString != null) return this.modulesString;
+        List<Module> modules = this.getSchemaContext().getModules();
+        this.modulesString = new String[modules.size()];
+        for(int i = 0; i < this.modulesString.length ; i++){
+            this.modulesString[i] = modules.get(i).getOriginalString();
+        }
+        return this.modulesString;
     }
 
 }

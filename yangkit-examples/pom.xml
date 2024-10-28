@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.yang-central.yangkit</groupId>
+        <artifactId>yangkit-parent</artifactId>
+        <version>1.4.5</version>
+    </parent>
+
+    <groupId>com.insa.app</groupId>
+    <artifactId>yangkit-examples</artifactId>
+    <packaging>jar</packaging>
+
+    <name>yangkit-examples</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <yangkit.version>1.4.5</yangkit.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>10</source>
+                    <target>10</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.yang-central.yangkit</groupId>
+            <artifactId>yangkit-model-impl</artifactId>
+            <version>${yangkit.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.yang-central.yangkit</groupId>
+            <artifactId>yangkit-parser</artifactId>
+            <version>${yangkit.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.yang-central.yangkit</groupId>
+            <artifactId>yangkit-data-json-codec</artifactId>
+            <version>${yangkit.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.yang-central.yangkit</groupId>
+            <artifactId>yangkit-data-impl</artifactId>
+            <version>${yangkit.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,13 @@
+{
+  "ietf-notification:notification": {
+    "ietf-yang-push:push-update": {
+      "id": 6666,
+      "datastore-contents": {
+        "insa-test:insa-container": {
+          "computer": "computer",
+          "router": 234
+        }
+      }
+    }
+  }
+}

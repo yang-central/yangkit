@@ -267,4 +267,5 @@ public class LeafListImpl extends TypedDataNodeImpl implements LeafList {
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }
+
 }
