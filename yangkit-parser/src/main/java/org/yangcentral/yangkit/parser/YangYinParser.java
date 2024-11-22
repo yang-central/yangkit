@@ -340,7 +340,7 @@ public class YangYinParser {
          yangElements = yangParser.parseYang(yangString, env);
       } else {
          YinParser yinParser = new YinParser(moduleInfo);
-         SAXReader reader = new SAXReader();
+         SAXReader reader = SAXReader.createDefault();
          Document document = reader.read(inputStream);
          yangElements = yinParser.parse(document);
       }

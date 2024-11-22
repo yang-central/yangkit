@@ -34,6 +34,8 @@ public interface YangStatement extends YangElement {
 
    ValidatorResult getValidateResult();
 
+   void clearValidateResult();
+
    void setValidateResult(ValidatorResult validatorResult);
    boolean addChild(YangElement yangElement);
 

@@ -25,8 +25,8 @@ public class YangDataParserExecutor {
         System.setProperty("LOGDIR", System.getProperty("user.dir"));
 
 
-        String xmlPath = "/Users/caowei/Documents/javaworkplace/yangkit/test.xml";
-        String yangPath = "/Users/caowei/Documents/javaworkplace/yangkit/yangfiles";
+        String xmlPath = args[0];
+        String yangPath = args[1];
 
         long parse_yang_begin = System.currentTimeMillis();
         // load yang files
@@ -37,7 +37,7 @@ public class YangDataParserExecutor {
         System.out.println(validatorResult);
         // load fullconfig document
         long read_doc_begin = System.currentTimeMillis();
-        SAXReader reader = new SAXReader();
+        SAXReader reader = SAXReader.createDefault();
         Document document;
         File xmlFile = new File(xmlPath);
         document = reader.read(xmlFile);

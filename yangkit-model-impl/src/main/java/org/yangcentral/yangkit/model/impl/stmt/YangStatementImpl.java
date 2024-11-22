@@ -457,6 +457,23 @@ public abstract class YangStatementImpl implements YangStatement {
       return this.validatorResult;
    }
 
+   @Override
+   public void clearValidateResult() {
+      if(this.validatorResult == null){
+         return;
+      }
+      this.validatorResult.clear();
+      List<YangStatement> effectiveSubStatements = getEffectiveSubStatements();
+      if(effectiveSubStatements.isEmpty()){
+         return;
+      }
+      for(YangStatement subStatement: effectiveSubStatements){
+         if(subStatement.getValidateResult() != null){
+            subStatement.getValidateResult().clear();
+         }
+      }
+   }
+
    public void setValidateResult(ValidatorResult validatorResult) {
       if (this.validatorResult == null) {
          this.validatorResult = validatorResult;

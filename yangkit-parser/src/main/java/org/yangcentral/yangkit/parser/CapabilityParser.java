@@ -20,7 +20,7 @@ public class CapabilityParser {
    private Element root;
 
    public CapabilityParser(String capabilityFile) {
-      SAXReader reader = new SAXReader();
+      SAXReader reader = SAXReader.createDefault();
       Document capabilitiesDoc = null;
       try {
          capabilitiesDoc = reader.read(new File(capabilityFile));
@@ -30,7 +30,7 @@ public class CapabilityParser {
       this.root = capabilitiesDoc.getRootElement();
    }
    public CapabilityParser(InputStream inputStream) {
-      SAXReader reader = new SAXReader();
+      SAXReader reader = SAXReader.createDefault();
       Document capabilitiesDoc = null;
       try {
          capabilitiesDoc = reader.read(inputStream);

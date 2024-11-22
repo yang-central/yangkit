@@ -345,6 +345,21 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       return validatorResult;
    }
 
+   @Override
+   public void clearValidateResult() {
+      if(this.validatorResult != null) {
+         this.validatorResult.clear();
+      }
+      for(List<Module> modules :moduleMap.values()){
+         if(modules.isEmpty()){
+            continue;
+         }
+         for(Module module:modules){
+            module.clearValidateResult();
+         }
+      }
+   }
+
    public List<SchemaNode> getSchemaNodeChildren() {
       return this.schemaNodeContainer.getSchemaNodeChildren();
    }
