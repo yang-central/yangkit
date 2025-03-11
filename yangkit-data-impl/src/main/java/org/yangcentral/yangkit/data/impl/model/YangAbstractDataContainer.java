@@ -321,8 +321,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     private ValidatorResult checkMandatory(SchemaNode schemaNode, List<YangData<?>> matchedData) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        if(schemaNode.isMandatory()){
-            if(matchedData.isEmpty() && schemaNode.isActive() && schemaNode.isConfig()){
+        if(schemaNode.isMandatory() && schemaNode.isActive() && schemaNode.isConfig()){
+            if(matchedData.isEmpty()){
                 //if have when condition, valuate this when condition,if true, report error
                 YangData<?> dummyNode = new YangDataBuilder().getYangData(schemaNode,null);
                 dummyNode.setDummyNode(true);
