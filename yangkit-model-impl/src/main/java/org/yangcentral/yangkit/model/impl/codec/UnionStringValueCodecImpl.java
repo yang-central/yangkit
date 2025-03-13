@@ -119,7 +119,9 @@ public class UnionStringValueCodecImpl extends ComplexStringValueCodecImpl<Objec
                   s = (String)((UnionStringValueCodec)codec).serialize(typeRes, output);
                }
             } catch (YangCodecException var10) {
-            } catch (ClassCastException var10) {
+            }
+            if (s != null) {
+               return s;
             }
          }
 
