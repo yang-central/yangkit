@@ -321,7 +321,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     private ValidatorResult checkMandatory(SchemaNode schemaNode, List<YangData<?>> matchedData) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        if(schemaNode.isMandatory() && schemaNode.isActive() && schemaNode.isConfig()){
+        if(schemaNode.isMandatory()){
             if(matchedData.isEmpty()){
                 //if have when condition, valuate this when condition,if true, report error
                 YangData<?> dummyNode = new YangDataBuilder().getYangData(schemaNode,null);
@@ -418,6 +418,9 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
         for(Map.Entry<QName,List<YangData<?>>> entry :matchRecord.entrySet()){
             SchemaNode schemaNode = schemaNodeContainer.getSchemaNodeChild(entry.getKey());
+            if (!schemaNode.isActive()) {
+                continue;
+            }
             //check mandatory
             validatorResultBuilder.merge(checkMandatory(schemaNode,entry.getValue()));
             //check unique
