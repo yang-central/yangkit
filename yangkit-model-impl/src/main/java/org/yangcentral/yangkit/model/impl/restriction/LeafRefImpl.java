@@ -1,12 +1,19 @@
 package org.yangcentral.yangkit.model.impl.restriction;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.yangcentral.yangkit.base.YangContext;
-import org.yangcentral.yangkit.model.api.restriction.LeafRef;
+import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.model.api.restriction.*;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
 import org.yangcentral.yangkit.model.api.stmt.type.Path;
 import org.yangcentral.yangkit.model.api.stmt.type.RequireInstance;
 import org.yangcentral.yangkit.model.impl.stmt.type.RequireInstanceImpl;
+import org.yangcentral.yangkit.xpath.YangAbsoluteLocationPath;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.List;
 
 public class LeafRefImpl extends RestrictionImpl<Object> implements LeafRef {
    private Path path;
@@ -73,7 +80,77 @@ public class LeafRefImpl extends RestrictionImpl<Object> implements LeafRef {
 
    public boolean evaluate(Object value) {
       if(referencedNode != null){
-         return referencedNode.getType().getRestriction().evaluate(value);
+         Restriction restriction = referencedNode.getType().getRestriction();
+         if(restriction instanceof Binary){
+            if(!(value instanceof byte[])){
+               return false;
+            }
+         } else if (restriction instanceof Bits){
+            if(!(value instanceof List)){
+               return false;
+            }
+         } else if (restriction instanceof Decimal64) {
+            if(!(value instanceof BigDecimal)){
+               return false;
+            }
+         } else if (restriction instanceof Empty){
+            if(!(value instanceof ObjectUtils.Null)){
+               return false;
+            }
+         } else if (restriction instanceof Enumeration){
+            if(!(value instanceof String)){
+               return false;
+            }
+         } else if (restriction instanceof IdentityRef){
+            if(!(value instanceof QName)){
+               return false;
+            }
+         } else if (restriction instanceof InstanceIdentifier){
+            if(!(value instanceof YangAbsoluteLocationPath)){
+               return false;
+            }
+         } else if (restriction instanceof Int16){
+            if(!(value instanceof Short)){
+               return false;
+            }
+         } else if (restriction instanceof Int32){
+            if(!(value instanceof Integer)){
+               return false;
+            }
+         } else if (restriction instanceof Int64){
+            if(!(value instanceof Long)){
+               return false;
+            }
+         }  else if (restriction instanceof Int8){
+            if(!(value instanceof Byte)){
+               return false;
+            }
+         }  else if (restriction instanceof UInt16){
+            if(!(value instanceof Integer)){
+               return false;
+            }
+         }  else if (restriction instanceof UInt32){
+            if(!(value instanceof Long)){
+               return false;
+            }
+         } else if (restriction instanceof UInt64){
+            if(!(value instanceof BigInteger)){
+               return false;
+            }
+         } else if (restriction instanceof UInt8){
+            if(!(value instanceof Short)){
+               return false;
+            }
+         } else if (restriction instanceof YangBoolean){
+            if(!(value instanceof Boolean)){
+               return false;
+            }
+         } else if (restriction instanceof YangString){
+            if(!(value instanceof String)){
+               return false;
+            }
+         }
+         return restriction.evaluate(value);
       }
       return false;
    }
