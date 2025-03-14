@@ -418,6 +418,9 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
         for(Map.Entry<QName,List<YangData<?>>> entry :matchRecord.entrySet()){
             SchemaNode schemaNode = schemaNodeContainer.getSchemaNodeChild(entry.getKey());
+            if (!schemaNode.isActive()) {
+                continue;
+            }
             //check mandatory
             validatorResultBuilder.merge(checkMandatory(schemaNode,entry.getValue()));
             //check unique
