@@ -93,7 +93,7 @@ public abstract class YangStatementImpl implements YangStatement {
             } else {
                errorCode = ErrorCode.UNUSED_IMPORT;
             }
-            validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.WARNING,ErrorTag.BAD_ELEMENT,
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,Severity.INFO,ErrorTag.BAD_ELEMENT,
                     errorCode.toString(new String[]{"name=" + this.getArgStr()})));
          }
       }
