@@ -1,0 +1,16 @@
+{
+  "data": {
+    "ietf-interfaces:interfaces": {
+      "interface": [{
+        "name": "eth0",
+        "type": "iana-if-type:ethernetCsmacd",
+        "if-index": 1,
+        "admin-status": "up",
+        "oper-status": "up",
+        "statistics": {
+          "discontinuity-time": "2014-07-29T13:43:12Z"
+        }
+      }]
+    }
+  }
+}
