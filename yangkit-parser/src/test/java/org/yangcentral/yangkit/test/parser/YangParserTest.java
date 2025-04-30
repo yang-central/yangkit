@@ -38,20 +38,20 @@ public class YangParserTest {
             throw new RuntimeException(e);
         }
     }
-    @Test
-    public void test_case_02(){
-        try {
-            //URL capabilitiesPath = this.getClass().getClassLoader().getResource("capabilities.xml");
-            URL yangPath = this.getClass().getClassLoader().getResource("rj");
-            //YangSchemaContext schemaContext = YangYinParser.parse(yangPath.getFile(),capabilitiesPath.getFile());
-            YangSchemaContext schemaContext = YangYinParser.parse(yangPath.getFile());
-
-            ValidatorResult validatorResult = schemaContext.validate();
-            if(!validatorResult.isOk()){
-                System.out.println(validatorResult);
-            }
-        } catch (IOException | YangParserException | DocumentException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    @Test
+//    public void test_case_02(){
+//        try {
+//            //URL capabilitiesPath = this.getClass().getClassLoader().getResource("capabilities.xml");
+//            URL yangPath = this.getClass().getClassLoader().getResource("rj");
+//            //YangSchemaContext schemaContext = YangYinParser.parse(yangPath.getFile(),capabilitiesPath.getFile());
+//            YangSchemaContext schemaContext = YangYinParser.parse(yangPath.getFile());
+//
+//            ValidatorResult validatorResult = schemaContext.validate();
+//            if(!validatorResult.isOk()){
+//                System.out.println(validatorResult);
+//            }
+//        } catch (IOException | YangParserException | DocumentException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }

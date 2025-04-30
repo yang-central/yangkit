@@ -49,6 +49,8 @@
     </scm>
 
     <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <org.dom4j.dom4j.version>2.1.4</org.dom4j.dom4j.version>
         <com.google.code.findbugs.jsr305.version>3.0.2</com.google.code.findbugs.jsr305.version>
         <org.eclipse.jdt.org.eclipse.jdt.annotation.version>2.2.700</org.eclipse.jdt.org.eclipse.jdt.annotation.version>
@@ -159,6 +161,15 @@
                         </executions>
                     </plugin>
                     -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.11.0</version> <!-- or latest -->
+                        <configuration>
+                            <source>${maven.compiler.source}</source>
+                            <target>${maven.compiler.target}</target>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
 
