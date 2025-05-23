@@ -336,9 +336,12 @@ public class AugmentImpl extends DataDefinitionImpl implements Augment {
          if(this.getWhen() != null){
             severity = Severity.WARNING;
          }
-         validatorResultBuilder.addRecord(
-                 ModelUtil.reportError(mandatoryDescendant,severity, ErrorTag.BAD_ELEMENT,
-                         ErrorCode.AUGMENT_MANDATORY_NODE.getFieldName()));
+         // If augmentation is in different module than the target
+         if (!mandatoryDescendant.getContext().getCurModule().equals(this.target.getContext().getCurModule())) {
+            validatorResultBuilder.addRecord(
+                    ModelUtil.reportError(mandatoryDescendant,severity, ErrorTag.BAD_ELEMENT,
+                            ErrorCode.AUGMENT_MANDATORY_NODE.getFieldName()));
+         }
 
       }
 
