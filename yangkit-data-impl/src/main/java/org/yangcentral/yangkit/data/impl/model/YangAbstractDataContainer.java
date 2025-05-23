@@ -28,7 +28,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
     private Map<DataIdentifier,YangData<?>> children = new ConcurrentHashMap<>();
 
     private List<YangData<?>> childrenList = new ArrayList<>();
-
+    private boolean isRoot = false;
 
     public YangAbstractDataContainer(YangDataContainer yangDataContainer) {
         this.self = yangDataContainer;
@@ -37,6 +37,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
         } else if ( self instanceof YangData){
             schemaNodeContainer = (SchemaNodeContainer) ((YangData<?>) self).getSchemaNode();
         }
+        isRoot = (self instanceof YangDataDocument);
     }
 
     public YangAbstractDataContainer(SchemaNodeContainer schemaNodeContainer) {
@@ -390,6 +391,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         //build schema children match record map
         Map<QName,List<YangData<?>>> matchRecord = new ConcurrentHashMap<>();
+        Set<QName> presentModuleQNames = new HashSet<>();
         for(SchemaNode schemaNode: schemaNodeContainer.getSchemaNodeChildren()){
             if(YangDataUtil.onlyConfig(self)){
                 if(!schemaNode.isConfig()){
@@ -414,10 +416,14 @@ public class YangAbstractDataContainer implements YangDataContainer {
             }
             List<YangData<?>> matchedData = matchRecord.get(schemaNode.getIdentifier());
             matchedData.add(child);
+            presentModuleQNames.add(schemaNode.getIdentifier());
         }
 
         for(Map.Entry<QName,List<YangData<?>>> entry :matchRecord.entrySet()){
             SchemaNode schemaNode = schemaNodeContainer.getSchemaNodeChild(entry.getKey());
+            if (isRoot && !presentModuleQNames.contains(schemaNode.getIdentifier())) {
+                continue;
+            }
             //check mandatory
             validatorResultBuilder.merge(checkMandatory(schemaNode,entry.getValue()));
             //check unique
