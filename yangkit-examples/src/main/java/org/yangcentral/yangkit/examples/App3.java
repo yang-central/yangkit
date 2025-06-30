@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.insa.app;
+package org.yangcentral.yangkit.examples;
 
 import org.dom4j.DocumentException;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;

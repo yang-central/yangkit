@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.insa.app;
+package org.yangcentral.yangkit.examples;
 
 import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
@@ -26,11 +26,12 @@ import org.yangcentral.yangkit.parser.YangParserEnv;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
-import sun.misc.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
+import org.apache.commons.io.IOUtils;
 
 /**
  * Schema provider at Kafka usecase: validate from yangString
@@ -40,7 +41,7 @@ public class App1 {
     public static void main(String[] args) throws IOException {
         InputStream inputStream = App1.class.getClassLoader().getResourceAsStream("App1/insa-test.yang");
         assert inputStream != null;
-        String yang = new String(IOUtils.readAllBytes(inputStream));
+        String yang = new String(IOUtils.toByteArray(inputStream));
         inputStream.close();
         System.out.println(yang);
 

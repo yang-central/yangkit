@@ -7,9 +7,10 @@
     <parent>
         <artifactId>yangkit-parent</artifactId>
         <groupId>io.github.yang-central.yangkit</groupId>
-        <version>1.4.5</version>
+        <version>1.5.0</version>
     </parent>
     <artifactId>yangkit-data-xml-codec</artifactId>
+    <name>yangkit-data-xml-codec</name>
     <build>
         <plugins>
             <plugin>

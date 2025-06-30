@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.insa.app;
+package org.yangcentral.yangkit.examples;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,17 +22,10 @@ import org.dom4j.DocumentException;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.data.api.model.ContainerData;
 import org.yangcentral.yangkit.data.api.model.NotificationData;
 import org.yangcentral.yangkit.data.api.model.NotificationMessage;
-import org.yangcentral.yangkit.data.api.model.YangData;
-import org.yangcentral.yangkit.data.codec.json.ContainerDataJsonCodec;
 import org.yangcentral.yangkit.data.codec.json.NotificationMessageJsonCodec;
-import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.Container;
-import org.yangcentral.yangkit.model.api.stmt.DataNode;
-import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
