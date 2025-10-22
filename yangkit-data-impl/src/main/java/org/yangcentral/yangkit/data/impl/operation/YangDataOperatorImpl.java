@@ -91,13 +91,15 @@ public class YangDataOperatorImpl implements YangDataOperator {
             }
         }
         if(node instanceof LeafData){
+
             //if node is leaf, replace it's value with new
             LeafData originalLeaf = (LeafData) originalNode;
-            originalLeaf.setValue(((LeafData) node).getValue());
             if(null != dataChangeNotifier){
                 dataChangeNotifier.notify(originalLeaf.getPath(),DataChangeType.UPDATE,
                         originalLeaf,node);
             }
+            originalLeaf.setValue(((LeafData) node).getValue());
+
         } else if (node instanceof YangDataContainer){
             YangDataContainer originalContainer = (YangDataContainer) originalNode;
             YangDataContainer candidateContainer = (YangDataContainer) node;

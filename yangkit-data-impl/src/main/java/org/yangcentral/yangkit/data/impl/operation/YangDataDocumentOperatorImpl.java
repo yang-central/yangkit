@@ -20,6 +20,7 @@ public class YangDataDocumentOperatorImpl implements YangDataDocumentOperator {
 
     public YangDataDocumentOperatorImpl(YangDataDocument document) {
         this.document = document;
+        dataChangeNotifier = new DataChangeNotifier(document);
     }
 
     @Override

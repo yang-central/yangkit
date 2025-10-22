@@ -1,15 +1,20 @@
 package org.yangcentral.yangkit.data.codec.xml;
 
 import org.yangcentral.yangkit.common.api.FName;
+import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.data.api.model.YangData;
+import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
+import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 import org.dom4j.Element;
 import org.dom4j.Namespace;
+import org.yangcentral.yangkit.util.ModelUtil;
+
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
@@ -100,21 +105,13 @@ abstract class TypedDataXmlCodec<S extends TypedDataNode,D extends TypedData<?,S
         }
         TypedData leafData = (TypedData) yangData;
         if(((TypedDataNode)(leafData.getSchemaNode())).getType().getRestriction() instanceof IdentityRef){
-            FName fName = new FName(value);
-            if(getSchemaNode().getContext().getCurModule().isSelfPrefix(fName.getPrefix())){
-                value = fName.getLocalName();
+            try {
+                QName qName = (QName) ((TypedData<?, ?>) yangData).getValue().getValue();
+                element.addNamespace(qName.getPrefix(), qName.getNamespace().toString());
+            } catch (YangCodecException e) {
+                throw new RuntimeException(e);
             }
-            else {
-                Optional<ModuleId> moduleIdOptional = getSchemaNode().getContext().getCurModule()
-                        .findModuleByPrefix(fName.getPrefix());
-                if(!moduleIdOptional.isPresent()){
-                    return ;
-                }
-                Optional<Module> moduleOptional = getSchemaNode().getContext().getSchemaContext()
-                        .getModule(moduleIdOptional.get());
-                URI uri = moduleOptional.get().getMainModule().getNamespace().getUri();
-                element.addNamespace(fName.getPrefix(), uri.toString());
-            }
+
         }
         element.setText(value);
     }

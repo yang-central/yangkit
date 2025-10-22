@@ -17,6 +17,7 @@ public class LeafDataXmlCodec extends TypedDataXmlCodec<Leaf, LeafData<?>> {
         try {
             String yangText = getYangText(element);
             LeafData leafData = (LeafData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), yangText);
+            leafData.getStringValue();
             return leafData;
         } catch (YangDataXmlCodecException e) {
             ValidatorRecordBuilder<String, Element> recordBuilder = new ValidatorRecordBuilder<>();

@@ -7,9 +7,11 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.LeafData;
+import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
+import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 
 public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
     protected LeafDataJsonCodec(Leaf schemaNode) {
@@ -20,13 +22,12 @@ public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
     protected LeafData buildData(JsonNode element, ValidatorResultBuilder validatorResultBuilder) {
         try {
             String yangText = getYangText(element);
-            LeafData leafData = null;
-            if(getSchemaNode().getType().getRestriction() instanceof IdentityRef){
-                leafData = (LeafData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), yangText,
-                        new IdentityRefJsonCodec(getSchemaNode()));
+            LeafData leafData = (LeafData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), yangText);
+            TypedDataNode typedData = (TypedDataNode) leafData.getSchemaNode();
+            if (typedData.getType().getRestriction() instanceof IdentityRef){
+                leafData.getStringValue(new IdentityRefJsonCodec(typedData));
             } else {
-                leafData = (LeafData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), yangText);
-                leafData.getValue().getStringValue(); // trigger validation error
+                leafData.getStringValue();
             }
             return leafData;
         } catch (YangDataJsonCodecException e) {
@@ -36,12 +37,8 @@ public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
             recordBuilder.setBadElement(e.getBadElement());
             recordBuilder.setErrorMessage(e.getErrorMsg());
             validatorResultBuilder.addRecord(recordBuilder.build());
-        } catch (YangCodecException ignore){
-            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
-            recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-            recordBuilder.setBadElement(element);
-            recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(element));
-            validatorResultBuilder.addRecord(recordBuilder.build());
+        } catch (YangCodecException e) {
+            throw new RuntimeException(e);
         }
         return null;
     }

@@ -6,5 +6,4 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 
 public interface YangDataBuilder {
     YangData<?> getYangData(SchemaNode schemaNode, Object value);
-    YangData<?> getYangData(SchemaNode schemaNode, Object value, ValueCodec<?,?> codec);
 }

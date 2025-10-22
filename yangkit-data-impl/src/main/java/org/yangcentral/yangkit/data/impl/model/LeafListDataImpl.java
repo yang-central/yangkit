@@ -1,5 +1,6 @@
 package org.yangcentral.yangkit.data.impl.model;
 
+import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.LeafListData;
 import org.yangcentral.yangkit.data.api.model.YangDataValue;
 import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
@@ -19,7 +20,9 @@ public class LeafListDataImpl<D> extends YangDataImpl<LeafList>  implements Leaf
         } else {
             try {
                 identifier = new LeafListIdentifierImpl(schemaNode.getIdentifier(),value.getStringValue());
-            } catch (YangCodecException ignore) { }
+            } catch (YangCodecException ignore) {
+
+            }
         }
 
     }

@@ -5,6 +5,7 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.model.api.codec.IdentityRefStringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
+import org.yangcentral.yangkit.model.api.stmt.MainModule;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 import org.yangcentral.yangkit.model.impl.codec.ComplexStringValueCodecImpl;
@@ -32,8 +33,10 @@ public class IdentityRefJsonCodec extends ComplexStringValueCodecImpl<QName> imp
         if(!moduleOptional.isPresent()) {
             throw new YangCodecException("the module name:" + moduleName + " is not found.");
         }
-        URI ns = moduleOptional.get().getMainModule().getNamespace().getUri();
-        QName qName = new QName(ns,localName);
+        MainModule mm = moduleOptional.get().getMainModule();
+        URI ns = mm.getNamespace().getUri();
+        String prefix = mm.getSelfPrefix();
+        QName qName = new QName(ns,prefix,localName);
         if(!restriction.evaluate(qName)){
             throw new YangCodecException("invalid value:" + input);
         }

@@ -7,6 +7,7 @@ import org.yangcentral.yangkit.model.api.restriction.Restriction;
 public interface YangDataValue<D,S> {
     Restriction<D> getRestriction();
     D getValue() throws YangCodecException;
+    D getValue(StringValueCodec<D> codec) throws YangCodecException;
     S getSource();
     String getStringValue(StringValueCodec<D> codec) throws YangCodecException;
     String getStringValue() throws YangCodecException;
