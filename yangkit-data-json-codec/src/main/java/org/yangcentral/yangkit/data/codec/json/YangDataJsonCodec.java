@@ -51,6 +51,14 @@ public abstract class YangDataJsonCodec<S extends SchemaNode, T extends YangData
             return new NotificationDataJsonCodec((Notification) dataSchemaNode);
         } else if (dataSchemaNode instanceof YangStructure) {
             return new YangStructureDataJsonCodec((YangStructure) dataSchemaNode);
+        } else if (dataSchemaNode instanceof Rpc) {
+            return new RpcDataJsonCodec((Rpc) dataSchemaNode);
+        } else if (dataSchemaNode instanceof Input) {
+            return new InputDataJsonCodec((Input) dataSchemaNode);
+        } else if (dataSchemaNode instanceof Output) {
+            return new OutputDataJsonCodec((Output) dataSchemaNode);
+        } else if (dataSchemaNode instanceof Action) {
+            return new ActionDataJsonCodec((Action) dataSchemaNode);
         }
         else {
             throw new IllegalArgumentException("not-support data schema type");

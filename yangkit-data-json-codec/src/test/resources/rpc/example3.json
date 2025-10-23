@@ -1,0 +1,7 @@
+{
+  "example-ops:output" : {
+    "reboot-time" : 30,
+    "message" : "Going down for system maintenance",
+    "language" : "en-US"
+  }
+}

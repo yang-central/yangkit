@@ -1,0 +1,9 @@
+{
+  "example-ops:reboot": {
+    "input": {
+      "delay" : 600,
+      "message" : "Going down for system maintenance",
+      "language" : "en-US"
+    }
+  }
+}

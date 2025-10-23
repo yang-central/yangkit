@@ -15,10 +15,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.common.impl.validate.ValidatorRecordImpl;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
-import org.yangcentral.yangkit.data.api.model.YangData;
-import org.yangcentral.yangkit.data.api.model.YangDataContainer;
-import org.yangcentral.yangkit.data.api.model.YangDataDocument;
-import org.yangcentral.yangkit.data.api.model.YangDataEntity;
+import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -332,6 +329,8 @@ public class JsonCodecUtil {
         sonData = yangDataContainer.getDataChild(sonData.getIdentifier());
         if (sonData instanceof YangDataContainer) {
             validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, child, extraValidationData));
+        } else if (sonData instanceof RpcData){
+
         }
         return validatorResultBuilder.build();
     }
@@ -490,4 +489,7 @@ public class JsonCodecUtil {
         }
         return validatorResultBuilder.build();
     }
+
+
+
 }

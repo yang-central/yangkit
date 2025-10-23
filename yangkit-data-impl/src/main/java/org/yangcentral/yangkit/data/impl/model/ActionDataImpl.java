@@ -2,19 +2,15 @@ package org.yangcentral.yangkit.data.impl.model;
 
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.*;
+import org.yangcentral.yangkit.model.api.stmt.Action;
 import org.yangcentral.yangkit.model.api.stmt.Input;
 import org.yangcentral.yangkit.model.api.stmt.Output;
-import org.yangcentral.yangkit.model.api.stmt.Rpc;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 
-import java.util.List;
-
-public class RpcDataImpl extends YangDataContainerImpl<Rpc> implements RpcData {
-
+public class ActionDataImpl extends YangDataContainerImpl<Action> implements ActionData {
     private InputData input;
     private OutPutData output;
 
-    public RpcDataImpl(Rpc schemaNode) {
+    public ActionDataImpl(Action schemaNode) {
         super(schemaNode);
         identifier = new SingleInstanceDataIdentifier(schemaNode.getIdentifier());
     }
@@ -38,7 +34,6 @@ public class RpcDataImpl extends YangDataContainerImpl<Rpc> implements RpcData {
     public void setOutput(OutPutData output) {
         this.output = output;
     }
-
     @Override
     public void addChild(YangData<?> child, boolean autoDelete) throws YangDataException {
         super.addChild(child, autoDelete);

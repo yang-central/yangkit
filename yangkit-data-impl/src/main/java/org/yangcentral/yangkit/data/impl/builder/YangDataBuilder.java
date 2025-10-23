@@ -66,7 +66,9 @@ public class YangDataBuilder implements org.yangcentral.yangkit.data.api.builder
             return new YangStructureDataImpl((YangStructure) schemaNode);
         } else if (schemaNode instanceof Rpc){
             return new RpcDataImpl((Rpc) schemaNode);
-        } else if (schemaNode instanceof Input){
+        } else if (schemaNode instanceof Action){
+            return new ActionDataImpl((Action) schemaNode);
+        }else if (schemaNode instanceof Input){
             return new InputDataImpl((Input) schemaNode);
         } else if (schemaNode instanceof Output){
             return new OutputDataImpl((Output) schemaNode);
