@@ -30,7 +30,7 @@ public class StringValueCodecFactory {
       return ourInstance;
    }
 
-   private StringValueCodecFactory() {
+   protected StringValueCodecFactory() {
    }
 
    public StringValueCodec<?> getStringValueCodec(TypedDataNode dataNode) {

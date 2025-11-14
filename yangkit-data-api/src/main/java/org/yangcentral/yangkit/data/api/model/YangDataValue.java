@@ -10,5 +10,6 @@ public interface YangDataValue<D,S> {
     D getValue(StringValueCodec<D> codec) throws YangCodecException;
     S getSource();
     String getStringValue(StringValueCodec<D> codec) throws YangCodecException;
+    @Deprecated
     String getStringValue() throws YangCodecException;
 }

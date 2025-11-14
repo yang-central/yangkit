@@ -11,6 +11,13 @@ module example-ops {
         description "Initial version.";
         reference "example.com document 3-3373.";
     }
+    identity lang;
+    identity english {
+        base lang;
+    }
+    identity chinese {
+        base lang;
+    }
     rpc reboot {
         description "Reboot operation.";
         input {

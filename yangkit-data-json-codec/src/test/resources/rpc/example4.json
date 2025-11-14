@@ -1,0 +1,17 @@
+{
+  "data": {
+    "example-ops:interfaces" : {
+      "interface": [
+        {
+          "name": "eth0",
+          "reset": {
+            "input": {
+              "delay": 600
+            }
+          }
+        }
+      ]
+    }
+  }
+
+}
