@@ -18,9 +18,11 @@ import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
+import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -441,7 +443,8 @@ public class JsonCodecUtil {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         SchemaNodeContainer schemaNodeContainer = null;
         if (yangDataContainer instanceof YangDataDocument) {
-            schemaNodeContainer = ((YangDataDocument) yangDataContainer).getSchemaContext();
+            YangDataDocument doc = (YangDataDocument) yangDataContainer;
+            schemaNodeContainer = YangDataUtil.getSchemaNodeContainerForDocument(doc);
         } else {
             YangData<?> yangData = (YangData<?>) yangDataContainer;
             schemaNodeContainer = (SchemaNodeContainer) yangData.getSchemaNode();

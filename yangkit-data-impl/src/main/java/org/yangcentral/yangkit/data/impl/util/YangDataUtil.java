@@ -8,14 +8,54 @@ import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.impl.model.YangCompareResultImpl;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
+import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
+import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.model.api.stmt.VirtualSchemaNode;
+import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 public class YangDataUtil {
+    /**
+     * Resolve the SchemaNodeContainer for a YangDataDocument.
+     * First tries the normal tree lookup (top-level data nodes).
+     * If not found, searches for sx:structure definitions in module unknowns.
+     * Falls back to the schema context itself if nothing matches.
+     */
+    public static SchemaNodeContainer getSchemaNodeContainerForDocument(YangDataDocument doc) {
+        if (doc.getQName() != null) {
+            SchemaNode node = doc.getSchemaContext().getTreeNodeChild(doc.getQName());
+            if (node == null) {
+                // Search for sx:structure definitions in loaded modules
+                List<Module> modules = doc.getSchemaContext().getModule(doc.getQName().getNamespace());
+                if (modules != null) {
+                    for (Module module : modules) {
+                        for (YangUnknown unknown : module.getUnknowns()) {
+                            if (unknown instanceof YangStructure) {
+                                YangStructure structure = (YangStructure) unknown;
+                                if (structure.getArgStr().equals(doc.getQName().getLocalName())) {
+                                    node = structure;
+                                    break;
+                                }
+                            }
+                        }
+                        if (node != null) {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (node != null && node instanceof SchemaNodeContainer) {
+                return (SchemaNodeContainer) node;
+            }
+        }
+        return doc.getSchemaContext();
+    }
+
     public static Boolean getXPathBooleanValue(Object obj) {
         if(null == obj){
             return false;

@@ -17,6 +17,7 @@ import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
+import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.model.impl.schema.DescendantSchemaPath;
 
 import java.util.*;
@@ -33,7 +34,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
     public YangAbstractDataContainer(YangDataContainer yangDataContainer) {
         this.self = yangDataContainer;
         if(self instanceof YangDataDocument){
-            schemaNodeContainer = ((YangDataDocument) self).getSchemaContext();
+            YangDataDocument doc = (YangDataDocument) self;
+            schemaNodeContainer = YangDataUtil.getSchemaNodeContainerForDocument(doc);
         } else if ( self instanceof YangData){
             schemaNodeContainer = (SchemaNodeContainer) ((YangData<?>) self).getSchemaNode();
         }
