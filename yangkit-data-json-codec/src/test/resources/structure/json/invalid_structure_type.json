@@ -1,0 +1,8 @@
+{
+  "test-structure:message": {
+    "metadata": {
+      "timestamp": "not-a-valid-timestamp",
+      "sequence-number": "should-be-uint32"
+    }
+  }
+}

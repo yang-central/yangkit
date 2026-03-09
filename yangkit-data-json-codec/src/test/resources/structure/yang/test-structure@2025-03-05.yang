@@ -1,0 +1,77 @@
+module test-structure {
+  yang-version 1.1;
+  namespace "urn:example:test-structure";
+  prefix ts;
+
+  import ietf-yang-structure-ext {
+    prefix sx;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  description
+    "Test module that uses sx:structure to define a top-level
+     data structure outside of the normal YANG data tree.
+     This is used to validate that the yangkit parser correctly
+     resolves sx:structure definitions when parsing JSON documents.
+
+     Without the sx:structure fix, the parser would report
+     'unknown-element' errors for any data nodes defined inside
+     an sx:structure block, because the default schema lookup
+     only searches the normal YANG data tree (config/state nodes).";
+
+  revision 2025-03-05 {
+    description
+      "Initial version for testing sx:structure support.";
+  }
+
+  sx:structure message {
+    description
+      "A top-level structure (not a config/state data node) that
+       defines a message envelope. This mirrors real-world usage
+       such as ietf-notification:notification and
+       ietf-telemetry-message:message.";
+
+    container metadata {
+      description
+        "Metadata about the message.";
+
+      leaf timestamp {
+        type yang:date-and-time;
+        mandatory true;
+        description
+          "When the message was created.";
+      }
+
+      leaf source {
+        type string;
+        description
+          "The originating source of the message.";
+      }
+
+      leaf sequence-number {
+        type uint32;
+        description
+          "Monotonically increasing sequence number.";
+      }
+    }
+
+    container payload {
+      description
+        "The message payload content.";
+
+      leaf data-type {
+        type string;
+        description
+          "Type of data carried in the payload.";
+      }
+
+      leaf content {
+        type string;
+        description
+          "The actual content of the payload.";
+      }
+    }
+  }
+}

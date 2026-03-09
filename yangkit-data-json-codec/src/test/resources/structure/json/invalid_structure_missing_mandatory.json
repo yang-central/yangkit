@@ -1,0 +1,7 @@
+{
+  "test-structure:message": {
+    "metadata": {
+      "source": "router-01.example.com"
+    }
+  }
+}
