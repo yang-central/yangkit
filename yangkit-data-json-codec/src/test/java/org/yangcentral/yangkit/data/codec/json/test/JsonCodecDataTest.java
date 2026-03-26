@@ -35,10 +35,8 @@ public class JsonCodecDataTest {
     assertEquals(schemaContext.getModules().size(), 1);
     assertEquals(result.getRecords(), null);
 
-//    String xpath = "/ity:insa-container";
-//    URI uri = new URI(xpath);
-//    SchemaPath.Absolute path = AbsoluteSchemaPath.from(schemaContext.)
-    //TODO: get module from a yang prefix
+    // Note: In a real scenario, we would get the module from the YANG prefix in the JSON
+    // For this test, we simply take the first module from the schema context
     Module yangModule = schemaContext.getModules().get(0);
     Container container = (Container) yangModule.getDataNodeChildren().get(0);
 

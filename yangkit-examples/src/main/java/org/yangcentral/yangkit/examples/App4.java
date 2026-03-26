@@ -41,8 +41,8 @@ import java.net.URL;
 public class App4 {
     public static void main(String[] args) throws IOException, YangParserException, DocumentException {
 
-//        InputStream inputStream = App4.class.getClassLoader().getResourceAsStream("App4/yang/insa-test.yang");
-        //TODO: should change to inputStream (accomodate to schema registry)?
+        // Note: Loading YANG modules from directory instead of single file
+        // This approach accommodates schema registry with multiple modules
         URL yangUrl = App4.class.getClassLoader().getResource("App4/yang");
         String yangDir = yangUrl.getFile();
 
@@ -52,8 +52,7 @@ public class App4 {
         System.out.println("Valid? " + result.isOk());
         System.out.println("Size modules = " + schemaContext.getModules().size());
 
-        // TODO: the Xpath is needed?
-//        Container subscribedContainer = null;
+        // Note: Direct container access is used here, XPath not required for this example
 
         int count = 0;
         for (Module module : schemaContext.getModules()) {

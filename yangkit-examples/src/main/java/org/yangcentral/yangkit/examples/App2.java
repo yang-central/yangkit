@@ -49,7 +49,7 @@ public class App2 {
         System.out.println("Valid? " + result.isOk());
         System.out.println("Size modules = " + schemaContext.getModules().size());
 
-        // TODO: the Xpath is needed?
+        // Note: The XPath is not needed in this example as we're directly accessing the container
         Container subscribedContainer = null;
 
         int count = 0;

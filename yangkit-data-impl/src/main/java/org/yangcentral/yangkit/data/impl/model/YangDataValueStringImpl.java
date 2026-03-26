@@ -26,6 +26,7 @@ public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
     }
 
     @Override
+    @Deprecated
     public D getValue() throws YangCodecException {
         StringValueCodec<D> codec = (StringValueCodec<D>) StringValueCodecFactory.getInstance()
                 .getStringValueCodec(node,restriction);
@@ -52,6 +53,7 @@ public class YangDataValueStringImpl<D> implements YangDataValue<D,String> {
     }
 
     @Override
+    @Deprecated
     public String getStringValue() throws YangCodecException {
         StringValueCodec<D> codec = (StringValueCodec<D>) StringValueCodecFactory.getInstance()
                 .getStringValueCodec(node,restriction);

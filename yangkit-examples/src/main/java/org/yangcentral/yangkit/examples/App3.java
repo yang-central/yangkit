@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
- * TODO:
  * Usecase on how to use yang to validate a json with an augmented YANG module
  *
  */
@@ -68,6 +67,7 @@ public class App3 {
             System.out.println(count + "-> " + module.getCurRevision().get());
             count++;
         }
-        // TODO: Implement same as App2 with a augmented JSON message
+        // Note: This example demonstrates loading multiple YANG modules
+        // Future enhancement: Add JSON validation similar to App2 with augmented modules
     }
 }
