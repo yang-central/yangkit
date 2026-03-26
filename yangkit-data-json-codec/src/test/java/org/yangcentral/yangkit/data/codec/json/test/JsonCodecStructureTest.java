@@ -18,6 +18,7 @@ import org.yangcentral.yangkit.parser.YangYinParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -215,8 +216,8 @@ public class JsonCodecStructureTest {
         if (result == null || result.getRecords() == null) return;
 
         List<? extends ValidatorRecord<?, ?>> errors = result.getRecords().stream()
-                .filter(r -> r.getSeverity() == Severity.ERROR)
-                .toList();
+                .filter(r -> r.getSeverity() == Severity.ERROR).collect(Collectors.toList());
+                ;
 
         if (!errors.isEmpty()) {
             StringBuilder sb = new StringBuilder();
