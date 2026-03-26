@@ -17,6 +17,7 @@
         <module>yangkit-data-json-codec</module>
         <module>yangkit-data-xml-codec</module>
         <module>yangkit-data-proto-codec</module>
+        <module>yangkit-data-cbor-codec</module>
         <module>yangkit-examples</module>
     </modules>
     <packaging>pom</packaging>
@@ -76,6 +77,7 @@
         <io.github.yang-central.yangkit.yangkit-data-json-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-json-codec.version>
         <io.github.yang-central.yangkit.yangkit-data-xml-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-xml-codec.version>
         <io.github.yang-central.yangkit.yangkit-data-proto-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-proto-codec.version>
+        <io.github.yang-central.yangkit.yangkit-data-cbor-codec.version>${project.version}</io.github.yang-central.yangkit.yangkit-data-cbor-codec.version>
         <io.github.yang-central.yangkit.yangkit-parser.version>${project.version}</io.github.yang-central.yangkit.yangkit-parser.version>
         <io.github.yang-central.yangkit.yangkit-examples.version>${project.version}</io.github.yang-central.yangkit.yangkit-examples.version>
     </properties>

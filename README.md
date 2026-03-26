@@ -14,7 +14,8 @@ Yangkit is a toolkit for YANG([RFC7950](https://datatracker.ietf.org/doc/html/rf
 * [yangkit-data-impl](yangkit-data-impl/README.md): The implementations for YANG data representation and operation.
 * [yangkit-data-json-codec](yangkit-data-json-codec/README.md): JSON codec for YANG data (serialization/deserialization)
 * [yangkit-data-xml-codec](yangkit-data-xml-codec/README.md): XML codec for YANG data (serialization/deserialization)
-* [yangkit-data-proto-codec](yangkit-data-proto-codec/README.md): Protocol Buffers codec for YANG data (serialization/deserialization) - **NEW**
+* [yangkit-data-proto-codec](yangkit-data-proto-codec/README.md): Protocol Buffers codec for YANG data (serialization/deserialization)
+* [yangkit-data-cbor-codec](yangkit-data-cbor-codec/README.md): CBOR codec for YANG data based on RFC 9254 - **NEW**
 * [yangkit-examples](yangkit-examples/README.md): Example applications demonstrating how to use Yangkit
 
 ## Installation
@@ -108,11 +109,20 @@ mvn clean install
 </dependency>
 ```
 
-#### yangkit-data-proto-codec (NEW)
+#### yangkit-data-proto-codec
 ```xml
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-proto-codec</artifactId>
+    <version>1.5.0</version>
+</dependency>
+```
+
+#### yangkit-data-cbor-codec (NEW)
+```xml
+<dependency>
+    <groupId>io.github.yang-central.yangkit</groupId>
+    <artifactId>yangkit-data-cbor-codec</artifactId>
     <version>1.5.0</version>
 </dependency>
 ```
@@ -126,7 +136,8 @@ mvn clean install
 - **Multiple Codecs**: 
   - JSON encoding/decoding (RFC 7951)
   - XML encoding/decoding (RFC 7950 Section 8)
-  - Protocol Buffers encoding/decoding (NEW in 1.5.0)
+  - Protocol Buffers encoding/decoding
+  - CBOR encoding/decoding (RFC 9254) - NEW in 1.5.0
 
 ### 🆕 New in Version 1.5.0 - Proto Codec Module
 The `yangkit-data-proto-codec` module provides efficient Protocol Buffers serialization/deserialization for YANG data:
