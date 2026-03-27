@@ -28,7 +28,7 @@ public class JsonCodecDataFunc {
         } catch (IOException ignored) {
         }
 
-        assertNotEquals(jsonNode, null);
+        assertNotEquals(null, jsonNode);
 
         ValidatorResult validatorResult = schemaContext.validate();
         assertTrue(validatorResult.isOk(), "yang schema is not valid");
@@ -79,7 +79,7 @@ public class JsonCodecDataFunc {
         } catch (IOException ignored) {
         }
 
-        assertNotEquals(jsonNode, null);
+        assertNotEquals(null, jsonNode);
 
         ValidatorResult validatorResult = schemaContext.validate();
         assertTrue(validatorResult.isOk(), "yang schema is not valid");
