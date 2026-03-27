@@ -72,12 +72,14 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
             return null;
         }
         QName qName = JsonCodecUtil.getQNameFromJsonField(field,yangSchemaContext);
+        JsonNode rootElement = element;
         if(qName == null){
             qName = new QName("urn:ietf:params:xml:ns:yang:ietf-restconf","ietf-restconf","data");
+            rootElement = element.get(field);
         }
         YangDataDocument yangDataDocument = new YangDataDocumentImpl(qName, yangSchemaContext, element.toString());
 
-        validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(yangDataDocument, element.get(field)));
+        validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(yangDataDocument, rootElement));
         return yangDataDocument;
     }
 
