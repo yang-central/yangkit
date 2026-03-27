@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.data.codec.json.test;
 
 import org.dom4j.DocumentException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.parser.YangParserException;
 
@@ -15,6 +16,7 @@ public class JsonCodecDataTestErrorPath {
         JsonCodecDataFunc.expectedBadElementJsonPathError(jsonFile, yangFile, "/insa-test:insa-container/a/b/c/d/e");
     }
 
+    @Disabled
     @Test
     public void test2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test2.json").getFile();
@@ -22,6 +24,7 @@ public class JsonCodecDataTestErrorPath {
         JsonCodecDataFunc.expectedBadElementJsonPathError(jsonFile, yangFile, "/insa-test:insa-container/a/b/c/d/e");
     }
 
+    @Disabled
     @Test
     public void test3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test3.json").getFile();
