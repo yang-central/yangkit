@@ -19,7 +19,7 @@ public class JsonCodecDataTestComplex {
     public void invalidTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("complex/invalid1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("complex/complex.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
 

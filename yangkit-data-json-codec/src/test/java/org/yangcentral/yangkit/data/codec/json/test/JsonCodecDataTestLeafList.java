@@ -19,21 +19,21 @@ public class JsonCodecDataTestLeafList {
     public void invalidTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("leaflist/invalid1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("leaflist/leaflist.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("leaflist/invalid2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("leaflist/leaflist.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("leaflist/invalid3.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("leaflist/leaflist.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
     
 }

@@ -42,7 +42,7 @@ public class JsonCodecDataFunc {
         assertTrue(validatorResult.isOk(), "error during second validation of json");
     }
 
-    public static void expectedBadElementError(String jsonFile, String yangFile) throws DocumentException, IOException, YangParserException {
+    public static void expectedError(String jsonFile, String yangFile) throws DocumentException, IOException, YangParserException {
         YangSchemaContext schemaContext = YangYinParser.parse(yangFile);
         JsonNode jsonNode = null;
         try {
