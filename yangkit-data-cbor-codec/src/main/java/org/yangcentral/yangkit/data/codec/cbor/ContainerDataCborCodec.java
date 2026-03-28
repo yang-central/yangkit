@@ -21,8 +21,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.ContainerData;
+import org.yangcentral.yangkit.data.api.model.LeafData;
+import org.yangcentral.yangkit.data.api.model.LeafListData;
 import org.yangcentral.yangkit.data.impl.model.ContainerDataImpl;
 import org.yangcentral.yangkit.model.api.stmt.Container;
+import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
+import org.yangcentral.yangkit.model.api.stmt.Leaf;
+import org.yangcentral.yangkit.model.api.stmt.LeafList;
 
 /**
  * CBOR codec for YANG container data.
@@ -51,13 +56,41 @@ public class ContainerDataCborCodec extends YangDataCborCodec<Container, Contain
         
         // Process container children from JSON
         if (jsonNode != null && jsonNode.isObject()) {
-            // Deserialize children from the JSON object
-            // Implementation will iterate through fields and create appropriate data nodes
-            jsonNode.fields().forEachRemaining(entry -> {
+            ObjectNode objectNode = (ObjectNode) jsonNode;
+            
+            // Iterate through fields and deserialize each child based on schema
+            objectNode.fields().forEachRemaining(entry -> {
                 String fieldName = entry.getKey();
                 JsonNode fieldValue = entry.getValue();
-                // TODO: Implement child deserialization logic based on schema
-                // This requires looking up the schema node for each field
+                
+                try {
+                    // Look up the schema node for this field
+                    DataDefinition childSchema = 
+                        getSchemaNode().getDataDefChild(fieldName);
+                    
+                    if (childSchema != null) {
+                        // Deserialize based on the schema node type
+                        if (childSchema instanceof Leaf) {
+                            Leaf leafSchema = (Leaf) childSchema;
+                            LeafDataCborCodec leafCodec = new LeafDataCborCodec(leafSchema);
+                            LeafData<?> leafData = leafCodec.buildData(fieldValue, validatorResultBuilder);
+                            containerData.addDataChild(leafData);
+                        } else if (childSchema instanceof LeafList) {
+                            LeafList leafListSchema = (LeafList) childSchema;
+                            LeafListDataCborCodec leafListCodec = new LeafListDataCborCodec(leafListSchema);
+                            LeafListData<?> leafListData = leafListCodec.buildData(fieldValue, validatorResultBuilder);
+                            containerData.addDataChild(leafListData);
+                        } else if (childSchema instanceof Container) {
+                            Container containerSchema = (Container) childSchema;
+                            ContainerDataCborCodec childContainerCodec = new ContainerDataCborCodec(containerSchema);
+                            ContainerData childContainerData = childContainerCodec.buildData(fieldValue, validatorResultBuilder);
+                            containerData.addDataChild(childContainerData);
+                        }
+                        // Add more types as needed (List, Choice, Case, etc.)
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to deserialize child field: " + fieldName, e);
+                }
             });
         }
         

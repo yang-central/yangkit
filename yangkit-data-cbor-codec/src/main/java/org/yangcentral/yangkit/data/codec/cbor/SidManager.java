@@ -79,7 +79,8 @@ public class SidManager {
         }
         
         // Try to generate SID from module SID range
-        SidRange range = moduleSidRanges.get(qName.getNamespace());
+        // Use toString() to ensure we're comparing strings properly
+        SidRange range = moduleSidRanges.get(qName.getNamespace().toString());
         if (range != null) {
             // Generate SID based on node name hash
             int index = generateNodeIndex(qName.getLocalName());
@@ -193,7 +194,8 @@ public class SidManager {
      */
     private Long generateDefaultSid(QName qName) {
         // Use a combination of namespace hash and local name hash
-        long nsHash = qName.getNamespace().hashCode() & 0xFFFFFFFFL;
+        // Use toString() to ensure consistent string representation
+        long nsHash = qName.getNamespace().toString().hashCode() & 0xFFFFFFFFL;
         long nameHash = qName.getLocalName().hashCode() & 0xFFFFFFFFL;
         
         // Combine hashes and ensure it's in valid SID range

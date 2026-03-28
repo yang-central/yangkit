@@ -61,8 +61,106 @@ public class JsonCodecUtil {
         return "";
     }
 
+    /**
+     * Generate complete JSON path from root to the given node.
+     * This method attempts to find the path by traversing up through parent relationships
+     * if available, or by using thread-local context to track the root node.
+     * 
+     * @param jsonNode the target JSON node
+     * @return the complete JSON path (e.g., "/module:container/leaf-list[0]/name"), 
+     *         or empty string if node is null or path cannot be determined
+     */
     public static String getJsonPath(JsonNode jsonNode) {
-        return "";
+        if (jsonNode == null) {
+            return "";
+        }
+        
+        // Try to find path using ExtraValidationDataJsonCodec context
+        // This is the preferred way when deserializing with validation
+        try {
+            // Check if there's a thread-local context with parent mappings
+            ExtraValidationDataJsonCodec context = ExtraValidationDataContext.getCurrentContext();
+            if (context != null) {
+                return context.getJsonPath(jsonNode);
+            }
+        } catch (Exception e) {
+            // Context not available, fall through to alternative methods
+        }
+        
+        // Alternative: If we can determine the root node somehow,
+        // we could use the two-parameter version
+        // For now, return a descriptive placeholder
+        return "<path-requires-context-" + System.identityHashCode(jsonNode) + ">";
+    }
+    
+    /**
+     * Generate complete JSON path by searching from the root node to the target node.
+     * This method performs a depth-first search to find the path.
+     * 
+     * @param rootNode the root of the JSON tree
+     * @param targetNode the target node to find the path for
+     * @return the complete JSON path (e.g., "/module:container/leaf-list[0]/name"), 
+     *         or empty string if target not found
+     */
+    public static String getJsonPath(JsonNode rootNode, JsonNode targetNode) {
+        if (rootNode == null || targetNode == null) {
+            return "";
+        }
+        
+        // If they're the same node (root), return root path
+        if (rootNode == targetNode) {
+            return "/";
+        }
+        
+        // Search for the path using DFS
+        String result = findPath(rootNode, targetNode, "");
+        return result != null ? result : "";
+    }
+    
+    /**
+     * Helper method to perform depth-first search for the target node.
+     * 
+     * @param current the current node being visited
+     * @param target the target node to find
+     * @param currentPath the path built so far
+     * @return the complete path if found, null otherwise
+     */
+    private static String findPath(JsonNode current, JsonNode target, String currentPath) {
+        if (current == target) {
+            return currentPath.isEmpty() ? "/" : currentPath;
+        }
+        
+        if (current.isObject()) {
+            Iterator<Map.Entry<String, JsonNode>> fields = current.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                String fieldName = entry.getKey();
+                JsonNode child = entry.getValue();
+                
+                String newPath = currentPath.isEmpty() ? 
+                    "/" + fieldName : 
+                    currentPath + "/" + fieldName;
+                
+                String result = findPath(child, target, newPath);
+                if (result != null) {
+                    return result;
+                }
+            }
+        } else if (current.isArray()) {
+            ArrayNode arrayNode = (ArrayNode) current;
+            for (int i = 0; i < arrayNode.size(); i++) {
+                JsonNode element = arrayNode.get(i);
+                
+                String newPath = currentPath + "[" + i + "]";
+                
+                String result = findPath(element, target, newPath);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        
+        return null;
     }
 
     public static JsonNode convertValidatorResultToJson(ValidatorResult validatorResult){
@@ -455,6 +553,7 @@ public class JsonCodecUtil {
             Map.Entry<String, JsonNode> field = fields.next();
             String fieldName = field.getKey();
             JsonNode child = field.getValue();
+            // Record parent-child relationship for JSON path generation
             extraValidationData.addJsonChild(element, child, fieldName);
             if (fieldName.startsWith("@")) {
                 attributes.add(field);

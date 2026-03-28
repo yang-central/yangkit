@@ -48,10 +48,13 @@ public class LeafDataCborCodec extends YangDataCborCodec<Leaf, LeafData<?>> {
     protected LeafData<?> buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder) 
             throws YangDataCborCodecException {
         try {
-            // Get the string representation from JSON
-            String yangText = jsonNode.isValueNode() ? jsonNode.asText() : jsonNode.toString();
+            // Use CborCodecUtil to convert JSON node to proper Java type
+            Object value = CborCodecUtil.convertFromJson(jsonNode, null);
             
-            // Use YangDataBuilderFactory to create the leaf data
+            // Convert value to string representation for YangDataBuilderFactory
+            String yangText = value != null ? value.toString() : null;
+            
+            // Use YangDataBuilderFactory to create the leaf data with proper type
             LeafData leafData = (LeafData) org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory
                 .getBuilder()
                 .getYangData(getSchemaNode(), yangText);

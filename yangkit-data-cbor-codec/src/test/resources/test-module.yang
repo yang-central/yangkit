@@ -1,0 +1,73 @@
+module test-module {
+  yang-version 1.1;
+  namespace "http://example.com/test-module";
+  prefix "tm";
+
+  organization "Test Organization";
+  contact "Test Contact";
+  description "Test module for CBOR codec testing";
+
+  revision 2024-01-01 {
+    description "Initial revision";
+  }
+
+  // Simple leaf for basic type testing
+  leaf test-string {
+    type string;
+    description "Test string leaf";
+  }
+
+  leaf test-integer {
+    type int32;
+    description "Test integer leaf";
+  }
+
+  leaf test-boolean {
+    type boolean;
+    description "Test boolean leaf";
+  }
+
+  leaf test-decimal {
+    type decimal64 {
+      fraction-digits 6;
+    }
+    description "Test decimal leaf";
+  }
+
+  // Container for testing nested structures
+  container test-container {
+    description "Test container";
+    
+    leaf name {
+      type string;
+      description "Name field";
+    }
+    
+    leaf value {
+      type int32;
+      description "Value field";
+    }
+  }
+
+  // Leaf-list for testing multiple values
+  leaf-list test-leaf-list {
+    type string;
+    description "Test leaf-list";
+  }
+
+  // List for testing list structures
+  list test-list {
+    key "id";
+    description "Test list";
+    
+    leaf id {
+      type int32;
+      description "List entry ID";
+    }
+    
+    leaf name {
+      type string;
+      description "List entry name";
+    }
+  }
+}

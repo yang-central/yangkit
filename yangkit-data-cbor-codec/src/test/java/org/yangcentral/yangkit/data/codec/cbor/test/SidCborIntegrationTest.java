@@ -18,29 +18,85 @@ package org.yangcentral.yangkit.data.codec.cbor.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.dom4j.DocumentException;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.ContainerData;
 import org.yangcentral.yangkit.data.api.model.LeafData;
-import org.yangcentral.yangkit.data.api.model.YangDataBuilderFactory;
+import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.codec.cbor.*;
 import org.yangcentral.yangkit.data.impl.model.ContainerDataImpl;
 import org.yangcentral.yangkit.data.impl.model.LeafDataImpl;
+import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Container;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
-import org.yangcentral.yangkit.model.impl.stmt.ContainerImpl;
-import org.yangcentral.yangkit.model.impl.stmt.LeafImpl;
+import org.yangcentral.yangkit.parser.YangParserException;
+import org.yangcentral.yangkit.parser.YangYinParser;
+
+import java.io.IOException;
+import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration tests for SID-based CBOR encoding/decoding.
+ * Integration tests for SID-based CBOR encoding/decoding using parsed YANG models.
  * Tests RFC 9254 Section 5 - SID-based encoding functionality.
  * 
  * @author Yangkit Team
  */
 public class SidCborIntegrationTest {
+    
+    private static YangSchemaContext schemaContext;
+    private static org.yangcentral.yangkit.model.api.stmt.Module testModule;
+    
+    static {
+        try {
+            // Load and parse the test YANG module
+            URL yangUrl = SidCborIntegrationTest.class.getClassLoader().getResource("test-module.yang");
+            if (yangUrl == null) {
+                throw new RuntimeException("Cannot find test-module.yang in classpath");
+            }
+            String yangDir = yangUrl.getPath();
+            schemaContext = YangYinParser.parse(yangDir);
+            
+            // Validate the schema context to initialize YangContext
+            org.yangcentral.yangkit.common.api.validate.ValidatorResult validatorResult = schemaContext.validate();
+            if (!validatorResult.isOk()) {
+                throw new RuntimeException("Failed to validate schema context: " + validatorResult);
+            }
+            
+            // Get the test module from schema context using getLatestModule
+            testModule = schemaContext.getLatestModule("test-module")
+                .orElseThrow(() -> new RuntimeException("Failed to find test-module in schema context"));
+        } catch (DocumentException | IOException | YangParserException e) {
+            throw new RuntimeException("Failed to load test YANG module", e);
+        }
+    }
+    
+    /**
+     * Helper method to create a Leaf with proper context for testing.
+     */
+    private Leaf createTestLeaf(String name, String namespace) {
+        Leaf leaf = (Leaf) testModule.getDataDefChild(name);
+        if (leaf == null) {
+            // Fallback to test-string if specific leaf not found
+            leaf = (Leaf) testModule.getDataDefChild("test-string");
+        }
+        return leaf;
+    }
+    
+    /**
+     * Helper method to create a Container with proper context for testing.
+     */
+    private Container createTestContainer(String name, String namespace) {
+        Container container = (Container) testModule.getDataDefChild(name);
+        if (container == null) {
+            // Fallback to test-container if specific container not found
+            container = (Container) testModule.getDataDefChild("test-container");
+        }
+        return container;
+    }
     
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     
@@ -51,29 +107,34 @@ public class SidCborIntegrationTest {
     public void testSidContainerEncoding() throws Exception {
         // Create SID manager and register module
         SidManager sidManager = new SidManager();
-        String namespace = "http://example.com/test";
+        String namespace = "http://example.com/test-module";
         sidManager.registerModule(namespace, 10000, 100);
         
-        // Create container schema
-        Container container = new ContainerImpl("test-container");
+        // Get container schema from parsed YANG model
+        Container container = (Container) testModule.getDataDefChild("test-container");
+        assertNotNull(container, "test-container should exist in the test module");
         
-        // Add child leafs
-        Leaf leaf1 = new LeafImpl("name");
-        Leaf leaf2 = new LeafImpl("value");
+        // Get child leaf schemas from the container
+        Leaf nameLeaf = (Leaf) container.getDataDefChild("name");
+        Leaf valueLeaf = (Leaf) container.getDataDefChild("value");
+        assertNotNull(nameLeaf, "name leaf should exist in test-container");
+        assertNotNull(valueLeaf, "value leaf should exist in test-container");
         
         // Create container data
         ContainerDataImpl containerData = new ContainerDataImpl(container);
         
-        // Add leaf data
-        LeafData<String> nameData = new LeafDataImpl<>(leaf1, "test-name");
-        LeafData<Integer> valueData = new LeafDataImpl<>(leaf2, 42);
+        // Add leaf data with proper values
+        LeafData<String> nameData = (LeafData<String>) YangDataBuilderFactory.getBuilder()
+            .getYangData(nameLeaf, "test-name");
+        LeafData<Integer> valueData = (LeafData<Integer>) YangDataBuilderFactory.getBuilder()
+            .getYangData(valueLeaf, "42");
         
         containerData.addDataChild(nameData);
         containerData.addDataChild(valueData);
         
         // Serialize with SID encoding
         SidContainerDataCborCodec codec = new SidContainerDataCborCodec(
-            container, sidManager, true);
+            container, sidManager);
         
         byte[] cborBytes = codec.serialize(containerData);
         
@@ -86,9 +147,8 @@ public class SidCborIntegrationTest {
         
         assertNotNull(deserialized);
         
-        // Verify the data can be read back (full implementation would verify children)
+        // Verify the data can be read back
         System.out.println("SID-based encoding successful!");
-        System.out.println("Original size: " + containerData.getClass().getSimpleName() + " data");
         System.out.println("CBOR encoded size: " + cborBytes.length + " bytes");
     }
     
@@ -99,16 +159,22 @@ public class SidCborIntegrationTest {
     public void testEncodingComparison() throws Exception {
         // Create SID manager
         SidManager sidManager = new SidManager();
-        String namespace = "http://example.com/test";
+        String namespace = "http://example.com/test-module";
         sidManager.registerModule(namespace, 10000, 100);
         
-        // Create simple container with one leaf
-        Container container = new ContainerImpl("config");
-        Leaf leaf = new LeafImpl("enabled");
+        // Get container schema from parsed YANG model
+        Container container = (Container) testModule.getDataDefChild("test-container");
+        assertNotNull(container, "test-container should exist in the test module");
         
+        // Get child leaf schema
+        Leaf valueLeaf = (Leaf) container.getDataDefChild("value");
+        assertNotNull(valueLeaf, "value leaf should exist in test-container");
+        
+        // Create container data with one leaf
         ContainerDataImpl containerData = new ContainerDataImpl(container);
-        LeafData<Boolean> enabledData = new LeafDataImpl<>(leaf, true);
-        containerData.addDataChild(enabledData);
+        LeafData<Integer> valueData = (LeafData<Integer>) YangDataBuilderFactory.getBuilder()
+            .getYangData(valueLeaf, "100");
+        containerData.addDataChild(valueData);
         
         // Encode with name-based (existing)
         ContainerDataCborCodec nameBasedCodec = new ContainerDataCborCodec(container);
@@ -116,7 +182,7 @@ public class SidCborIntegrationTest {
         
         // Encode with SID-based
         SidContainerDataCborCodec sidBasedCodec = 
-            new SidContainerDataCborCodec(container, sidManager, true);
+            new SidContainerDataCborCodec(container, sidManager);
         byte[] sidBasedBytes = sidBasedCodec.serialize(containerData);
         
         assertNotNull(nameBasedBytes);
@@ -232,16 +298,23 @@ public class SidCborIntegrationTest {
         // Create SID manager but don't register any module
         SidManager sidManager = new SidManager();
         
-        Container container = new ContainerImpl("test");
-        Leaf leaf = new LeafImpl("data");
+        // Get container schema from parsed YANG model
+        Container container = (Container) testModule.getDataDefChild("test-container");
+        assertNotNull(container, "test-container should exist in the test module");
         
+        // Get child leaf schema
+        Leaf nameLeaf = (Leaf) container.getDataDefChild("name");
+        assertNotNull(nameLeaf, "name leaf should exist in test-container");
+        
+        // Create container data
         ContainerDataImpl containerData = new ContainerDataImpl(container);
-        LeafData<String> data = new LeafDataImpl<>(leaf, "test-value");
-        containerData.addDataChild(data);
+        LeafData<String> nameData = (LeafData<String>) YangDataBuilderFactory.getBuilder()
+            .getYangData(nameLeaf, "fallback-test");
+        containerData.addDataChild(nameData);
         
         // Create codec with SID support but no SID assignments
         SidContainerDataCborCodec codec = new SidContainerDataCborCodec(
-            container, sidManager, true);
+            container, sidManager);
         
         // Should still work (fallback to name-based or default SID generation)
         byte[] cborBytes = codec.serialize(containerData);

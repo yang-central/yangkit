@@ -88,13 +88,17 @@ public class SidManagerTest {
         
         // Create a node in this module
         QName qName = new QName(namespace, "my-container");
+        
         Long sid = sidManager.getSid(qName);
         
         assertNotNull(sid);
         
+        // Debug output
+        System.out.println("Generated SID: " + sid + ", Base: " + baseSid + ", Size: " + size);
+        
         // SID should be within registered range
-        assertTrue(sid >= baseSid);
-        assertTrue(sid < baseSid + size);
+        assertTrue(sid >= baseSid, "SID (" + sid + ") should be >= baseSid (" + baseSid + ")");
+        assertTrue(sid < baseSid + size, "SID (" + sid + ") should be < baseSid+size (" + (baseSid + size) + ")");
     }
     
     /**
@@ -141,7 +145,7 @@ public class SidManagerTest {
         QName resolved = sidManager.getQName(10002L);
         assertNotNull(resolved);
         assertEquals("leaf1", resolved.getLocalName());
-        assertEquals("http://example.com/test", resolved.getNamespace());
+        assertEquals("http://example.com/test", resolved.getNamespace().toString());
     }
     
     /**

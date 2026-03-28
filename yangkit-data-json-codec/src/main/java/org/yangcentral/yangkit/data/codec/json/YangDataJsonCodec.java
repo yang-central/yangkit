@@ -71,8 +71,18 @@ public abstract class YangDataJsonCodec<S extends SchemaNode, T extends YangData
         if (null == element) {
             return null;
         }
-        T data = buildData(element, validatorResultBuilder);
-        return data;
+        
+        // Create and set validation context for JSON path generation
+        ExtraValidationDataJsonCodec validationContext = new ExtraValidationDataJsonCodec();
+        ExtraValidationDataContext.setCurrentContext(validationContext);
+        
+        try {
+            T data = buildData(element, validatorResultBuilder);
+            return data;
+        } finally {
+            // Clear context after deserialization to prevent memory leaks
+            ExtraValidationDataContext.clearContext();
+        }
     }
 
     abstract protected T buildData(JsonNode element, ValidatorResultBuilder validatorResultBuilder);
