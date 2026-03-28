@@ -33,33 +33,33 @@ public class JsonCodecDataTestString {
     public void invalidTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("derived/string/invalid1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("derived/string/string.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("derived/string/invalid2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("derived/string/string.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
     @Test
     public void invalidTest2bis() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("derived/string/invalid2bis.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("derived/string/string.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("derived/string/invalid3.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("derived/string/string.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
     @Test
     public void invalidTest3bis() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("derived/string/invalid3bis.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("derived/string/string.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
 }

@@ -27,77 +27,77 @@ public class JsonCodecDataTestBoolean {
     public void invalidTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid3.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest4() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid4.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest5() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid5.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest6() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid6.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest7() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid7.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest8() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid8.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest9() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid9.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest10() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid10.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest11() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/boolean/invalid11.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/boolean/boolean.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
 }

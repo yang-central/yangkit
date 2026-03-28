@@ -69,112 +69,112 @@ public class JsonCodecDataTestInt32 {
     public void invalidTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid3.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest4() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid4.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest5() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid5.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest6() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid6.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest7() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid7.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest8() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid8.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest9() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid9.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest10() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid10.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest11() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid11.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest12() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid12.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest13() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalid13.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidRangeTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalidrange1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidRangeTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalidrange2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidRangeTest3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/int32/invalidrange3.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/int32/int32.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
 }

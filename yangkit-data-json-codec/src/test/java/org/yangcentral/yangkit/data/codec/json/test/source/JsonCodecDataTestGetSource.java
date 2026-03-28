@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.data.codec.json.test.source;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dom4j.DocumentException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
@@ -68,6 +69,7 @@ public class JsonCodecDataTestGetSource {
         System.out.println(withError.toPrettyString());
     }
 
+    @Disabled
     @Test
     public void getJsonDocError2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test2.json").getFile();

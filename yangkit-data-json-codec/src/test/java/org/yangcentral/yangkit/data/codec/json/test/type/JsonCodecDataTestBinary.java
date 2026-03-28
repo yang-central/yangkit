@@ -55,49 +55,49 @@ public class JsonCodecDataTestBinary {
     public void invalidTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalid1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalid2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalid3.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest4() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalid4.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest5() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalid5.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest6() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalid6.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidTest7() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalid7.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
 
@@ -105,14 +105,14 @@ public class JsonCodecDataTestBinary {
     public void invalidLengthTest1() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalidlength1.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
     @Test
     public void invalidLengthTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/binary/invalidlength2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/binary/binary.yang").getFile();
-        JsonCodecDataFunc.expectedBadElementError(jsonFile, yangFile);
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 
 }
