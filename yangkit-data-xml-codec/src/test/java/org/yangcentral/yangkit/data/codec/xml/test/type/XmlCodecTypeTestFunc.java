@@ -10,9 +10,12 @@ import org.yangcentral.yangkit.data.codec.xml.YangDataDocumentXmlCodec;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.parser.YangYinParser;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,7 +62,9 @@ public class XmlCodecTypeTestFunc {
         // Load XML file as stream
         InputStream xmlStream = XmlCodecTypeTestFunc.class.getClassLoader().getResourceAsStream(xmlFile);
         assertNotNull(xmlStream, "XML resource not found: " + xmlFile);
-        String xmlContent = new String(xmlStream.readAllBytes(), StandardCharsets.UTF_8);
+        String xmlContent = new BufferedReader(new InputStreamReader(xmlStream, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
         Document xmlDoc = DocumentHelper.parseText(xmlContent);
         
         // Deserialize
@@ -114,7 +119,9 @@ public class XmlCodecTypeTestFunc {
         // Load XML file as stream
         InputStream xmlStream = XmlCodecTypeTestFunc.class.getClassLoader().getResourceAsStream(xmlFile);
         assertNotNull(xmlStream, "XML resource not found: " + xmlFile);
-        String xmlContent = new String(xmlStream.readAllBytes(), StandardCharsets.UTF_8);
+        String xmlContent = new BufferedReader(new InputStreamReader(xmlStream, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
         Document xmlDoc = DocumentHelper.parseText(xmlContent);
         
         // Deserialize
@@ -148,3 +155,4 @@ public class XmlCodecTypeTestFunc {
         }
     }
 }
+
