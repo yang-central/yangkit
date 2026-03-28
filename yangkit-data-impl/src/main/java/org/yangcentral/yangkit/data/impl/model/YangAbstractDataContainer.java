@@ -320,6 +320,53 @@ public class YangAbstractDataContainer implements YangDataContainer {
         }
         return validatorResultBuilder.build();
     }
+    public boolean isActiveMandatory(SchemaNode schemaNode) {
+        if (schemaNode instanceof MandatorySupport) {
+            MandatorySupport mandatorySupport = (MandatorySupport)schemaNode;
+            if (mandatorySupport.getMandatory() != null) {
+                return mandatorySupport.getMandatory().getValue();
+            } else {
+                return false;
+            }
+        } else if (schemaNode instanceof MultiInstancesDataNode) {
+            MultiInstancesDataNode multiInstancesDataNode = (MultiInstancesDataNode)schemaNode;
+            if (multiInstancesDataNode.getMinElements() != null) {
+                return multiInstancesDataNode.getMinElements().getValue() > 0;
+            } else {
+                return false;
+            }
+        } else {
+            if (schemaNode instanceof Container) {
+                Container container = (Container)schemaNode;
+                if (container.getPresence() != null) {
+                    return false;
+                }
+            }
+ 
+            if (schemaNode instanceof VirtualSchemaNode || schemaNode instanceof Container) {
+                SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer)schemaNode;
+ 
+                for (SchemaNode childNode : schemaNodeContainer.getSchemaNodeChildren()) {
+                    if (isActiveMandatory(childNode) && hasNoWhen(childNode)) {
+                        return true;
+                    }
+                }
+            }
+ 
+            return false;
+        }
+    }
+ 
+    private boolean hasNoWhen(SchemaNode schemaNode) {
+        if(!(schemaNode instanceof WhenSupport)){
+            return true;
+        }
+        When when = ((WhenSupport)schemaNode).getWhen();
+        if(when == null){
+            return true;
+        }
+        return false;
+    }
 
     private ValidatorResult checkMandatory(SchemaNode schemaNode, List<YangData<?>> matchedData) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
@@ -331,7 +378,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
                 try {
                     self.addChild(dummyNode);
                     boolean result = dummyNode.checkWhen();
-                    if(result){
+                    if(result && isActiveMandatory(schemaNode)){
                         ValidatorRecordBuilder<AbsolutePath,YangData<?>> validatorRecordBuilder =
                                 new ValidatorRecordBuilder<>();
                         validatorRecordBuilder.setErrorTag(ErrorTag.DATA_MISSING);
