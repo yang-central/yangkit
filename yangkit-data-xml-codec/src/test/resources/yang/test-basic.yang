@@ -1,0 +1,13 @@
+module test-basic {
+    namespace "urn:test:basic";
+    prefix tb;
+    
+    container config {
+        leaf name {
+            type string;
+        }
+        leaf enabled {
+            type boolean;
+        }
+    }
+}

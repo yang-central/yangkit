@@ -42,7 +42,8 @@ public class YangProtoTypeMapper {
         // Other primitive types
         TYPE_MAPPING.put("boolean", DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL);
         TYPE_MAPPING.put("string", DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING);
-        TYPE_MAPPING.put("decimal64", DescriptorProtos.FieldDescriptorProto.Type.TYPE_DOUBLE);
+        // decimal64 mapped to string to preserve precision (ygot compatible)
+        TYPE_MAPPING.put("decimal64", DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING);
         TYPE_MAPPING.put("enumeration", DescriptorProtos.FieldDescriptorProto.Type.TYPE_ENUM);
         TYPE_MAPPING.put("binary", DescriptorProtos.FieldDescriptorProto.Type.TYPE_BYTES);
         TYPE_MAPPING.put("empty", DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL);
@@ -115,7 +116,8 @@ public class YangProtoTypeMapper {
             case "boolean":
                 return convertToBoolean(value);
             case "decimal64":
-                return convertToDouble(value);
+                // Convert to string to preserve precision (ygot compatible)
+                return convertToString(value);
             case "binary":
                 return convertToBytes(value);
             case "enumeration":
@@ -179,6 +181,7 @@ public class YangProtoTypeMapper {
             case "boolean":
                 return value;
             case "decimal64":
+                // Convert from string to preserve precision (ygot compatible)
                 return new BigDecimal(value.toString());
             case "binary":
                 return convertFromBytes(value);
@@ -265,6 +268,15 @@ public class YangProtoTypeMapper {
             return ((Number) value).doubleValue();
         }
         return Double.parseDouble(value.toString());
+    }
+    
+    private static String convertToString(Object value) {
+        if (value instanceof BigDecimal) {
+            return ((BigDecimal) value).toPlainString();
+        } else if (value instanceof Number) {
+            return value.toString();
+        }
+        return value.toString();
     }
     
     private static ByteString convertToBytes(Object value) {

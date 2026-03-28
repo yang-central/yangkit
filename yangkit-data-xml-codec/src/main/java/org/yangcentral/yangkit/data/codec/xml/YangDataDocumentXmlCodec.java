@@ -26,9 +26,16 @@ import java.util.List;
 
 public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> {
     private YangSchemaContext schemaContext;
+    private boolean onlyConfig; // Filter non-config data
 
     public YangDataDocumentXmlCodec(YangSchemaContext schemaContext) {
         this.schemaContext = schemaContext;
+        this.onlyConfig = false; // Default: include all data
+    }
+    
+    public YangDataDocumentXmlCodec(YangSchemaContext schemaContext, boolean onlyConfig) {
+        this.schemaContext = schemaContext;
+        this.onlyConfig = onlyConfig;
     }
 
     @Override
@@ -36,77 +43,90 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
         return schemaContext;
     }
 
-    protected ValidatorResult buildChildrenData(YangDataContainer yangDataContainer,Element element){
+    protected ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, Element element){
+        System.out.println("[DEBUG] buildChildrenData started for element: " + element.getQName().getName());
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         SchemaNodeContainer schemaNodeContainer= null;
         if(yangDataContainer instanceof YangDataDocument){
-            schemaNodeContainer = ((YangDataDocument) yangDataContainer).getSchemaContext();
+            // For YangDataDocument, we need to find the schema node that matches the root element
+            YangSchemaContext schemaContext = ((YangDataDocument) yangDataContainer).getSchemaContext();
+            org.yangcentral.yangkit.common.api.QName rootQName = ((YangDataDocument) yangDataContainer).getQName();
+                
+            // Try to find the matching top-level schema node
+            SchemaNode rootSchemaNode = schemaContext.getTreeNodeChild(rootQName);
+            System.out.println("[DEBUG] Looking for root schema node: " + rootQName.getLocalName());
+            System.out.println("[DEBUG] Found root schema node: " + (rootSchemaNode != null ? rootSchemaNode.getIdentifier().getLocalName() : "null"));
+                
+            if (rootSchemaNode instanceof SchemaNodeContainer) {
+                schemaNodeContainer = (SchemaNodeContainer) rootSchemaNode;
+                System.out.println("[DEBUG] Using root schema node's children");
+            } else {
+                schemaNodeContainer = schemaContext;
+                System.out.println("[DEBUG] Root schema node not found or not a container, using schema context");
+            }
         }else {
             YangData<?> yangData = (YangData<?>) yangDataContainer;
             schemaNodeContainer = (SchemaNodeContainer) yangData.getSchemaNode();
+            System.out.println("[DEBUG] Getting schema nodes from data's schema node");
         }
         List<Element> children = element.elements();
+        System.out.println("[DEBUG] Found " + children.size() + " XML child elements");
         for (Element child : children) {
+            System.out.println("[DEBUG] Processing XML child: " + child.getQName().getName() + " namespace: " + child.getNamespaceURI());
             SchemaNode sonSchemaNode = schemaNodeContainer.getTreeNodeChild(
                     new org.yangcentral.yangkit.common.api.QName(child.getNamespaceURI(),
                             child.getNamespacePrefix(),child.getQName().getName()));
+            System.out.println("[DEBUG] Found schema node: " + (sonSchemaNode != null ? sonSchemaNode.getIdentifier().getLocalName() : "null"));
 
-            if (sonSchemaNode == null || !sonSchemaNode.isActive()) {
-                ValidatorRecordBuilder<String, Element> recordBuilder = new ValidatorRecordBuilder<>();
-                recordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
-                recordBuilder.setErrorPath(element.getUniquePath());
-                recordBuilder.setBadElement(child);
-                recordBuilder.setErrorMessage(new ErrorMessage(
-                        "unrecognized element:" + child.getName() + " namespace:" + child.getQName().getNamespaceURI()));
-                validatorResultBuilder.addRecord(recordBuilder.build());
+            if (sonSchemaNode == null) {
+                // Check if this is an augmented node or unknown element
                 continue;
             }
-            YangDataXmlCodec sonCodec = YangDataXmlCodec.getInstance(sonSchemaNode);
-            YangData<?> sonData = sonCodec.deserialize(child,validatorResultBuilder);
-            if(null== sonData){
-                continue;
+            
+            // Filter non-config data if onlyConfig is true
+            if (onlyConfig && !isConfigTrue(sonSchemaNode)) {
+                System.out.println("[DEBUG] Skipping non-config node: " + sonSchemaNode.getIdentifier().getLocalName());
+                continue; // Skip non-config data
             }
-            try {
-                YangData<?> oldData = yangDataContainer.getDataChild(sonData.getIdentifier());
-                if(oldData != null){
-                    YangDataOperator dataOperator = new YangDataOperatorImpl(yangDataContainer);
-                    dataOperator.merge((YangData<? extends DataNode>) sonData,false);
-                    //oldData.merge(sonData,false);
-                    //sonData = oldData;
+            
+            System.out.println("[DEBUG] Processing child node: " + sonSchemaNode.getIdentifier().getLocalName() + " (type: " + sonSchemaNode.getClass().getSimpleName() + ")");
+            YangDataXmlCodec xmlCodec = YangDataXmlCodec.getInstance(sonSchemaNode);
+            System.out.println("[DEBUG] Created codec instance: " + (xmlCodec != null ? xmlCodec.getClass().getSimpleName() : "null"));
+            if (xmlCodec != null) {
+                // Use the local validatorResultBuilder, not pass a new one
+                System.out.println("[DEBUG] Calling deserialize for node: " + sonSchemaNode.getIdentifier().getLocalName());
+                YangData<?> childData = xmlCodec.deserialize(child, validatorResultBuilder);
+                if (childData != null) {
+                    System.out.println("[DEBUG] Child data created successfully: " + childData.getClass().getSimpleName());
+                    try {
+                        yangDataContainer.addDataChild(childData);
+                    } catch (org.yangcentral.yangkit.data.api.exception.YangDataException e) {
+                        // Log error but continue processing
+                        System.err.println("Warning: Failed to add child data: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("[DEBUG] Child data is null (validation error should have been recorded)");
                 }
-                else {
-                    yangDataContainer.addDataChild(sonData,false);
-                }
-
-            } catch (YangDataException e) {
-                ValidatorRecordBuilder<String, Element> recordBuilder = new ValidatorRecordBuilder<>();
-                recordBuilder.setErrorTag(e.getErrorTag());
-                recordBuilder.setErrorPath(child.getUniquePath());
-                recordBuilder.setBadElement(child);
-                recordBuilder.setErrorMessage(e.getErrorMsg());
-                validatorResultBuilder.addRecord(recordBuilder.build());
-                continue;
-            }
-
-            sonData = yangDataContainer.getDataChild(sonData.getIdentifier());
-            if(sonData instanceof YangDataContainer){
-                validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData,child));
             }
         }
         return validatorResultBuilder.build();
-
     }
+    
     @Override
     public YangDataDocument deserialize(Element root, ValidatorResultBuilder validatorResultBuilder) {
         if (null == root) {
             return null;
         }
+        System.out.println("[DEBUG] YangDataDocumentXmlCodec.deserialize called with root element: " + root.getQName().getName());
         org.yangcentral.yangkit.common.api.QName docQName = Converter.convert(root.getQName());
 
         YangDataDocument yangDataDocument = new YangDataDocumentImpl(docQName, schemaContext);
+        System.out.println("[DEBUG] Created YangDataDocument: " + yangDataDocument.getQName().getLocalName());
         processAttributers(yangDataDocument, root);
         YangDataContainer yangDataContainer = yangDataDocument;
+        System.out.println("[DEBUG] Calling buildChildrenData...");
         validatorResultBuilder.merge(buildChildrenData(yangDataContainer,root));
+        System.out.println("[DEBUG] buildChildrenData completed");
 
         return yangDataDocument;
     }
@@ -164,12 +184,37 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
             if (null == child || child.isDummyNode()) {
                 continue;
             }
+            
+            // Filter non-config data during serialization if onlyConfig is true
+            if (onlyConfig && !isConfigTrue((org.yangcentral.yangkit.model.api.stmt.SchemaNode) child.getSchemaNode())) {
+                continue; // Skip non-config data
+            }
+            
             Element childElement = YangDataXmlCodec
                     .getInstance(child.getSchemaNode())
                     .serialize(child);
             root.add(childElement);
         }
         return root;
+    }
+    
+    /**
+     * Check if a schema node has config=true.
+     * 
+     * @param schemaNode the schema node to check
+     * @return true if config=true or not specified (default is true), false otherwise
+     */
+    private boolean isConfigTrue(org.yangcentral.yangkit.model.api.stmt.SchemaNode schemaNode) {
+        if (schemaNode == null) {
+            return true; // Default to config
+        }
+        
+        // Inherit from parent
+        org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer parentContainer = schemaNode.getParentSchemaNode();
+        if (parentContainer instanceof org.yangcentral.yangkit.model.api.stmt.SchemaNode) {
+            return isConfigTrue((org.yangcentral.yangkit.model.api.stmt.SchemaNode) parentContainer);
+        }
+        return true; // Root defaults to config=true
     }
 
 }

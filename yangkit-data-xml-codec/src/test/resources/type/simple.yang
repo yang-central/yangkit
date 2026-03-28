@@ -1,0 +1,11 @@
+module simple-test {
+    yang-version 1.1;
+    namespace "urn:test:simple";
+    prefix st;
+    
+    container test-container {
+        leaf value {
+            type string;
+        }
+    }
+}

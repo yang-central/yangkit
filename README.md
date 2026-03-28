@@ -33,7 +33,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-parser</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -42,7 +42,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-model-api</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -51,7 +51,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-model-impl</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -60,7 +60,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-xpath-api</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -69,7 +69,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-xpath-impl</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -78,7 +78,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-api</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -87,7 +87,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-impl</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -96,7 +96,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-json-codec</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -105,7 +105,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-xml-codec</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -114,7 +114,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-proto-codec</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -123,7 +123,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-cbor-codec</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -139,13 +139,14 @@ mvn clean install
   - Protocol Buffers encoding/decoding
   - CBOR encoding/decoding (RFC 9254) - NEW in 1.5.0
 
-### 🆕 New in Version 1.5.0 - Proto Codec Module
-The `yangkit-data-proto-codec` module provides efficient Protocol Buffers serialization/deserialization for YANG data:
+### 🆕 New in Version 1.6.0
+Version 1.6.0 includes bug fixes and improvements:
 
-- **Type-safe conversion**: Automatic mapping between YANG types and Protobuf types
-- **Complete coverage**: Supports all YANG data node types (Container, List, Leaf, LeafList, AnyData, AnyXML, RPC, Notification, etc.)
-- **Schema-driven**: Generates Protobuf descriptors from YANG schema
-- **High performance**: Leverages Protobuf's binary format for compact representation
+- 🔧 Fixed XML codec type validation issues
+- 📝 Improved test coverage for all codecs
+- 🐛 Fixed YANG module naming conventions
+- ✨ Enhanced schema node lookup in XML codec
+- 📚 Added comprehensive developer guide
 
 **Example usage:**
 ```java

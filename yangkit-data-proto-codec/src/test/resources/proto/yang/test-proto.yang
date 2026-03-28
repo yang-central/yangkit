@@ -1,0 +1,134 @@
+module test-proto {
+    namespace "http://example.com/test-proto";
+    prefix tp;
+
+    yang-version 1.1;
+
+    organization "Example Corp";
+    contact "test@example.com";
+    description "Test module for protobuf codec testing";
+
+    revision 2024-01-01 {
+        description "Initial version";
+    }
+
+    // Container with various data types
+    container tp-container {
+        description "Test container with various data types";
+
+        leaf string-leaf {
+            type string {
+                length "0..100";
+            }
+            description "String leaf node";
+        }
+
+        leaf int8-leaf {
+            type int8 {
+                range "-128..127";
+            }
+            description "Int8 leaf node";
+        }
+
+        leaf int16-leaf {
+            type int16 {
+                range "-32768..32767";
+            }
+            description "Int16 leaf node";
+        }
+
+        leaf int32-leaf {
+            type int32;
+            description "Int32 leaf node";
+        }
+
+        leaf int64-leaf {
+            type int64;
+            description "Int64 leaf node";
+        }
+
+        leaf uint8-leaf {
+            type uint8;
+            description "Uint8 leaf node";
+        }
+
+        leaf uint16-leaf {
+            type uint16;
+            description "Uint16 leaf node";
+        }
+
+        leaf uint32-leaf {
+            type uint32;
+            description "Uint32 leaf node";
+        }
+
+        leaf uint64-leaf {
+            type uint64;
+            description "Uint64 leaf node";
+        }
+
+        leaf bool-leaf {
+            type boolean;
+            description "Boolean leaf node";
+        }
+
+        leaf decimal-leaf {
+            type decimal64 {
+                fraction-digits 2;
+            }
+            description "Decimal64 leaf node";
+        }
+
+        leaf empty-leaf {
+            type empty;
+            description "Empty leaf node";
+        }
+
+        leaf mandatory-leaf {
+            type string;
+            mandatory true;
+            description "Mandatory leaf node";
+        }
+    }
+
+    // List with keys
+    list tp-list {
+        key "name";
+        description "Test list with keys";
+
+        leaf name {
+            type string;
+            description "List key";
+        }
+
+        leaf value {
+            type uint32;
+            description "List value";
+        }
+
+        leaf description {
+            type string;
+            description "List description";
+        }
+    }
+
+    // Leaf-list
+    leaf-list tp-leaf-list {
+        type string;
+        description "Test leaf-list";
+    }
+
+    // Nested container
+    container nested-container {
+        description "Nested container for testing hierarchy";
+
+        container inner-container {
+            description "Inner container";
+
+            leaf inner-value {
+                type string;
+                description "Inner value";
+            }
+        }
+    }
+}

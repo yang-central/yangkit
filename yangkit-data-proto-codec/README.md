@@ -2,6 +2,8 @@
 
 Protocol Buffers codec for YANG data - provides bidirectional conversion between YANG data and Protocol Buffers messages.
 
+**Note**: This module is fully compatible with [openconfig ygot](https://github.com/openconfig/ygot) protobuf naming conventions and type mappings.
+
 ## Overview
 
 This module implements the `YangDataCodec` interface to enable serialization and deserialization of YANG data to/from Protocol Buffers format, similar to the JSON and XML codecs in this project.
@@ -9,6 +11,7 @@ This module implements the `YangDataCodec` interface to enable serialization and
 ## Features
 
 - Bidirectional conversion between YANG data and Protocol Buffers messages
+- **ygot-compatible** type mappings and naming conventions
 - Support for all YANG data node types:
   - Container
   - List
@@ -78,19 +81,23 @@ YangData<?> yangData = YangDataProtoCodec
 
 ### Type Mapping
 
-The codec handles conversion between YANG types and Protocol Buffer types:
+The codec handles conversion between YANG types and Protocol Buffer types with full compatibility to openconfig ygot specifications:
 
-| YANG Type | Protobuf Type |
-|-----------|---------------|
-| int8, int16, int32 | int32 |
-| int64 | int64 |
-| uint8, uint16, uint32 | uint32 |
-| uint64 | uint64 |
-| string | string |
-| boolean | bool |
-| decimal64 | string |
-| binary | bytes |
-| enumeration | enum/string |
+| YANG Type | Protobuf Type | Notes |
+|-----------|---------------|-------|
+| int8, int16, int32 | int32 | |
+| int64 | int64 | |
+| uint8, uint16, uint32 | uint32 | |
+| uint64 | uint64 | |
+| string | string | |
+| boolean | bool | |
+| decimal64 | **string** | Mapped to string to preserve precision (ygot compatible) |
+| binary | bytes | |
+| enumeration | enum/string | |
+| empty | bool | |
+| date-and-time | int64 | Unix timestamp in milliseconds |
+| date-only | int32 | Days since epoch |
+| time-of-day | int64 | Milliseconds since midnight |
 
 ### Descriptor Generation
 
@@ -99,11 +106,21 @@ To convert between YANG and Protocol Buffers, protobuf descriptors need to be ge
 1. Dynamic protobuf descriptors generated at runtime
 2. Pre-compiled protobuf definitions that match the YANG schema
 
-### Field Naming
+### Naming Conventions
 
-- YANG element names are mapped to protobuf field names
-- Module prefixes are handled through protobuf namespaces
-- Special characters in YANG names are converted to protobuf-compatible format
+All protobuf message and field names follow ygot-compatible naming conventions:
+
+- **Message Names**: PascalCase (e.g., `TpContainer`, `LeafList`)
+  - Converts YANG names: `tp-container` → `TpContainer`
+  
+- **Field Names**: snake_case (e.g., `string_leaf`, `nested_container`)
+  - Converts YANG names: `string-leaf` → `string_leaf`
+  
+- **RPC Messages**: PascalCase with Input/Output suffixes
+  - Example: `get-info` RPC → `GetInfoInput` / `GetInfoOutput`
+  
+- **Package Names**: lowercase with underscores
+  - Example: `test-proto` module → `yangkit.proto.test_proto`
 
 ## Dependencies
 

@@ -181,6 +181,7 @@ public class ProtoSchemaGenerator {
     
     /**
      * Add a leaf field to the message.
+     * Uses snake_case naming for fields (ygot compatible).
      */
     private void addLeafField(DescriptorProtos.DescriptorProto.Builder builder, 
                               Leaf leaf, int fieldNumber) {
@@ -189,11 +190,14 @@ public class ProtoSchemaGenerator {
         }
         
         String fieldName = leaf.getIdentifier().getLocalName();
+        // Convert to snake_case for field names (ygot compatible)
+        String protoFieldName = toSnakeCase(fieldName);
+        
         DescriptorProtos.FieldDescriptorProto.Type protoType = getProtoType(leaf.getType());
         
         DescriptorProtos.FieldDescriptorProto.Builder fieldBuilder = 
             DescriptorProtos.FieldDescriptorProto.newBuilder();
-        fieldBuilder.setName(fieldName);
+        fieldBuilder.setName(protoFieldName);
         fieldBuilder.setNumber(fieldNumber);
         fieldBuilder.setType(protoType);
         fieldBuilder.setLabel(DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL);
@@ -203,6 +207,7 @@ public class ProtoSchemaGenerator {
     
     /**
      * Add a leaf-list field to the message.
+     * Uses snake_case naming for fields (ygot compatible).
      */
     private void addLeafListField(DescriptorProtos.DescriptorProto.Builder builder, 
                                   LeafList leafList, int fieldNumber) {
@@ -211,11 +216,14 @@ public class ProtoSchemaGenerator {
         }
         
         String fieldName = leafList.getIdentifier().getLocalName();
+        // Convert to snake_case for field names (ygot compatible)
+        String protoFieldName = toSnakeCase(fieldName);
+        
         DescriptorProtos.FieldDescriptorProto.Type protoType = getProtoType(leafList.getType());
         
         DescriptorProtos.FieldDescriptorProto.Builder fieldBuilder = 
             DescriptorProtos.FieldDescriptorProto.newBuilder();
-        fieldBuilder.setName(fieldName);
+        fieldBuilder.setName(protoFieldName);
         fieldBuilder.setNumber(fieldNumber);
         fieldBuilder.setType(protoType);
         fieldBuilder.setLabel(DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED);
@@ -225,6 +233,7 @@ public class ProtoSchemaGenerator {
     
     /**
      * Add a nested message field.
+     * Uses snake_case naming for fields (ygot compatible).
      */
     private void addNestedMessageField(DescriptorProtos.DescriptorProto.Builder builder, 
                                        DataNode dataNode, int fieldNumber) {
@@ -239,11 +248,13 @@ public class ProtoSchemaGenerator {
         }
         
         String fieldName = dataNode.getIdentifier().getLocalName();
+        // Convert to snake_case for field names (ygot compatible)
+        String protoFieldName = toSnakeCase(fieldName);
         String messageType = getMessageName(dataNode);
         
         DescriptorProtos.FieldDescriptorProto.Builder fieldBuilder = 
             DescriptorProtos.FieldDescriptorProto.newBuilder();
-        fieldBuilder.setName(fieldName);
+        fieldBuilder.setName(protoFieldName);
         fieldBuilder.setNumber(fieldNumber);
         fieldBuilder.setTypeName(messageType);
         fieldBuilder.setLabel(DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL);
@@ -274,13 +285,16 @@ public class ProtoSchemaGenerator {
     
     /**
      * Add fields for an RPC node.
+     * Uses PascalCase for input/output message names (ygot compatible).
      */
     private void addRpcFields(DescriptorProtos.DescriptorProto.Builder builder, 
                               Rpc rpc, int startFieldNumber) {
         // RPCs have input and output sub-messages
         Input input = rpc.getInput();
         if (input != null) {
-            DescriptorProtos.DescriptorProto inputMessage = generateInputOutputMessage(input, rpc.getIdentifier().getLocalName() + "Input");
+            // Use PascalCase for RPC input/output messages (ygot compatible)
+            String inputMessageName = toPascalCase(rpc.getIdentifier().getLocalName()) + "Input";
+            DescriptorProtos.DescriptorProto inputMessage = generateInputOutputMessage(input, inputMessageName);
             if (inputMessage != null) {
                 builder.addNestedType(inputMessage);
             }
@@ -288,7 +302,9 @@ public class ProtoSchemaGenerator {
         
         Output output = rpc.getOutput();
         if (output != null) {
-            DescriptorProtos.DescriptorProto outputMessage = generateInputOutputMessage(output, rpc.getIdentifier().getLocalName() + "Output");
+            // Use PascalCase for RPC input/output messages (ygot compatible)
+            String outputMessageName = toPascalCase(rpc.getIdentifier().getLocalName()) + "Output";
+            DescriptorProtos.DescriptorProto outputMessage = generateInputOutputMessage(output, outputMessageName);
             if (outputMessage != null) {
                 builder.addNestedType(outputMessage);
             }
@@ -359,6 +375,7 @@ public class ProtoSchemaGenerator {
     
     /**
      * Get message name from data node.
+     * Uses PascalCase naming convention (ygot compatible).
      */
     private String getMessageName(DataNode dataNode) {
         if (dataNode == null) {
@@ -366,12 +383,13 @@ public class ProtoSchemaGenerator {
         }
         
         String localName = dataNode.getIdentifier().getLocalName();
-        // Convert to PascalCase for Protobuf message names
-        return capitalize(localName);
+        // Convert to PascalCase for Protobuf message names (ygot compatible)
+        return toPascalCase(localName);
     }
     
     /**
      * Get Protobuf package name from YANG module.
+     * Uses lowercase with underscores (ygot compatible).
      */
     private String getProtobufPackageName(org.yangcentral.yangkit.model.api.stmt.Module module) {
         if (module == null) {
@@ -382,7 +400,8 @@ public class ProtoSchemaGenerator {
             org.yangcentral.yangkit.model.api.schema.ModuleId moduleId = module.getModuleId();
             if (moduleId != null && moduleId.getModuleName() != null) {
                 String moduleName = moduleId.getModuleName();
-                return PROTOBUF_PACKAGE_PREFIX + moduleName.toLowerCase();
+                // Convert to lowercase and replace hyphens with underscores (ygot compatible)
+                return PROTOBUF_PACKAGE_PREFIX + moduleName.toLowerCase().replace('-', '_');
             }
         } catch (Exception e) {
             // Fallback to simple name
@@ -393,12 +412,71 @@ public class ProtoSchemaGenerator {
     
     /**
      * Capitalize first letter of string.
+     * @deprecated Use toPascalCase instead for proper ygot-compatible naming
      */
+    @Deprecated
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }
         return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+    }
+    
+    /**
+     * Convert a string to PascalCase (ygot compatible).
+     * Handles hyphens, underscores, and spaces as word separators.
+     * Examples: "tp-container" -> "TpContainer", "leaf_list" -> "LeafList"
+     */
+    private String toPascalCase(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = true;
+        
+        for (char c : str.toCharArray()) {
+            if (c == '-' || c == '_' || c == ' ') {
+                capitalizeNext = true;
+            } else if (capitalizeNext) {
+                result.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+            } else {
+                result.append(c);
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    /**
+     * Convert a string to snake_case (ygot compatible).
+     * Handles camelCase, PascalCase, and hyphenated strings.
+     * Examples: "tpContainer" -> "tp_container", "LeafList" -> "leaf_list"
+     */
+    private String toSnakeCase(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        
+        // First handle hyphens - convert to underscores
+        str = str.replace('-', '_');
+        
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (Character.isUpperCase(c)) {
+                // Add underscore before uppercase letters (except at start)
+                if (i > 0 && str.charAt(i - 1) != '_') {
+                    result.append('_');
+                }
+                result.append(Character.toLowerCase(c));
+            } else {
+                result.append(c);
+            }
+        }
+        
+        return result.toString();
     }
     
     /**

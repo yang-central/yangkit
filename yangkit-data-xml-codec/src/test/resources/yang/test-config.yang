@@ -1,0 +1,18 @@
+module test-config {
+    namespace "urn:test:config";
+    prefix tc;
+    
+    container config-data {
+        config true;
+        leaf name {
+            type string;
+        }
+    }
+    
+    container state-data {
+        config false;
+        leaf status {
+            type string;
+        }
+    }
+}

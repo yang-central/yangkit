@@ -1,0 +1,71 @@
+module test-string-type {
+    yang-version 1.1;
+    namespace "urn:xml:test:string";
+    prefix xst;
+    
+    revision 2024-03-28 {
+        description "Initial version.";
+    }
+    
+    container string-container {
+        config false;
+        
+        leaf normal {
+            type string;
+        }
+        
+        leaf pattern {
+            type string {
+                pattern "[0-9]{3}-[0-9]{4}";
+            }
+        }
+        
+        leaf pattern-multi {
+            type string {
+                pattern "[a-z]+";
+                pattern "[a-z]{3,10}";
+            }
+        }
+        
+        leaf pattern-modifier {
+            type string {
+                pattern "user.*";
+            }
+        }
+        
+        leaf length {
+            type string {
+                length "5..20";
+            }
+        }
+        
+        leaf min-length {
+            type string {
+                length "10..max";
+            }
+        }
+        
+        leaf max-length {
+            type string {
+                length "min..50";
+            }
+        }
+        
+        leaf all-constraints {
+            type string {
+                length "3..15";
+                pattern "[a-zA-Z][a-zA-Z0-9]*";
+            }
+        }
+        
+        leaf special-chars {
+            type string;
+        }
+        
+        leaf empty-allowed {
+            type string {
+                length "0..100";
+            }
+        }
+    }
+}

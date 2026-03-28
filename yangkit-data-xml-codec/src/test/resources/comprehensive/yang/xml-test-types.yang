@@ -1,0 +1,431 @@
+module test-types {
+    yang-version 1.1;
+    namespace "urn:xml:test:types";
+    prefix xtt;
+    
+    organization "YangKit Test Suite";
+    contact "test@yangkit.org";
+    description "Comprehensive XML codec test module for RFC 7950/6020 compliance.";
+    
+    revision 2024-03-28 {
+        description "Initial version for XML codec testing.";
+    }
+    
+    // String type with various constraints
+    leaf string-normal {
+        type string;
+    }
+    
+    leaf string-pattern {
+        type string {
+            pattern "[0-9]{3}-[0-9]{4}";
+        }
+    }
+    
+    leaf string-length {
+        type string {
+            length "5..20";
+        }
+    }
+    
+    leaf string-pattern-multi {
+        type string {
+            pattern "[a-z]+";
+            pattern "[a-z]{3,10}";
+        }
+    }
+    
+    leaf string-invert {
+        type string {
+            pattern "admin.*" {
+                modifier invert-match;
+            }
+        }
+    }
+    
+    // Numeric types
+    leaf uint8-value {
+        type uint8;
+    }
+    
+    leaf uint16-value {
+        type uint16;
+    }
+    
+    leaf uint32-value {
+        type uint32;
+    }
+    
+    leaf uint64-value {
+        type uint64;
+    }
+    
+    leaf int8-value {
+        type int8;
+    }
+    
+    leaf int16-value {
+        type int16;
+    }
+    
+    leaf int32-value {
+        type int32;
+    }
+    
+    leaf int64-value {
+        type int64;
+    }
+    
+    // Decimal64
+    leaf decimal-value {
+        type decimal64 {
+            fraction-digits 4;
+            range "0.0001 .. 100.9999";
+        }
+    }
+    
+    // Boolean
+    leaf bool-value {
+        type boolean;
+    }
+    
+    // Empty
+    leaf empty-value {
+        type empty;
+    }
+    
+    // Enumeration
+    leaf enum-value {
+        type enumeration {
+            enum active {
+                value 1;
+            }
+            enum inactive {
+                value 2;
+            }
+            enum pending;
+        }
+    }
+    
+    // Bits
+    leaf bits-value {
+        type bits {
+            bit admin {
+                position 0;
+            }
+            bit user {
+                position 1;
+            }
+            bit guest {
+                position 2;
+            }
+        }
+    }
+    
+    // Identityref
+    identity base-protocol;
+    identity tcp {
+        base base-protocol;
+    }
+    identity udp {
+        base base-protocol;
+    }
+    
+    leaf identityref-value {
+        type identityref {
+            base base-protocol;
+        }
+    }
+    
+    // Union
+    leaf union-value {
+        type union {
+            type uint16;
+            type string {
+                length "5..10";
+            }
+        }
+    }
+    
+    // Binary
+    leaf binary-value {
+        type binary {
+            length "4..8";
+        }
+    }
+    
+    // Instance identifier
+    leaf instance-id-value {
+        type instance-identifier;
+    }
+    
+    // Container with nested structure
+    container nested-container {
+        leaf name {
+            type string;
+        }
+        
+        container inner {
+            leaf value {
+                type int32;
+            }
+            
+            list item {
+                key "id";
+                leaf id {
+                    type uint32;
+                }
+                leaf description {
+                    type string;
+                }
+            }
+        }
+    }
+    
+    // List with multiple keys
+    list multi-key-list {
+        key "first-key second-key";
+        leaf first-key {
+            type string;
+        }
+        leaf second-key {
+            type uint32;
+        }
+        leaf data {
+            type string;
+        }
+    }
+    
+    // Leaf-list
+    leaf-list string-list {
+        type string;
+        min-elements 2;
+        max-elements 10;
+    }
+    
+    // Choice and case
+    choice notification-choice {
+        case email {
+            leaf email-address {
+                type string;
+            }
+            leaf email-subject {
+                type string;
+            }
+        }
+        case sms {
+            leaf phone-number {
+                type string;
+            }
+            leaf sms-message {
+                type string;
+            }
+        }
+    }
+    
+    // Anydata and anyxml
+    anydata any-data;
+    anyxml any-xml;
+    
+    // Uses and grouping
+    grouping address-info {
+        leaf street {
+            type string;
+        }
+        leaf city {
+            type string;
+        }
+        leaf postal-code {
+            type string {
+                pattern "[0-9]{5}";
+            }
+        }
+    }
+    
+    container shipping {
+        uses address-info;
+    }
+    
+    // Augment (will be augmented by another module)
+    container base-container {
+        leaf base-field {
+            type string;
+        }
+    }
+    
+    // RPC operations
+    rpc calculate {
+        input {
+            leaf operand1 {
+                type decimal64 {
+                    fraction-digits 2;
+                }
+                mandatory true;
+            }
+            leaf operand2 {
+                type decimal64 {
+                    fraction-digits 2;
+                }
+                mandatory true;
+            }
+            leaf operation {
+                type enumeration {
+                    enum add;
+                    enum subtract;
+                    enum multiply;
+                    enum divide;
+                }
+                mandatory true;
+            }
+        }
+        output {
+            leaf result {
+                type decimal64 {
+                    fraction-digits 2;
+                }
+            }
+        }
+    }
+    
+    rpc validate-input {
+        input {
+            leaf data {
+                type string;
+            }
+            leaf-list validators {
+                type string;
+                min-elements 1;
+            }
+        }
+        output {
+            leaf valid {
+                type boolean;
+            }
+            leaf error-message {
+                type string;
+            }
+        }
+    }
+    
+    // Action in a container
+    container processor {
+        leaf status {
+            type string;
+        }
+        
+        action reset {
+            input {
+                leaf force {
+                    type boolean;
+                    default false;
+                }
+            }
+            output {
+                leaf result {
+                    type string;
+                }
+            }
+        }
+        
+        action get-statistics {
+            output {
+                leaf packets-processed {
+                    type uint64;
+                }
+                leaf errors {
+                    type uint64;
+                }
+            }
+        }
+    }
+    
+    // Notification
+    notification system-event {
+        leaf event-type {
+            type string;
+        }
+        leaf severity {
+            type enumeration {
+                enum critical;
+                enum major;
+                enum minor;
+                enum warning;
+                enum informational;
+            }
+        }
+        leaf timestamp {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+    }
+    
+    // Config false (state data)
+    container state-data {
+        config false;
+        leaf operational-status {
+            type string;
+        }
+        leaf last-modified {
+            type string;
+        }
+        leaf statistics {
+            type uint64;
+        }
+    }
+    
+    // Default values
+    container defaults-test {
+        leaf name {
+            type string;
+            default "default-name";
+        }
+        leaf count {
+            type uint32;
+            default 42;
+        }
+        leaf enabled {
+            type boolean;
+            default true;
+        }
+    }
+    
+    // Mandatory constraint
+    container mandatory-test {
+        leaf required-field {
+            type string;
+            mandatory true;
+        }
+        leaf optional-field {
+            type string;
+        }
+    }
+    
+    // Must constraint
+    leaf must-constraint {
+        type uint32;
+        must ". > 10 and . < 100" {
+            error-message "Value must be between 10 and 100";
+        }
+    }
+    
+    // When condition
+    container feature-container {
+        when "/nested-container/name = 'special'";
+        leaf special-value {
+            type string;
+        }
+    }
+    
+    // Ref definition
+    leaf string-ref {
+        type string;
+    }
+    
+    leaf string-reference {
+        type leafref {
+            path "../string-ref";
+        }
+    }
+}

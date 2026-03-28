@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uint8-container xmlns="urn:xml:test:uint8">
+    <normal>256</normal>
+</uint8-container>

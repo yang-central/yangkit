@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uint8-container xmlns="urn:xml:test:uint8">
+    <ranged>100</ranged>
+</uint8-container>

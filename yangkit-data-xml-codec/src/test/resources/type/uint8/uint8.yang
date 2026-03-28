@@ -1,0 +1,43 @@
+module test-uint8-type {
+    yang-version 1.1;
+    namespace "urn:xml:test:uint8";
+    prefix xut8;
+    
+    revision 2024-03-28 {
+        description "Initial version for uint8 type testing.";
+    }
+    
+    container uint8-container {
+        config false;
+        
+        leaf normal {
+            type uint8;
+        }
+        
+        leaf ranged {
+            type uint8 {
+                range "10..200";
+            }
+        }
+        
+        leaf min-value {
+            type uint8 {
+                range "min..50";
+            }
+        }
+        
+        leaf max-value {
+            type uint8 {
+                range "100..max";
+            }
+        }
+        
+        leaf boundary-zero {
+            type uint8;
+        }
+        
+        leaf boundary-max {
+            type uint8;
+        }
+    }
+}

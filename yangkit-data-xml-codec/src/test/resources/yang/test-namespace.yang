@@ -1,0 +1,13 @@
+module test-namespace {
+    namespace "urn:test:namespace";
+    prefix tn;
+    
+    container root {
+        leaf field1 {
+            type string;
+        }
+        leaf field2 {
+            type uint32;
+        }
+    }
+}

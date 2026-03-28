@@ -1,0 +1,89 @@
+module test-proto-rpc {
+    namespace "http://example.com/test-proto-rpc";
+    prefix tpr;
+
+    yang-version 1.1;
+
+    organization "Example Corp";
+    contact "test@example.com";
+    description "Test module for protobuf RPC codec testing";
+
+    revision 2024-01-01 {
+        description "Initial version";
+    }
+
+    // Simple RPC
+    rpc get-info {
+        description "Get information RPC";
+
+        input {
+            leaf request-id {
+                type string;
+                description "Request identifier";
+            }
+
+            leaf verbose {
+                type boolean;
+                default false;
+                description "Verbose output flag";
+            }
+        }
+
+        output {
+            leaf response-id {
+                type string;
+                description "Response identifier";
+            }
+
+            leaf status {
+                type string;
+                description "Status message";
+            }
+
+            leaf code {
+                type uint32;
+                description "Status code";
+            }
+        }
+    }
+
+    // RPC with complex input/output
+    rpc update-config {
+        description "Update configuration RPC";
+
+        input {
+            container config {
+                description "Configuration container";
+
+                leaf name {
+                    type string;
+                    mandatory true;
+                    description "Config name";
+                }
+
+                leaf value {
+                    type string;
+                    description "Config value";
+                }
+
+                leaf enabled {
+                    type boolean;
+                    default true;
+                    description "Enabled flag";
+                }
+            }
+        }
+
+        output {
+            leaf success {
+                type boolean;
+                description "Success indicator";
+            }
+
+            leaf message {
+                type string;
+                description "Result message";
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+module test-augment {
+    yang-version 1.1;
+    namespace "urn:xml:test:augment";
+    prefix xta;
+    
+    import xml-test-types {
+        prefix xtt;
+    }
+    
+    organization "YangKit Test Suite";
+    description "Augment module for XML codec testing.";
+    
+    revision 2024-03-28 {
+        description "Initial version.";
+    }
+    
+    augment "/xtt:base-container" {
+        leaf augmented-field-1 {
+            type string;
+        }
+        leaf augmented-field-2 {
+            type uint32;
+        }
+        container augmented-container {
+            leaf nested-augment {
+                type string;
+            }
+        }
+    }
+}

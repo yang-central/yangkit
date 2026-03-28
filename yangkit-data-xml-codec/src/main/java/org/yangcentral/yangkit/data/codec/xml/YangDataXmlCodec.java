@@ -52,6 +52,10 @@ public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<
             return new AnyxmlDataXmlCodec( (Anyxml) dataSchemaNode);
         } else if (dataSchemaNode instanceof Notification){
             return new NotificationDataXmlCodec((Notification) dataSchemaNode);
+        } else if (dataSchemaNode instanceof Rpc) {
+            return new RpcDataXmlCodec((Rpc) dataSchemaNode);
+        } else if (dataSchemaNode instanceof Action) {
+            return new ActionDataXmlCodec((Action) dataSchemaNode);
         }
         else {
             throw new IllegalArgumentException("not-support data schema type");
