@@ -11,7 +11,10 @@ module test-module {
     description "Initial revision";
   }
 
-  // Simple leaf for basic type testing
+  // -----------------------------------------------------------------------
+  // Basic scalar leaves (RFC 9254 §4)
+  // -----------------------------------------------------------------------
+
   leaf test-string {
     type string;
     description "Test string leaf";
@@ -31,43 +34,118 @@ module test-module {
     type decimal64 {
       fraction-digits 6;
     }
-    description "Test decimal leaf";
+    description "Test decimal64 leaf";
   }
 
-  // Container for testing nested structures
+  leaf test-binary {
+    type binary;
+    description "Test binary leaf";
+  }
+
+  leaf test-bits {
+    type bits {
+      bit bit0 { position 0; }
+      bit bit1 { position 1; }
+      bit bit2 { position 2; }
+    }
+    description "Test bits leaf";
+  }
+
+  leaf test-empty {
+    type empty;
+    description "Test empty leaf";
+  }
+
+  leaf test-enum {
+    type enumeration {
+      enum red   { value 1; }
+      enum green { value 2; }
+      enum blue  { value 3; }
+    }
+    description "Test enumeration leaf";
+  }
+
+  // -----------------------------------------------------------------------
+  // Container (RFC 9254 §5.1)
+  // -----------------------------------------------------------------------
+
   container test-container {
     description "Test container";
-    
+
     leaf name {
       type string;
       description "Name field";
     }
-    
+
     leaf value {
       type int32;
       description "Value field";
     }
   }
 
-  // Leaf-list for testing multiple values
+  // -----------------------------------------------------------------------
+  // Leaf-list (RFC 9254 §5.2)
+  // -----------------------------------------------------------------------
+
   leaf-list test-leaf-list {
     type string;
     description "Test leaf-list";
   }
 
-  // List for testing list structures
+  leaf-list test-int-leaf-list {
+    type int32;
+    description "Test integer leaf-list";
+  }
+
+  // -----------------------------------------------------------------------
+  // List with key (RFC 9254 §5.3)
+  // -----------------------------------------------------------------------
+
   list test-list {
     key "id";
     description "Test list";
-    
+
     leaf id {
       type int32;
-      description "List entry ID";
+      description "List entry ID (key)";
     }
-    
+
     leaf name {
       type string;
       description "List entry name";
+    }
+
+    leaf active {
+      type boolean;
+      description "List entry active flag";
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Nested container with list inside
+  // -----------------------------------------------------------------------
+
+  container network {
+    description "Network configuration";
+
+    list interface {
+      key "name";
+      description "Network interface";
+
+      leaf name {
+        type string;
+        description "Interface name (key)";
+      }
+
+      leaf enabled {
+        type boolean;
+        description "Interface enabled";
+      }
+
+      leaf mtu {
+        type int32;
+        description "MTU value";
+      }
     }
   }
 }

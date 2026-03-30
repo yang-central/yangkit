@@ -17,7 +17,8 @@
 package org.yangcentral.yangkit.data.codec.cbor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.AnyxmlData;
@@ -25,40 +26,43 @@ import org.yangcentral.yangkit.data.impl.model.AnyXmlDataImpl;
 import org.yangcentral.yangkit.model.api.stmt.Anyxml;
 
 /**
- * CBOR codec for YANG anyxml data.
- * AnyXML contains XML content that needs to be serialized/deserialized.
+ * CBOR codec for YANG {@code anyxml} (RFC 9254 §4.15).
+ *
+ * <p>The XML value is serialized as a CBOR text string (the document's XML
+ * representation) and deserialized back from a text string.
  *
  * @author Yangkit Team
  */
 public class AnyxmlDataCborCodec extends YangDataCborCodec<Anyxml, AnyxmlData> {
-    
+
     public AnyxmlDataCborCodec(Anyxml schemaNode) {
         super(schemaNode);
     }
-    
+
     @Override
     protected JsonNode buildJson(AnyxmlData yangData) throws YangDataCborCodecException {
-        // For AnyXML, we need to serialize the XML content
-        // This is a simplified implementation
-        ObjectNode rootNode = JSON_MAPPER.createObjectNode();
-        
-        // TODO: Implement proper XML serialization
-        // The XML content should be serialized according to RFC 9254
-        
-        return rootNode;
+        Document doc = yangData.getValue();
+        if (doc == null) {
+            return JSON_MAPPER.createObjectNode();
+        }
+        return JSON_MAPPER.getNodeFactory().textNode(doc.asXML());
     }
-    
+
     @Override
-    protected AnyxmlData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder) 
+    protected AnyxmlData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder)
             throws YangDataCborCodecException {
         AnyXmlDataImpl anyxmlData = new AnyXmlDataImpl(getSchemaNode());
-        
         QName qName = getSchemaNode().getIdentifier();
         anyxmlData.setQName(qName);
-        
-        // Process anyxml content from JSON
-        // TODO: Implement proper XML deserialization
-        
+
+        if (jsonNode != null && jsonNode.isTextual()) {
+            try {
+                Document doc = DocumentHelper.parseText(jsonNode.asText());
+                anyxmlData.setValue(doc);
+            } catch (Exception e) {
+                // Malformed XML - leave value as null (soft failure)
+            }
+        }
         return anyxmlData;
     }
 }

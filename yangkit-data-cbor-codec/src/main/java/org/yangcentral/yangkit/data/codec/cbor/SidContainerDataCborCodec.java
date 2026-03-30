@@ -24,8 +24,6 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.impl.model.ContainerDataImpl;
-import org.yangcentral.yangkit.data.impl.model.LeafDataImpl;
-import org.yangcentral.yangkit.data.impl.model.LeafListDataImpl;
 import org.yangcentral.yangkit.model.api.stmt.Container;
 import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
@@ -117,22 +115,20 @@ public class SidContainerDataCborCodec extends YangDataCborCodec<Container, Cont
                 // Create appropriate data node based on schema type
                 if (childSchema instanceof Leaf) {
                     Leaf leaf = (Leaf) childSchema;
-                    LeafDataImpl leafData = new LeafDataImpl(leaf);
-                    leafData.setQName(leaf.getIdentifier());
-                    
-                    // Set value from JSON
-                    Object value = CborCodecUtil.convertFromJson(fieldValue, leaf.getType());
-                    if (value != null) {
-                        // Note: Setting raw value, proper implementation would use YangDataValue
-                        containerData.addChild(leafData);
+                    LeafDataCborCodec leafCodec = new LeafDataCborCodec(leaf);
+                    LeafData<?> decodedLeaf = leafCodec.buildData(fieldValue, validatorResultBuilder);
+                    if (decodedLeaf != null) {
+                        containerData.addChild(decodedLeaf);
                     }
                 } else if (childSchema instanceof LeafList) {
                     LeafList leafList = (LeafList) childSchema;
-                    // LeafList requires a value to construct, skip for now
-                    // Full implementation would need to handle the value properly
-                    // LeafListDataImpl<D> leafListData = new LeafListDataImpl<>(leafList, null);
-                    // leafListData.setQName(leafList.getIdentifier());
-                    // containerData.addChild(leafListData);
+                    LeafListDataCborCodec llc = new LeafListDataCborCodec(leafList);
+                    if (fieldValue.isArray()) {
+                        for (JsonNode el : fieldValue) {
+                            LeafListData<?> lld = llc.buildData(el, validatorResultBuilder);
+                            if (lld != null) containerData.addChild(lld);
+                        }
+                    }
                 } else if (childSchema instanceof Container) {
                     Container container = (Container) childSchema;
                     SidContainerDataCborCodec childCodec = 

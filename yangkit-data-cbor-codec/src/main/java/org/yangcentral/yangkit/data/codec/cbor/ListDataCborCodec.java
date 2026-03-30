@@ -17,55 +17,143 @@
 package org.yangcentral.yangkit.data.codec.cbor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.ContainerData;
+import org.yangcentral.yangkit.data.api.model.LeafData;
+import org.yangcentral.yangkit.data.api.model.LeafListData;
 import org.yangcentral.yangkit.data.api.model.ListData;
-import org.yangcentral.yangkit.data.impl.model.ListDataImpl;
+import org.yangcentral.yangkit.model.api.stmt.Container;
+import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
+import org.yangcentral.yangkit.model.api.stmt.Leaf;
+import org.yangcentral.yangkit.model.api.stmt.LeafList;
 import org.yangcentral.yangkit.model.api.stmt.YangList;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * CBOR codec for YANG list data.
+ * CBOR codec for a single YANG list entry.
+ *
+ * <p>A list entry is serialized as a CBOR map (JSON object) containing all
+ * data children (key leaves + non-key fields). The parent container codec is
+ * responsible for wrapping multiple entries into a CBOR array.
  *
  * @author Yangkit Team
  */
 public class ListDataCborCodec extends YangDataCborCodec<YangList, ListData> {
-    
+
     public ListDataCborCodec(YangList schemaNode) {
         super(schemaNode);
     }
-    
+
+    /**
+     * Serializes a single list entry as a JSON object containing all its children
+     * (key leaves + non-key fields).
+     */
     @Override
-    protected ArrayNode buildJson(ListData yangData) throws YangDataCborCodecException {
-        ArrayNode arrayNode = JSON_MAPPER.createArrayNode();
-        
-        // Serialize each list entry - simplified implementation
-        // Full implementation would need to get actual entries from the list data
-        // This requires proper API support for iterating through list entries
-        
-        return arrayNode;
+    protected ObjectNode buildJson(ListData yangData) throws YangDataCborCodecException {
+        return CborCodecUtil.serializeListEntry(yangData);
     }
-    
+
+    /**
+     * Deserializes a JSON object as a single list entry.
+     *
+     * <p>Key leaves are extracted first (required by {@link YangDataBuilderFactory}),
+     * then non-key children are deserialized and added to the entry.
+     */
     @Override
-    protected ListData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder) 
+    protected ListData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder)
             throws YangDataCborCodecException {
-        // Create with empty keys list as required by constructor
-        ListDataImpl listData = new ListDataImpl(getSchemaNode(), java.util.Collections.emptyList());
-        
-        QName qName = getSchemaNode().getIdentifier();
-        listData.setQName(qName);
-        
-        // Process list entries from JSON array
-        if (jsonNode != null && jsonNode.isArray()) {
-            ArrayNode arrayNode = (ArrayNode) jsonNode;
-            for (JsonNode entryNode : arrayNode) {
-                // TODO: Implement entry deserialization based on list schema
-                // This requires creating container data for each entry
+        if (jsonNode == null || !jsonNode.isObject()) {
+            throw new YangDataCborCodecException("Expected a JSON object for list entry, got: "
+                    + (jsonNode == null ? "null" : jsonNode.getNodeType()));
+        }
+
+        // --- Step 1: extract key leaf data ---
+        List<LeafData> keyDataList = new ArrayList<>();
+        List<Leaf> keyNodes = getSchemaNode().getKey().getkeyNodes();
+        for (Leaf keyLeaf : keyNodes) {
+            String keyName = keyLeaf.getArgStr();
+            JsonNode keyElement = jsonNode.get(keyName);
+            if (keyElement == null) {
+                // Key absent in payload – skip (e.g. list was encoded without keys)
+                continue;
+            }
+            LeafDataCborCodec keyCodec = new LeafDataCborCodec(keyLeaf);
+            LeafData<?> keyData = keyCodec.buildData(keyElement, validatorResultBuilder);
+            if (keyData != null) {
+                keyDataList.add(keyData);
             }
         }
-        
+
+        // --- Step 2: create the list entry via builder ---
+        @SuppressWarnings("unchecked")
+        ListData listData = (ListData) YangDataBuilderFactory.getBuilder()
+                .getYangData(getSchemaNode(), keyDataList);
+        if (listData == null) {
+            throw new YangDataCborCodecException(
+                    "Builder returned null for list entry: " + getSchemaNode().getArgStr());
+        }
+        listData.setQName(getSchemaNode().getIdentifier());
+
+        // --- Step 3: deserialize non-key children ---
+        List<DataDefinition> schemaDefs = getSchemaNode().getDataDefChildren();
+        for (DataDefinition def : schemaDefs) {
+            if (!(def instanceof org.yangcentral.yangkit.model.api.stmt.SchemaNode)) continue;
+            org.yangcentral.yangkit.model.api.stmt.SchemaNode childSchema =
+                    (org.yangcentral.yangkit.model.api.stmt.SchemaNode) def;
+            String childName = childSchema.getIdentifier().getLocalName();
+
+            // Skip keys – they are already part of the identifier
+            boolean isKey = false;
+            for (Leaf key : keyNodes) {
+                if (key.getArgStr().equals(childName)) { isKey = true; break; }
+            }
+            if (isKey) continue;
+
+            JsonNode childNode = jsonNode.get(childName);
+            if (childNode == null) continue;
+
+            try {
+                if (childSchema instanceof Leaf) {
+                    LeafDataCborCodec lc = new LeafDataCborCodec((Leaf) childSchema);
+                    LeafData<?> ld = lc.buildData(childNode, validatorResultBuilder);
+                    if (ld != null) listData.addChild(ld);
+
+                } else if (childSchema instanceof LeafList) {
+                    LeafList ll = (LeafList) childSchema;
+                    if (childNode.isArray()) {
+                        LeafListDataCborCodec llc = new LeafListDataCborCodec(ll);
+                        for (JsonNode element : childNode) {
+                            LeafListData<?> lld = llc.buildData(element, validatorResultBuilder);
+                            if (lld != null) listData.addChild(lld);
+                        }
+                    }
+
+                } else if (childSchema instanceof Container) {
+                    ContainerDataCborCodec cc = new ContainerDataCborCodec((Container) childSchema);
+                    ContainerData cd = cc.buildData(childNode, validatorResultBuilder);
+                    if (cd != null) listData.addChild(cd);
+
+                } else if (childSchema instanceof YangList) {
+                    YangList nestedList = (YangList) childSchema;
+                    ListDataCborCodec ldc = new ListDataCborCodec(nestedList);
+                    if (childNode.isArray()) {
+                        for (JsonNode entryNode : childNode) {
+                            ListData entry = ldc.buildData(entryNode, validatorResultBuilder);
+                            if (entry != null) listData.addChild(entry);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                throw new YangDataCborCodecException(
+                        "Failed to deserialize child '" + childName + "' in list entry", e);
+            }
+        }
+
         return listData;
     }
 }

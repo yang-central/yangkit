@@ -25,41 +25,43 @@ import org.yangcentral.yangkit.data.impl.model.AnyDataDataImpl;
 import org.yangcentral.yangkit.model.api.stmt.Anydata;
 
 /**
- * CBOR codec for YANG anydata data.
- * AnyData can contain arbitrary structured data (XML, JSON, etc.).
+ * CBOR codec for YANG {@code anydata} (RFC 9254 §4.14).
+ *
+ * <p>{@code anydata} holds an arbitrary {@code YangDataDocument} value. Full
+ * round-trip encoding requires converting between {@code YangDataDocument} and
+ * CBOR, which in turn requires a YANG schema context. This implementation
+ * provides a best-effort serialization:
+ * <ul>
+ *   <li>Serialize: emits an empty CBOR map when no richer representation is
+ *       available (the value is a {@code YangDataDocument} that cannot easily
+ *       be decomposed here).</li>
+ *   <li>Deserialize: creates the {@code anydata} node without populating its
+ *       value (schema-context-aware population is out of scope).</li>
+ * </ul>
  *
  * @author Yangkit Team
  */
 public class AnyDataDataCborCodec extends YangDataCborCodec<Anydata, AnyDataData> {
-    
+
     public AnyDataDataCborCodec(Anydata schemaNode) {
         super(schemaNode);
     }
-    
+
     @Override
     protected JsonNode buildJson(AnyDataData yangData) throws YangDataCborCodecException {
-        // For AnyData, we need to serialize the contained data structure
-        // This is a simplified implementation - full implementation would need
-        // to handle the actual content based on its type
+        // anydata value is a YangDataDocument; without a full YANG schema context
+        // we cannot traverse it generically. Return an empty map as placeholder.
         ObjectNode rootNode = JSON_MAPPER.createObjectNode();
-        
-        // TODO: Implement proper serialization based on AnyData content type
-        // The content could be XML, JSON, or other structured data
-        
         return rootNode;
     }
-    
+
     @Override
-    protected AnyDataData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder) 
+    protected AnyDataData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder)
             throws YangDataCborCodecException {
         AnyDataDataImpl anyDataData = new AnyDataDataImpl(getSchemaNode());
-        
         QName qName = getSchemaNode().getIdentifier();
         anyDataData.setQName(qName);
-        
-        // Process anydata content from JSON
-        // TODO: Implement proper deserialization based on expected content type
-        
+        // Value population requires schema context - left as null
         return anyDataData;
     }
 }

@@ -16,147 +16,323 @@
 
 package org.yangcentral.yangkit.data.codec.cbor;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.fasterxml.jackson.dataformat.cbor.CBORGenerator;
+import com.fasterxml.jackson.dataformat.cbor.CBORParser;
+import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.data.api.model.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.*;
 
 /**
- * SID-aware CBOR encoder/decoder.
- * Provides high-level API for SID-based CBOR encoding as per RFC 9254 Section 5.
- * 
- * <p>RFC 9254 Section 5 defines that SID-based encoded data SHOULD be wrapped
- * in a CBOR tag (60000-60999 range) to indicate the encoding method.</p>
- * 
+ * SID-aware CBOR encoder/decoder using direct {@link CBORGenerator} output.
+ *
+ * <p>This implementation produces RFC 9254 §3.3-compliant SID-based CBOR:
+ * <ul>
+ *   <li>Map keys are CBOR <em>integers</em> (not text strings).</li>
+ *   <li>Keys are <em>delta-encoded</em>: each key is the difference between the
+ *       node's SID and its parent node's SID (root parent SID = 0). Within a
+ *       single map siblings are ordered by ascending SID and deltas are computed
+ *       cumulatively from the previous sibling.</li>
+ *   <li>The outermost payload is tagged with CBOR tag 272 (the IANA-registered
+ *       tag for YANG-CBOR SID-encoded content) via raw byte prepending.</li>
+ * </ul>
+ *
+ * <p><b>Known limitations</b> (out of scope for this fix):
+ * <ul>
+ *   <li>decimal64 is encoded as text string instead of CBOR tag 4.</li>
+ *   <li>bits is encoded as space-separated text instead of a byte string.</li>
+ * </ul>
+ *
  * @author Yangkit Team
  */
 public class SidCborEncoder {
-    
+
     /**
-     * Encodes YANG container data to CBOR bytes using SID-based encoding.
-     * 
-     * @param container the YANG container data
-     * @param sidManager the SID manager
-     * @return CBOR byte array with SID tag
-     * @throws YangDataCborCodecException if encoding fails
+     * IANA-registered CBOR tag for YANG SID-encoded data (RFC 9254 §9.2).
      */
-    public static byte[] encodeToCbor(org.yangcentral.yangkit.data.api.model.ContainerData container,
-                                     SidManager sidManager) 
-            throws YangDataCborCodecException {
-        
-        try {
-            // Encode container children using SIDs
-            ObjectNode jsonNode = SidEncoder.encodeWithSid(container, sidManager);
-            
-            // Wrap in CBOR tag (60000-60999 range)
-            byte[] cborBytes = encodeWithTag(jsonNode, SidManager.CBOR_TAG_SID);
-            
-            return cborBytes;
-        } catch (Exception e) {
-            throw new YangDataCborCodecException("Failed to encode container to CBOR with SID", e);
-        }
-    }
-    
+    public static final int YANG_CBOR_SID_TAG = 272;
+
+    private static final CBORFactory CBOR_FACTORY = new CBORFactory();
+
+    // -----------------------------------------------------------------------
+    // Public API
+    // -----------------------------------------------------------------------
+
     /**
-     * Decodes CBOR bytes to YANG container data using SID-based decoding.
-     * 
-     * @param cborBytes the CBOR byte array
-     * @param sidManager the SID manager
-     * @return decoded JSON node (ready for further processing)
-     * @throws YangDataCborCodecException if decoding fails
+     * Encodes a container to CBOR bytes using SID-based integer map keys with
+     * delta encoding (RFC 9254 §3.3). The payload is wrapped in CBOR tag 272.
+     *
+     * @param container  the YANG container to encode
+     * @param sidManager SID manager for QName→SID lookup
+     * @return CBOR bytes with tag 272 prefix
+     * @throws YangDataCborCodecException on encoding error
      */
-    public static JsonNode decodeFromCbor(byte[] cborBytes, SidManager sidManager) 
+    public static byte[] encodeToCbor(ContainerData container, SidManager sidManager)
             throws YangDataCborCodecException {
-        
         try {
-            // Parse CBOR bytes
-            JsonNode jsonNode = CborCodecUtil.CBOR_MAPPER.readTree(cborBytes);
-            
-            // Check if it's tagged with SID tag
-            if (jsonNode != null && hasSidTag(jsonNode)) {
-                // Remove tag and decode with SID mapping
-                JsonNode untaggedNode = removeTag(jsonNode);
-                return SidEncoder.decodeWithSid(untaggedNode, sidManager);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (CBORGenerator gen = CBOR_FACTORY.createGenerator(baos)) {
+                writeContainer(gen, container, sidManager, 0L);
             }
-            
-            // No tag, decode normally
-            return SidEncoder.decodeWithSid(jsonNode, sidManager);
+            byte[] payload = baos.toByteArray();
+            return prependTag(payload, YANG_CBOR_SID_TAG);
+        } catch (IOException e) {
+            throw new YangDataCborCodecException("Failed to SID-encode container", e);
+        }
+    }
+
+    /**
+     * Decodes CBOR bytes (possibly tagged with tag 272) that were encoded with
+     * SID-based integer keys into a resolved {@link ObjectNode} with original
+     * local names as string keys. The result can then be fed into
+     * {@link ContainerDataCborCodec#deserialize}.
+     *
+     * @param cborBytes  CBOR bytes (with or without tag 272 prefix)
+     * @param sidManager SID manager for SID→QName lookup
+     * @return ObjectNode with resolved string keys
+     * @throws YangDataCborCodecException on decoding error
+     */
+    public static JsonNode decodeFromCbor(byte[] cborBytes, SidManager sidManager)
+            throws YangDataCborCodecException {
+        try {
+            byte[] payload = stripTag(cborBytes, YANG_CBOR_SID_TAG);
+            JsonNode raw = CborCodecUtil.CBOR_MAPPER.readTree(payload);
+            return resolveIntegerKeys(raw, sidManager);
+        } catch (IOException e) {
+            throw new YangDataCborCodecException("Failed to decode SID CBOR", e);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Encoding helpers
+    // -----------------------------------------------------------------------
+
+    /**
+     * Writes a {@link YangDataContainer} as a CBOR map with SID delta-encoded
+     * integer keys.
+     *
+     * @param gen         CBOR generator
+     * @param container   container whose children to write
+     * @param sidManager  SID lookup
+     * @param parentSid   SID of the parent node (0 for the root)
+     */
+    static void writeContainer(CBORGenerator gen, YangDataContainer container,
+                               SidManager sidManager, long parentSid) throws IOException {
+
+        List<YangData<?>> children = container.getDataChildren();
+
+        // Group by QName to collect list/leaf-list siblings
+        Map<String, List<YangData<?>>> groups = new LinkedHashMap<>();
+        for (YangData<?> child : children) {
+            if (child == null) continue;
+            String key = child.getQName().getLocalName();
+            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(child);
+        }
+
+        // Sort groups by SID for delta encoding
+        List<Map.Entry<String, List<YangData<?>>>> sorted = new ArrayList<>(groups.entrySet());
+        sorted.sort((a, b) -> {
+            Long sidA = sidManager.getSid(a.getValue().get(0).getQName());
+            Long sidB = sidManager.getSid(b.getValue().get(0).getQName());
+            if (sidA == null) sidA = Long.MAX_VALUE;
+            if (sidB == null) sidB = Long.MAX_VALUE;
+            return Long.compare(sidA, sidB);
+        });
+
+        gen.writeStartObject(sorted.size());
+        long prevSid = parentSid;
+
+        for (Map.Entry<String, List<YangData<?>>> entry : sorted) {
+            List<YangData<?>> group = entry.getValue();
+            YangData<?> first = group.get(0);
+            QName qName = first.getQName();
+            Long sid = sidManager.getSid(qName);
+
+            long delta = (sid != null ? sid : 0L) - prevSid;
+            gen.writeFieldId(delta);
+            if (sid != null) prevSid = sid;
+
+            if (first instanceof LeafListData) {
+                gen.writeStartArray();
+                for (YangData<?> item : group) {
+                    writeScalarValue(gen, ((LeafListData<?>) item).getValue());
+                }
+                gen.writeEndArray();
+
+            } else if (first instanceof ListData) {
+                gen.writeStartArray();
+                for (YangData<?> item : group) {
+                    writeContainer(gen, (ListData) item, sidManager,
+                            sid != null ? sid : 0L);
+                }
+                gen.writeEndArray();
+
+            } else if (first instanceof LeafData) {
+                writeScalarValue(gen, ((LeafData<?>) first).getValue());
+
+            } else if (first instanceof YangDataContainer) {
+                writeContainer(gen, (YangDataContainer) first, sidManager,
+                        sid != null ? sid : 0L);
+            }
+        }
+
+        gen.writeEndObject();
+    }
+
+    /** Writes a single typed scalar value to the generator. */
+    private static void writeScalarValue(CBORGenerator gen, YangDataValue<?, ?> value)
+            throws IOException {
+        if (value == null) {
+            gen.writeNull();
+            return;
+        }
+        Object val;
+        try {
+            val = value.getValue();
         } catch (Exception e) {
-            throw new YangDataCborCodecException("Failed to decode CBOR with SID", e);
+            try {
+                gen.writeString(value.getStringValue());
+            } catch (Exception ex) {
+                gen.writeNull();
+            }
+            return;
         }
-    }
-    
-    /**
-     * Encodes a JSON node to CBOR bytes with a specific tag.
-     * 
-     * @param jsonNode the JSON node to encode
-     * @param tag the CBOR tag to apply
-     * @return CBOR byte array
-     * @throws IOException if encoding fails
-     */
-    private static byte[] encodeWithTag(JsonNode jsonNode, int tag) throws IOException {
-        byte[] cborBytes = CborCodecUtil.CBOR_MAPPER.writeValueAsBytes(jsonNode);
-        
-        // Prepend CBOR tag
-        // CBOR tag format: major type 6 (tag), additional information based on tag value
-        byte[] taggedBytes;
-        if (tag < 24) {
-            // Small tag value
-            taggedBytes = new byte[cborBytes.length + 1];
-            taggedBytes[0] = (byte) (0xC0 | tag);
-            System.arraycopy(cborBytes, 0, taggedBytes, 1, cborBytes.length);
-        } else if (tag < 256) {
-            // Tag fits in one byte
-            taggedBytes = new byte[cborBytes.length + 2];
-            taggedBytes[0] = (byte) 0xD8; // tag 1-byte follow
-            taggedBytes[1] = (byte) tag;
-            System.arraycopy(cborBytes, 0, taggedBytes, 2, cborBytes.length);
-        } else if (tag < 65536) {
-            // Tag fits in two bytes
-            taggedBytes = new byte[cborBytes.length + 3];
-            taggedBytes[0] = (byte) 0xD9; // tag 2-bytes follow
-            taggedBytes[1] = (byte) ((tag >> 8) & 0xFF);
-            taggedBytes[2] = (byte) (tag & 0xFF);
-            System.arraycopy(cborBytes, 0, taggedBytes, 3, cborBytes.length);
+        if (val == null) {
+            gen.writeNull();
+        } else if (val instanceof Boolean) {
+            gen.writeBoolean((Boolean) val);
+        } else if (val instanceof byte[]) {
+            gen.writeBinary((byte[]) val);
+        } else if (val instanceof Integer) {
+            gen.writeNumber((Integer) val);
+        } else if (val instanceof Long) {
+            gen.writeNumber((Long) val);
+        } else if (val instanceof java.math.BigDecimal) {
+            // text string to preserve precision (CBOR tag 4 deferred)
+            gen.writeString(val.toString());
+        } else if (val instanceof List) {
+            // bits
+            StringBuilder sb = new StringBuilder();
+            for (Object bit : (List<?>) val) {
+                if (sb.length() > 0) sb.append(' ');
+                sb.append(bit.toString());
+            }
+            gen.writeString(sb.toString());
         } else {
-            // Large tag value (4 bytes)
-            taggedBytes = new byte[cborBytes.length + 5];
-            taggedBytes[0] = (byte) 0xDA; // tag 4-bytes follow
-            taggedBytes[1] = (byte) ((tag >> 24) & 0xFF);
-            taggedBytes[2] = (byte) ((tag >> 16) & 0xFF);
-            taggedBytes[3] = (byte) ((tag >> 8) & 0xFF);
-            taggedBytes[4] = (byte) (tag & 0xFF);
-            System.arraycopy(cborBytes, 0, taggedBytes, 5, cborBytes.length);
+            gen.writeString(val.toString());
         }
-        
-        return taggedBytes;
     }
-    
+
+    // -----------------------------------------------------------------------
+    // Decoding helpers
+    // -----------------------------------------------------------------------
+
     /**
-     * Checks if a JSON node has a SID tag.
-     * Note: This is a simplified check. Full implementation would parse CBOR structure.
-     * 
-     * @param jsonNode the JSON node
-     * @return true if the node appears to have a SID tag
+     * Recursively resolves integer keys in a decoded CBOR JsonNode back to
+     * string local-names using the SID manager.
      */
-    private static boolean hasSidTag(JsonNode jsonNode) {
-        // Simplified implementation
-        // In practice, tags are part of CBOR encoding and may not be visible in JSON representation
-        // Full implementation would need to work with raw CBOR bytes
-        return false;
+    private static JsonNode resolveIntegerKeys(JsonNode node, SidManager sidManager) {
+        if (node == null) return CborCodecUtil.JSON_MAPPER.nullNode();
+        if (node.isObject()) {
+            ObjectNode result = CborCodecUtil.JSON_MAPPER.createObjectNode();
+            Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> e = fields.next();
+                String resolved = resolveKey(e.getKey(), sidManager);
+                result.set(resolved, resolveIntegerKeys(e.getValue(), sidManager));
+            }
+            return result;
+        }
+        if (node.isArray()) {
+            com.fasterxml.jackson.databind.node.ArrayNode arr =
+                    CborCodecUtil.JSON_MAPPER.createArrayNode();
+            for (JsonNode element : node) {
+                arr.add(resolveIntegerKeys(element, sidManager));
+            }
+            return arr;
+        }
+        return node;
     }
-    
+
+    private static String resolveKey(String key, SidManager sidManager) {
+        try {
+            Long sid = Long.parseLong(key);
+            QName qName = sidManager.getQName(sid);
+            if (qName != null) return qName.getLocalName();
+        } catch (NumberFormatException ignored) {
+        }
+        return key;
+    }
+
+    // -----------------------------------------------------------------------
+    // CBOR tag helpers
+    // -----------------------------------------------------------------------
+
     /**
-     * Removes CBOR tag from a parsed node.
-     * 
-     * @param jsonNode the tagged JSON node
-     * @return the untagged JSON node
+     * Prepends a CBOR tag to a payload byte array following RFC 7049 §2.4.
+     *
+     * @param payload the payload bytes
+     * @param tag     the tag value
+     * @return new byte array with the tag header prepended
      */
-    private static JsonNode removeTag(JsonNode jsonNode) {
-        // Tags are handled during CBOR parsing
-        // Return the node as-is
-        return jsonNode;
+    public static byte[] prependTag(byte[] payload, int tag) {
+        byte[] header;
+        if (tag < 24) {
+            header = new byte[]{(byte) (0xC0 | tag)};
+        } else if (tag < 256) {
+            header = new byte[]{(byte) 0xD8, (byte) tag};
+        } else if (tag < 65536) {
+            header = new byte[]{(byte) 0xD9, (byte) ((tag >> 8) & 0xFF), (byte) (tag & 0xFF)};
+        } else {
+            header = new byte[]{(byte) 0xDA,
+                    (byte) ((tag >> 24) & 0xFF), (byte) ((tag >> 16) & 0xFF),
+                    (byte) ((tag >> 8) & 0xFF), (byte) (tag & 0xFF)};
+        }
+        byte[] result = new byte[header.length + payload.length];
+        System.arraycopy(header, 0, result, 0, header.length);
+        System.arraycopy(payload, 0, result, header.length, payload.length);
+        return result;
+    }
+
+    /**
+     * Strips the CBOR tag prefix from the given bytes if present; otherwise
+     * returns the bytes unchanged.
+     *
+     * @param bytes   CBOR bytes possibly tagged
+     * @param tag     expected tag value
+     * @return payload bytes without the tag header
+     */
+    public static byte[] stripTag(byte[] bytes, int tag) {
+        if (bytes == null || bytes.length == 0) return bytes;
+        int first = bytes[0] & 0xFF;
+        // major type 6 (tag) = 0xC0..0xDB range
+        if ((first & 0xE0) != 0xC0) return bytes; // not a tag
+        int headerLen;
+        int decodedTag;
+        int ai = first & 0x1F;
+        if (ai < 24) {
+            decodedTag = ai;
+            headerLen = 1;
+        } else if (ai == 24 && bytes.length >= 2) {
+            decodedTag = bytes[1] & 0xFF;
+            headerLen = 2;
+        } else if (ai == 25 && bytes.length >= 3) {
+            decodedTag = ((bytes[1] & 0xFF) << 8) | (bytes[2] & 0xFF);
+            headerLen = 3;
+        } else if (ai == 26 && bytes.length >= 5) {
+            decodedTag = ((bytes[1] & 0xFF) << 24) | ((bytes[2] & 0xFF) << 16)
+                    | ((bytes[3] & 0xFF) << 8) | (bytes[4] & 0xFF);
+            headerLen = 5;
+        } else {
+            return bytes;
+        }
+        if (decodedTag != tag) return bytes;
+        return Arrays.copyOfRange(bytes, headerLen, bytes.length);
     }
 }
