@@ -8,67 +8,65 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.LeafData;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
-import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 
-/**
- * Codec for YANG leaf data to Protocol Buffers message.
- */
+/** Codec for YANG {@code leaf} data. */
 public class LeafDataProtoCodec extends YangDataProtoCodec<Leaf, LeafData<?>> {
 
-    protected LeafDataProtoCodec(Leaf schemaNode) {
-        super(schemaNode);
+    protected LeafDataProtoCodec(Leaf schemaNode, ProtoCodecMode mode) {
+        super(schemaNode, mode);
     }
 
     @Override
-    protected LeafData<?> buildData(DynamicMessage message, ValidatorResultBuilder validatorResultBuilder) {
-        if (message == null || message.getAllFields().isEmpty()) {
+    protected LeafData<?> buildData(DynamicMessage message,
+                                    ValidatorResultBuilder validatorResultBuilder) {
+        if (message == null || message.getAllFields().isEmpty()) return null;
+
+        // A leaf is encoded as a message with a single "value" field
+        Descriptors.FieldDescriptor field =
+                message.getDescriptorForType().findFieldByName("value");
+        if (field == null && !message.getDescriptorForType().getFields().isEmpty()) {
+            field = message.getDescriptorForType().getFields().get(0);
+        }
+        if (field == null) return null;
+
+        Object rawValue = message.getField(field);
+        Object yangValue = YangProtoTypeMapper.convertToYangValue(rawValue, getSchemaNode().getType());
+
+        try {
+            LeafData<?> leafData = (LeafData<?>) YangDataBuilderFactory.getBuilder()
+                    .getYangData(getSchemaNode(), yangValue != null ? yangValue.toString() : null);
+            leafData.setQName(getSchemaNode().getIdentifier());
+            return leafData;
+        } catch (Exception e) {
+            System.err.println("[LeafDataProtoCodec] Failed to build leaf data: " + e.getMessage());
             return null;
         }
-        
-        // Get the first field value from the message
-        Descriptors.FieldDescriptor field = message.getDescriptorForType().getFields().get(0);
-        Object value = message.getField(field);
-        
-        // Convert protobuf value to YANG value
-        Object yangValue = ProtoCodecUtil.convertProtoValueToYang(value, null);
-        
-        // Build YANG leaf data using factory
-        LeafData<?> leafData = (LeafData<?>) YangDataBuilderFactory.getBuilder()
-                .getYangData(getSchemaNode(), yangValue != null ? yangValue.toString() : null);
-        
-        QName qName = getSchemaNode().getIdentifier();
-        leafData.setQName(qName);
-        
-        return leafData;
     }
 
     @Override
     protected Message.Builder buildElement(org.yangcentral.yangkit.data.api.model.YangData<?> yangData) {
         LeafData<?> leafData = (LeafData<?>) yangData;
-        
-        // Get string value from leaf
-        String value = leafData.getStringValue();
-        
-        // Create DynamicMessage builder
-        Descriptors.Descriptor descriptor = getDescriptor();
-        if (descriptor == null) {
-            return null;
+        Descriptors.Descriptor desc = getDescriptorForNode();
+        if (desc == null) return null;
+
+        DynamicMessage.Builder builder = DynamicMessage.newBuilder(desc);
+
+        try {
+            String strValue = leafData.getStringValue();
+            if (strValue != null && !desc.getFields().isEmpty()) {
+                Descriptors.FieldDescriptor field =
+                        desc.findFieldByName("value") != null
+                                ? desc.findFieldByName("value")
+                                : desc.getFields().get(0);
+                Object protoValue = YangProtoTypeMapper.convertToProtoValue(
+                        strValue, getSchemaNode().getType());
+                if (protoValue != null) {
+                    builder.setField(field, protoValue);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[LeafDataProtoCodec] Failed to build element: " + e.getMessage());
         }
-        
-        Message.Builder builder = DynamicMessage.newBuilder(descriptor);
-        
-        // Set the field value
-        if (descriptor.getFields().size() > 0 && value != null) {
-            Descriptors.FieldDescriptor field = descriptor.getFields().get(0);
-            Object protoValue = ProtoCodecUtil.convertYangValueToProto(value, null);
-            builder.setField(field, protoValue);
-        }
-        
         return builder;
-    }
-    
-    private Descriptors.Descriptor getDescriptor() {
-        // Get descriptor from ProtoDescriptorManager
-        return ProtoDescriptorManager.getInstance().getDescriptor(getSchemaNode());
     }
 }

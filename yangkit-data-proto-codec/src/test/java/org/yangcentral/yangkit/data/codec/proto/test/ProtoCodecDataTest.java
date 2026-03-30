@@ -185,8 +185,8 @@ public class ProtoCodecDataTest {
             YangDataProtoCodec<?, ?> codec = YangDataProtoCodec.getInstance(leafList);
             assertNotNull(codec, "Should get leaf-list codec");
             
-            // Note: leaf-list codec may have limitations with null data
-            assertThrows(NullPointerException.class, () -> {
+            // Note: serializing null data throws RuntimeException (no descriptor for null data)
+            assertThrows(RuntimeException.class, () -> {
                 codec.serialize(null);
             }, "Null data should throw exception");
         }

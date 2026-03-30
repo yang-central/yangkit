@@ -3,48 +3,33 @@ package org.yangcentral.yangkit.data.codec.proto;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
-import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.NotificationData;
 import org.yangcentral.yangkit.data.impl.model.NotificationDataImpl;
 import org.yangcentral.yangkit.model.api.stmt.Notification;
 
-/**
- * Codec for YANG notification data to Protocol Buffers message.
- */
+/** Codec for YANG {@code notification} data. */
 public class NotificationDataProtoCodec extends YangDataProtoCodec<Notification, NotificationData> {
 
-    protected NotificationDataProtoCodec(Notification schemaNode) {
-        super(schemaNode);
+    protected NotificationDataProtoCodec(Notification schemaNode, ProtoCodecMode mode) {
+        super(schemaNode, mode);
     }
 
     @Override
-    protected NotificationData buildData(DynamicMessage message, ValidatorResultBuilder validatorResultBuilder) {
-        NotificationDataImpl notificationData = new NotificationDataImpl(getSchemaNode());
-        
-        QName qName = getSchemaNode().getIdentifier();
-        notificationData.setQName(qName);
-        
-        // Process notification content from protobuf message
-        // Notifications contain event data
-        ProtoCodecUtil.deserializeChildren(notificationData, message, validatorResultBuilder);
-        
-        return notificationData;
+    protected NotificationData buildData(DynamicMessage message,
+                                          ValidatorResultBuilder validatorResultBuilder) {
+        NotificationDataImpl data = new NotificationDataImpl(getSchemaNode());
+        data.setQName(getSchemaNode().getIdentifier());
+        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder);
+        return data;
     }
 
     @Override
-    protected Message.Builder buildElement(org.yangcentral.yangkit.data.api.model.YangData<?> yangData) {
-        try {
-            Descriptors.Descriptor descriptor = ProtoDescriptorManager.getInstance()
-                    .getDescriptor(getSchemaNode());
-            
-            if (descriptor == null) {
-                throw new RuntimeException("Failed to get descriptor for notification: " + getSchemaNode().getIdentifier());
-            }
-            
-            return DynamicMessage.newBuilder(descriptor);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to build protobuf message for notification: " + getSchemaNode().getIdentifier(), e);
-        }
+    protected Message.Builder buildElement(
+            org.yangcentral.yangkit.data.api.model.YangData<?> yangData) {
+        Descriptors.Descriptor desc = getDescriptorForNode();
+        if (desc == null) throw new RuntimeException(
+                "No descriptor for notification: " + getSchemaNode().getIdentifier());
+        return DynamicMessage.newBuilder(desc);
     }
 }

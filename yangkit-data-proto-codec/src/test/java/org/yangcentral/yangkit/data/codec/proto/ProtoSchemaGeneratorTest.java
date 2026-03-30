@@ -33,23 +33,19 @@ public class ProtoSchemaGeneratorTest {
         ProtoSchemaGenerator generator = new ProtoSchemaGenerator();
         
         // Test with null data node
-        DescriptorProtos.DescriptorProto message = 
-            generator.generateMessage(null);
-        
+        DescriptorProtos.DescriptorProto message =
+            generator.generateMessage(null, "");
+
         Assert.assertNull(message);
     }
 
     @Test
-    public void testCacheMechanismInGenerator() {
-        ProtoSchemaGenerator generator = new ProtoSchemaGenerator();
-        
-        // The generator should have internal caching
-        // We can't directly test it without exposing implementation details,
-        // but we can verify it doesn't throw exceptions
-        generator.clearCache();
-        
-        // Clear cache twice to ensure idempotency
-        generator.clearCache();
+    public void testGeneratorCanBeCreatedTwice() {
+        // ProtoSchemaGenerator is stateless per-mode; creating multiple instances is fine
+        ProtoSchemaGenerator gen1 = new ProtoSchemaGenerator();
+        ProtoSchemaGenerator gen2 = new ProtoSchemaGenerator();
+        Assert.assertNotNull(gen1);
+        Assert.assertNotNull(gen2);
     }
 
     @Test
