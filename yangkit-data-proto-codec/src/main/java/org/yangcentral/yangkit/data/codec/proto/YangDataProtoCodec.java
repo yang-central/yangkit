@@ -4,6 +4,8 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.codec.YangDataCodec;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -37,6 +39,8 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
 
     private final S schemaNode;
     protected final ProtoCodecMode mode;
+    private AnydataValidationContextResolver anydataValidationContextResolver;
+    private String sourcePath;
 
     protected YangDataProtoCodec(S schemaNode, ProtoCodecMode mode) {
         this.schemaNode = schemaNode;
@@ -76,37 +80,64 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
      */
     public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode,
                                                         ProtoCodecMode mode) {
+        return getInstance(schemaNode, mode, null, null);
+    }
+
+    public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode,
+                                                        ProtoCodecMode mode,
+                                                        AnydataValidationContextResolver resolver,
+                                                        String sourcePath) {
         if (schemaNode == null) return null;
         if (mode == null) mode = ProtoCodecMode.SIMPLE;
 
+        YangDataProtoCodec<?, ?> codec;
         if (schemaNode instanceof Container) {
-            return new ContainerDataProtoCodec((Container) schemaNode, mode);
+            codec = new ContainerDataProtoCodec((Container) schemaNode, mode);
         } else if (schemaNode instanceof YangList) {
-            return new ListDataProtoCodec((YangList) schemaNode, mode);
+            codec = new ListDataProtoCodec((YangList) schemaNode, mode);
         } else if (schemaNode instanceof Leaf) {
-            return new LeafDataProtoCodec((Leaf) schemaNode, mode);
+            codec = new LeafDataProtoCodec((Leaf) schemaNode, mode);
         } else if (schemaNode instanceof LeafList) {
-            return new LeafListDataProtoCodec((LeafList) schemaNode, mode);
+            codec = new LeafListDataProtoCodec((LeafList) schemaNode, mode);
         } else if (schemaNode instanceof Anydata) {
-            return new AnyDataDataProtoCodec((Anydata) schemaNode, mode);
+            codec = new AnyDataDataProtoCodec((Anydata) schemaNode, mode);
         } else if (schemaNode instanceof Anyxml) {
-            return new AnyxmlDataProtoCodec((Anyxml) schemaNode, mode);
+            codec = new AnyxmlDataProtoCodec((Anyxml) schemaNode, mode);
         } else if (schemaNode instanceof Notification) {
-            return new NotificationDataProtoCodec((Notification) schemaNode, mode);
+            codec = new NotificationDataProtoCodec((Notification) schemaNode, mode);
         } else if (schemaNode instanceof YangStructure) {
-            return new YangStructureDataProtoCodec((YangStructure) schemaNode, mode);
+            codec = new YangStructureDataProtoCodec((YangStructure) schemaNode, mode);
         } else if (schemaNode instanceof Rpc) {
-            return new RpcDataProtoCodec((Rpc) schemaNode, mode);
+            codec = new RpcDataProtoCodec((Rpc) schemaNode, mode);
         } else if (schemaNode instanceof Input) {
-            return new InputDataProtoCodec((Input) schemaNode, mode);
+            codec = new InputDataProtoCodec((Input) schemaNode, mode);
         } else if (schemaNode instanceof Output) {
-            return new OutputDataProtoCodec((Output) schemaNode, mode);
+            codec = new OutputDataProtoCodec((Output) schemaNode, mode);
         } else if (schemaNode instanceof Action) {
-            return new ActionDataProtoCodec((Action) schemaNode, mode);
+            codec = new ActionDataProtoCodec((Action) schemaNode, mode);
         } else {
             throw new IllegalArgumentException(
                     "Unsupported schema node type: " + schemaNode.getClass().getSimpleName());
         }
+        codec.setAnydataValidationContextResolver(resolver);
+        codec.setSourcePath(sourcePath);
+        return codec;
+    }
+
+    protected AnydataValidationContextResolver getAnydataValidationContextResolver() {
+        return anydataValidationContextResolver;
+    }
+
+    protected void setAnydataValidationContextResolver(AnydataValidationContextResolver anydataValidationContextResolver) {
+        this.anydataValidationContextResolver = anydataValidationContextResolver;
+    }
+
+    protected String getSourcePath() {
+        return sourcePath;
+    }
+
+    protected void setSourcePath(String sourcePath) {
+        this.sourcePath = sourcePath;
     }
 
     // =========================================================================
@@ -118,6 +149,20 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
                          ValidatorResultBuilder validatorResultBuilder) {
         if (message == null) return null;
         return buildData(message, validatorResultBuilder);
+    }
+
+    public T deserialize(DynamicMessage message,
+                         ValidatorResultBuilder validatorResultBuilder,
+                         AnydataValidationContextResolver resolver) {
+        if (message == null) return null;
+        this.anydataValidationContextResolver = resolver;
+        return buildData(message, validatorResultBuilder);
+    }
+
+    public T deserialize(DynamicMessage message,
+                         ValidatorResultBuilder validatorResultBuilder,
+                         AnydataValidationOptions options) {
+        return deserialize(message, validatorResultBuilder, (AnydataValidationContextResolver) options);
     }
 
     /**
@@ -145,7 +190,7 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
                     "No message builder for: " + schemaNode.getIdentifier());
         }
         if (yangData instanceof YangDataContainer) {
-            ProtoCodecUtil.serializeChildren(builder, (YangDataContainer) yangData);
+            ProtoCodecUtil.serializeChildren(builder, (YangDataContainer) yangData, mode);
         }
         return (DynamicMessage) builder.build();
     }

@@ -1,0 +1,10 @@
+module outer-anydata {
+  yang-version 1.1;
+  namespace "urn:test:outer-anydata";
+  prefix outer;
+
+  container anydata-wrapper {
+    anydata payload-holder;
+  }
+}
+

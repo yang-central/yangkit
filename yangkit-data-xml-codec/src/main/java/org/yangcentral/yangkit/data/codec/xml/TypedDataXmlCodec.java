@@ -9,6 +9,7 @@ import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.stmt.LeafList;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 import org.dom4j.Element;
@@ -78,6 +79,15 @@ abstract class TypedDataXmlCodec<S extends TypedDataNode,D extends TypedData<?,S
     protected String getYangText(Element element) throws YangDataXmlCodecException {
         String operationType = element.attributeValue(OPERATION);
         String text = element.getTextTrim();
+        
+        // For leaf-list, check for value attribute as alternative encoding
+        if (getSchemaNode() instanceof LeafList) {
+            String valueAttr = element.attributeValue("value");
+            if (valueAttr != null && !valueAttr.trim().isEmpty()) {
+                text = valueAttr.trim();
+            }
+        }
+        
         if(text== null || text.length() == 0){
             if(operationType == null || !(operationType.equals("delete") || operationType.equals("remove"))){
                 // ValidatorRecordBuilder<String,Element> validatorRecordBuilder = new ValidatorRecordBuilder<>();
@@ -118,5 +128,3 @@ abstract class TypedDataXmlCodec<S extends TypedDataNode,D extends TypedData<?,S
 
 
 }
-
-		

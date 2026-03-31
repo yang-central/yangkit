@@ -21,10 +21,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
+import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.ContainerData;
 import org.yangcentral.yangkit.data.api.model.LeafData;
 import org.yangcentral.yangkit.data.api.model.LeafListData;
 import org.yangcentral.yangkit.data.api.model.ListData;
+import org.yangcentral.yangkit.model.api.stmt.Anydata;
 import org.yangcentral.yangkit.model.api.stmt.Container;
 import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
@@ -135,18 +137,31 @@ public class ListDataCborCodec extends YangDataCborCodec<YangList, ListData> {
 
                 } else if (childSchema instanceof Container) {
                     ContainerDataCborCodec cc = new ContainerDataCborCodec((Container) childSchema);
+                    cc.setAnydataValidationContextResolver(getAnydataValidationContextResolver());
+                    cc.setSourcePath(resolveChildSourcePath(childName));
                     ContainerData cd = cc.buildData(childNode, validatorResultBuilder);
                     if (cd != null) listData.addChild(cd);
 
                 } else if (childSchema instanceof YangList) {
                     YangList nestedList = (YangList) childSchema;
                     ListDataCborCodec ldc = new ListDataCborCodec(nestedList);
+                    ldc.setAnydataValidationContextResolver(getAnydataValidationContextResolver());
                     if (childNode.isArray()) {
+                        int index = 0;
                         for (JsonNode entryNode : childNode) {
+                            ldc.setSourcePath(resolveChildSourcePath(childName) + "[" + index + "]");
                             ListData entry = ldc.buildData(entryNode, validatorResultBuilder);
                             if (entry != null) listData.addChild(entry);
+                            index++;
                         }
                     }
+
+                } else if (childSchema instanceof Anydata) {
+                    AnyDataDataCborCodec adc = new AnyDataDataCborCodec((Anydata) childSchema);
+                    adc.setAnydataValidationContextResolver(getAnydataValidationContextResolver());
+                    adc.setSourcePath(resolveChildSourcePath(childName));
+                    AnyDataData anyData = adc.buildData(childNode, validatorResultBuilder);
+                    if (anyData != null) listData.addChild(anyData);
                 }
             } catch (Exception e) {
                 throw new YangDataCborCodecException(
@@ -155,5 +170,12 @@ public class ListDataCborCodec extends YangDataCborCodec<YangList, ListData> {
         }
 
         return listData;
+    }
+
+    private String resolveChildSourcePath(String childName) {
+        if (getSourcePath() == null || getSourcePath().isEmpty()) {
+            return "/" + childName;
+        }
+        return getSourcePath() + "/" + childName;
     }
 }

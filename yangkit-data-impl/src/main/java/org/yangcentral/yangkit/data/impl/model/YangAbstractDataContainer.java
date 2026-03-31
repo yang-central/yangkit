@@ -12,6 +12,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.*;
+import org.yangcentral.yangkit.data.impl.util.NetconfEditUtil;
 import org.yangcentral.yangkit.data.impl.builder.YangDataBuilder;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
@@ -235,7 +236,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
             throw new YangDataException(ErrorTag.DATA_EXISTS,oldChild.getPath(),
                     new ErrorMessage("the child:"+child.getIdentifier() + " is exists."));
         }
-        childrenList.add(child);
+        addChildToChildrenList(child);
         children.put(child.getIdentifier(),child);
         child.getContext().setParent(self);
         if(self instanceof YangDataDocument){
@@ -244,6 +245,102 @@ public class YangAbstractDataContainer implements YangDataContainer {
             YangData<?> yangData = (YangData<?>) self;
             child.getContext().setDocument(yangData.getContext().getDocument());
         }
+    }
+
+    private void addChildToChildrenList(YangData<?> child) throws YangDataException {
+        String insert = NetconfEditUtil.getInsert(child);
+        if (insert == null || !NetconfEditUtil.isUserOrdered(child)) {
+            childrenList.add(child);
+            return;
+        }
+
+        int insertIndex;
+        switch (insert) {
+            case "first":
+                insertIndex = findFirstSiblingIndex(child);
+                break;
+            case "last":
+                insertIndex = findLastSiblingIndex(child) + 1;
+                break;
+            case "before":
+                insertIndex = findRelativeInsertIndex(child, true);
+                break;
+            case "after":
+                insertIndex = findRelativeInsertIndex(child, false);
+                break;
+            default:
+                throw new YangDataException(ErrorTag.BAD_ELEMENT, resolveErrorPath(),
+                        new ErrorMessage("unsupported insert attribute value:" + insert));
+        }
+        childrenList.add(insertIndex, child);
+    }
+
+    private int findFirstSiblingIndex(YangData<?> child) {
+        for (int i = 0; i < childrenList.size(); i++) {
+            YangData<?> sibling = childrenList.get(i);
+            if (isSameSchemaSibling(child, sibling)) {
+                return i;
+            }
+        }
+        return childrenList.size();
+    }
+
+    private int findLastSiblingIndex(YangData<?> child) {
+        for (int i = childrenList.size() - 1; i >= 0; i--) {
+            YangData<?> sibling = childrenList.get(i);
+            if (isSameSchemaSibling(child, sibling)) {
+                return i;
+            }
+        }
+        return childrenList.size() - 1;
+    }
+
+    private int findRelativeInsertIndex(YangData<?> child, boolean before) throws YangDataException {
+        for (int i = 0; i < childrenList.size(); i++) {
+            YangData<?> sibling = childrenList.get(i);
+            if (!isSameSchemaSibling(child, sibling)) {
+                continue;
+            }
+            if (!matchesInsertReference(child, sibling)) {
+                continue;
+            }
+            return before ? i : i + 1;
+        }
+        throw new YangDataException(ErrorTag.DATA_MISSING, resolveErrorPath(),
+                new ErrorMessage("can not find the reference node for insert="
+                        + NetconfEditUtil.getInsert(child)));
+    }
+
+    private boolean matchesInsertReference(YangData<?> child, YangData<?> sibling) throws YangDataException {
+        if (child instanceof ListData) {
+            String keyPredicate = NetconfEditUtil.getKey(child);
+            if (keyPredicate == null) {
+                throw new YangDataException(ErrorTag.BAD_ELEMENT, resolveErrorPath(),
+                        new ErrorMessage("insert before/after for list requires key attribute."));
+            }
+            return sibling instanceof ListData
+                    && NetconfEditUtil.matchesListReference((ListData) sibling, keyPredicate);
+        }
+        if (child instanceof LeafListData) {
+            String value = NetconfEditUtil.getValue(child);
+            if (value == null) {
+                throw new YangDataException(ErrorTag.BAD_ELEMENT, resolveErrorPath(),
+                        new ErrorMessage("insert before/after for leaf-list requires value attribute."));
+            }
+            return NetconfEditUtil.matchesLeafListReference(sibling, value);
+        }
+        return false;
+    }
+
+    private boolean isSameSchemaSibling(YangData<?> child, YangData<?> sibling) {
+        return sibling != null && child.getQName().equals(sibling.getQName());
+    }
+
+    private AbsolutePath resolveErrorPath() {
+        if (self instanceof YangData) {
+            return ((YangData<?>) self).getPath();
+        }
+        return new AbsolutePath();
     }
 
 

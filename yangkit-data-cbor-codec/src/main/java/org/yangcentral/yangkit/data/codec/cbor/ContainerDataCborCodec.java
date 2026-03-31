@@ -20,11 +20,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.ContainerData;
 import org.yangcentral.yangkit.data.api.model.LeafData;
 import org.yangcentral.yangkit.data.api.model.LeafListData;
 import org.yangcentral.yangkit.data.api.model.ListData;
 import org.yangcentral.yangkit.data.impl.model.ContainerDataImpl;
+import org.yangcentral.yangkit.model.api.stmt.Anydata;
 import org.yangcentral.yangkit.model.api.stmt.Container;
 import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
@@ -92,6 +94,8 @@ public class ContainerDataCborCodec extends YangDataCborCodec<Container, Contain
 
                 } else if (childSchema instanceof Container) {
                     ContainerDataCborCodec cc = new ContainerDataCborCodec((Container) childSchema);
+                    cc.setAnydataValidationContextResolver(getAnydataValidationContextResolver());
+                    cc.setSourcePath(resolveChildSourcePath(childName));
                     ContainerData cd = cc.buildData(childNode, validatorResultBuilder);
                     if (cd != null) containerData.addChild(cd);
 
@@ -99,12 +103,23 @@ public class ContainerDataCborCodec extends YangDataCborCodec<Container, Contain
                     // list is encoded as a JSON array; each element is one list entry
                     YangList listSchema = (YangList) childSchema;
                     ListDataCborCodec ldc = new ListDataCborCodec(listSchema);
+                    ldc.setAnydataValidationContextResolver(getAnydataValidationContextResolver());
                     if (childNode.isArray()) {
+                        int index = 0;
                         for (JsonNode entryNode : childNode) {
+                            ldc.setSourcePath(resolveChildSourcePath(childName) + "[" + index + "]");
                             ListData entry = ldc.buildData(entryNode, validatorResultBuilder);
                             if (entry != null) containerData.addChild(entry);
+                            index++;
                         }
                     }
+
+                } else if (childSchema instanceof Anydata) {
+                    AnyDataDataCborCodec adc = new AnyDataDataCborCodec((Anydata) childSchema);
+                    adc.setAnydataValidationContextResolver(getAnydataValidationContextResolver());
+                    adc.setSourcePath(resolveChildSourcePath(childName));
+                    AnyDataData anyData = adc.buildData(childNode, validatorResultBuilder);
+                    if (anyData != null) containerData.addChild(anyData);
                 }
                 // choice/case and other complex nodes are out of scope for this implementation
             } catch (YangDataCborCodecException e) {
@@ -116,5 +131,12 @@ public class ContainerDataCborCodec extends YangDataCborCodec<Container, Contain
         }
 
         return containerData;
+    }
+
+    private String resolveChildSourcePath(String childName) {
+        if (getSourcePath() == null || getSourcePath().isEmpty()) {
+            return "/" + childName;
+        }
+        return getSourcePath() + "/" + childName;
     }
 }

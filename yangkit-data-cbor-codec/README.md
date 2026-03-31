@@ -12,7 +12,7 @@ It implements the specification defined in RFC 9254 - "YANG Data Model in Concis
 - **Binary encoding**: Compact binary representation of YANG data
 - **Type-safe conversion**: Automatic mapping between YANG types and CBOR types
 - **RFC 9254 compliant**: Follows the standard for YANG data in CBOR
-- **Complete coverage**: Supports all YANG data node types:
+- **Complete coverage**: Supports all common YANG data node types:
   - Container nodes
   - Leaf nodes
   - Leaf-list nodes
@@ -30,7 +30,7 @@ Add this dependency to your Maven project:
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-cbor-codec</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -66,6 +66,143 @@ ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
 
 // Deserialize CBOR bytes to YANG data
 ContainerData data = cborCodec.deserialize(cborBytes, validatorResultBuilder);
+```
+
+### Deserialize CBOR with `anydata` validation options
+
+When a CBOR payload contains embedded `anydata`, you can provide one document-level `AnydataValidationOptions` instance.
+
+```java
+import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
+
+YangSchemaContext outerSchemaContext = ...;
+YangSchemaContext payloadSchemaContext = ...;
+Container wrapperContainer = ...; // e.g. outer-anydata:anydata-wrapper
+
+ContainerDataCborCodec cborCodec = new ContainerDataCborCodec(wrapperContainer);
+ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+
+AnydataValidationOptions options = new AnydataValidationOptions()
+        .registerSchemaContext(
+                new QName("urn:test:outer-anydata", "payload-holder"),
+                payloadSchemaContext);
+
+ContainerData data = cborCodec.deserialize(cborBytes, validatorResultBuilder, options);
+```
+
+## Anydata Validation Context
+
+CBOR `anydata` payload parsing reuses the JSON document codec internally.
+That means CBOR follows the same document-level matching model as JSON:
+
+- one options/resolver object can be passed at the outer deserialize entry
+- each embedded `anydata` node is matched independently
+- matching order is: rule > schema-node registration > default context
+
+Typical rule-based usage:
+
+```java
+AnydataValidationOptions options = new AnydataValidationOptions()
+        .addRule(
+                request -> request != null
+                        && request.getSourcePath() != null
+                        && request.getSourcePath().contains("payload-holder"),
+                payloadSchemaContext);
+```
+
+If no matching context is found, the `anydata` node is still created, but its payload document may contain zero recognized data children.
+
+## Complete Minimal Runnable Example
+
+```java
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
+import org.yangcentral.yangkit.data.api.model.AnyDataData;
+import org.yangcentral.yangkit.data.api.model.ContainerData;
+import org.yangcentral.yangkit.data.codec.cbor.ContainerDataCborCodec;
+import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.stmt.Container;
+import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.parser.YangYinParser;
+
+public class CborAnydataExample {
+    public static void main(String[] args) throws Exception {
+        YangSchemaContext outerSchemaContext = YangYinParser.parse("src/test/resources/anydata-validation/outer/yang");
+        YangSchemaContext payloadSchemaContext = YangYinParser.parse("src/test/resources/anydata-validation/payload/yang");
+
+        if (!outerSchemaContext.validate().isOk() || !payloadSchemaContext.validate().isOk()) {
+            throw new IllegalStateException("schema validation failed");
+        }
+
+        Container wrapperContainer = null;
+        for (Module module : outerSchemaContext.getModules()) {
+            if ("outer-anydata".equals(module.getArgStr())) {
+                wrapperContainer = (Container) module.getDataNodeChildren().get(0);
+                break;
+            }
+        }
+        if (wrapperContainer == null) {
+            throw new IllegalStateException("wrapper container not found");
+        }
+
+        String json = "{" +
+                "\"payload-holder\":{" +
+                "\"payload-anydata:payload-root\":{" +
+                "\"value\":\"abc\"" +
+                "}" +
+                "}" +
+                "}";
+
+        JsonNode jsonNode = new ObjectMapper().readTree(json);
+        byte[] cborBytes = new ObjectMapper(new CBORFactory()).writeValueAsBytes(jsonNode);
+
+        AnydataValidationOptions options = new AnydataValidationOptions()
+                .registerSchemaContext(
+                        new QName("urn:test:outer-anydata", "payload-holder"),
+                        payloadSchemaContext);
+
+        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+        ContainerData containerData = new ContainerDataCborCodec(wrapperContainer)
+                .deserialize(cborBytes, validatorResultBuilder, options);
+
+        AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
+        System.out.println(anyDataData.getValue().getDataChildren().get(0).getQName().getLocalName());
+        // expected output: value
+    }
+}
+```
+
+Expected test YANG files:
+
+```yang
+module outer-anydata {
+  yang-version 1.1;
+  namespace "urn:test:outer-anydata";
+  prefix outer;
+
+  container anydata-wrapper {
+    anydata payload-holder;
+  }
+}
+```
+
+```yang
+module payload-anydata {
+  yang-version 1.1;
+  namespace "urn:test:payload-anydata";
+  prefix payload;
+
+  container payload-root {
+    leaf value {
+      type string;
+    }
+  }
+}
 ```
 
 ### Working with Different Data Types
@@ -146,7 +283,8 @@ The module uses a layered architecture:
 ✅ Leaf data codec
 ✅ Leaf-list data codec
 ✅ List data codec
-⏳ AnyData/AnyXML codec (basic implementation)
+✅ AnyData codec with document-level validation context support
+⏳ AnyXML codec
 ⏳ RPC/Notification codec (basic implementation)
 
 ## References

@@ -21,7 +21,8 @@ public class ContainerDataProtoCodec extends YangDataProtoCodec<Container, Conta
                                       ValidatorResultBuilder validatorResultBuilder) {
         ContainerDataImpl data = new ContainerDataImpl(getSchemaNode());
         data.setQName(getSchemaNode().getIdentifier());
-        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder);
+        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder, mode,
+                getAnydataValidationContextResolver(), getSourcePath());
         return data;
     }
 

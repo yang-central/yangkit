@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.Attribute;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.codec.YangDataCodec;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -16,6 +17,8 @@ import java.util.List;
 public abstract class YangDataJsonCodec<S extends SchemaNode, T extends YangData<S>> implements YangDataCodec<S, T, JsonNode> {
 
     private S schemaNode;
+    private AnydataValidationContextResolver anydataValidationContextResolver;
+    private String sourcePath;
 
     protected YangDataJsonCodec(S schemaNode) {
         this.schemaNode = schemaNode;
@@ -32,37 +35,62 @@ public abstract class YangDataJsonCodec<S extends SchemaNode, T extends YangData
     }
 
     public static YangDataJsonCodec<?, ?> getInstance(SchemaNode dataSchemaNode) {
+        return getInstance(dataSchemaNode, null, null);
+    }
+
+    public static YangDataJsonCodec<?, ?> getInstance(SchemaNode dataSchemaNode,
+                                                       AnydataValidationContextResolver resolver,
+                                                       String sourcePath) {
         if (null == dataSchemaNode) {
             return null;
         }
+        YangDataJsonCodec<?, ?> codec;
         if (dataSchemaNode instanceof Container) {
-            return new ContainerDataJsonCodec((Container) dataSchemaNode);
+            codec = new ContainerDataJsonCodec((Container) dataSchemaNode);
         } else if (dataSchemaNode instanceof YangList) {
-            return new ListDataJsonCodec((YangList) dataSchemaNode);
+            codec = new ListDataJsonCodec((YangList) dataSchemaNode);
         } else if (dataSchemaNode instanceof Leaf) {
-            return new LeafDataJsonCodec((Leaf) dataSchemaNode);
+            codec = new LeafDataJsonCodec((Leaf) dataSchemaNode);
         } else if (dataSchemaNode instanceof LeafList) {
-            return new LeafListDataJsonCodec((LeafList) dataSchemaNode);
+            codec = new LeafListDataJsonCodec((LeafList) dataSchemaNode);
         } else if (dataSchemaNode instanceof Anydata) {
-            return new AnyDataDataJsonCodec((Anydata) dataSchemaNode);
+            codec = new AnyDataDataJsonCodec((Anydata) dataSchemaNode);
         } else if (dataSchemaNode instanceof Anyxml) {
-            return new AnyxmlDataJsonCodec((Anyxml) dataSchemaNode);
+            codec = new AnyxmlDataJsonCodec((Anyxml) dataSchemaNode);
         } else if (dataSchemaNode instanceof Notification) {
-            return new NotificationDataJsonCodec((Notification) dataSchemaNode);
+            codec = new NotificationDataJsonCodec((Notification) dataSchemaNode);
         } else if (dataSchemaNode instanceof YangStructure) {
-            return new YangStructureDataJsonCodec((YangStructure) dataSchemaNode);
+            codec = new YangStructureDataJsonCodec((YangStructure) dataSchemaNode);
         } else if (dataSchemaNode instanceof Rpc) {
-            return new RpcDataJsonCodec((Rpc) dataSchemaNode);
+            codec = new RpcDataJsonCodec((Rpc) dataSchemaNode);
         } else if (dataSchemaNode instanceof Input) {
-            return new InputDataJsonCodec((Input) dataSchemaNode);
+            codec = new InputDataJsonCodec((Input) dataSchemaNode);
         } else if (dataSchemaNode instanceof Output) {
-            return new OutputDataJsonCodec((Output) dataSchemaNode);
+            codec = new OutputDataJsonCodec((Output) dataSchemaNode);
         } else if (dataSchemaNode instanceof Action) {
-            return new ActionDataJsonCodec((Action) dataSchemaNode);
-        }
-        else {
+            codec = new ActionDataJsonCodec((Action) dataSchemaNode);
+        } else {
             throw new IllegalArgumentException("not-support data schema type");
         }
+        codec.setAnydataValidationContextResolver(resolver);
+        codec.setSourcePath(sourcePath);
+        return codec;
+    }
+
+    protected AnydataValidationContextResolver getAnydataValidationContextResolver() {
+        return anydataValidationContextResolver;
+    }
+
+    protected void setAnydataValidationContextResolver(AnydataValidationContextResolver anydataValidationContextResolver) {
+        this.anydataValidationContextResolver = anydataValidationContextResolver;
+    }
+
+    protected String getSourcePath() {
+        return sourcePath;
+    }
+
+    protected void setSourcePath(String sourcePath) {
+        this.sourcePath = sourcePath;
     }
 
 

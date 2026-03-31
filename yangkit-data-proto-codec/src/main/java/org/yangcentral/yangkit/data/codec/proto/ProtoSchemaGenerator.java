@@ -129,6 +129,8 @@ public class ProtoSchemaGenerator {
             addContainerFields(msg, (Container) dataNode, ctx);
         } else if (dataNode instanceof YangList) {
             addListFields(msg, (YangList) dataNode, ctx);
+        } else if (dataNode instanceof Anydata) {
+            addOpaquePayloadFields(msg, ctx);
         } else if (dataNode instanceof Leaf || dataNode instanceof LeafList) {
             // Pure leaf — no top-level message
             return null;
@@ -221,11 +223,19 @@ public class ProtoSchemaGenerator {
             addNestedMessageField(msg, (Container) child, ctx, false);
         } else if (child instanceof YangList) {
             addNestedMessageField(msg, (YangList) child, ctx, true);
+        } else if (child instanceof Anydata) {
+            addNestedMessageField(msg, (Anydata) child, ctx, false);
         } else if (child instanceof Choice) {
             // Flatten all cases into parent message (ygot convention)
             flattenChoice(msg, (Choice) child, ctx);
         }
-        // Anydata / Anyxml are handled via their own codec — skip in schema
+    }
+
+    private void addOpaquePayloadFields(DescriptorProtos.DescriptorProto.Builder msg,
+                                        FieldContext ctx) {
+        int fieldNum = ctx.nextFieldNumber(ctx.path + "/value");
+        msg.addField(primitiveField("value", fieldNum, false,
+                DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING, null));
     }
 
     // -----------------------------------------------------------------------

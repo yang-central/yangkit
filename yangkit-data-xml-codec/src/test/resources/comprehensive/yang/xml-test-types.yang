@@ -202,7 +202,29 @@ module test-types {
         min-elements 2;
         max-elements 10;
     }
-    
+
+    container leaf-list-test {
+        leaf-list item {
+            type string;
+            ordered-by user;
+        }
+    }
+
+    container ordered-list {
+        list entry {
+            key "name";
+            ordered-by user;
+
+            leaf name {
+                type string;
+            }
+
+            leaf payload {
+                type string;
+            }
+        }
+    }
+
     // Choice and case
     choice notification-choice {
         case email {
@@ -225,8 +247,9 @@ module test-types {
     
     // Anydata and anyxml
     anydata any-data;
+    anydata anydata-node;
     anyxml any-xml;
-    
+
     // Uses and grouping
     grouping address-info {
         leaf street {

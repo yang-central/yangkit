@@ -9,6 +9,7 @@ import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.api.operation.DataChangeNotifier;
 import org.yangcentral.yangkit.data.api.operation.DataChangeType;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
+import org.yangcentral.yangkit.data.impl.util.NetconfEditUtil;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
 
 public class YangDataOperatorImpl implements YangDataOperator {
@@ -74,6 +75,29 @@ public class YangDataOperatorImpl implements YangDataOperator {
         if(node == null){
             return;
         }
+        String operation = NetconfEditUtil.getOperation(node);
+        if(operation != null){
+            switch (operation){
+                case "merge":
+                    break;
+                case "create":
+                    create(node,autoDelete);
+                    return;
+                case "replace":
+                    replace(node,autoDelete);
+                    return;
+                case "delete":
+                    ensureDataExists(node);
+                    delete(node.getIdentifier());
+                    return;
+                case "remove":
+                    delete(node.getIdentifier());
+                    return;
+                default:
+                    throw new YangDataException(ErrorTag.BAD_ELEMENT,getOperateDataPath(),
+                            new ErrorMessage("unsupported operation attribute:" + operation));
+            }
+        }
         YangData<? extends DataNode> originalNode = (YangData<? extends DataNode>) operatedData.getDataChild(node.getIdentifier());
         if(null == originalNode){
             //new
@@ -82,6 +106,9 @@ public class YangDataOperatorImpl implements YangDataOperator {
         }
         //merge attributes
         for(Attribute attribute:node.getAttributes()){
+            if(NetconfEditUtil.isEditAttribute(attribute)){
+                continue;
+            }
             Attribute originalAttr = originalNode.getAttribute(attribute.getName());
             if(originalAttr == null){
                 originalNode.addAttribute(attribute);
@@ -111,6 +138,15 @@ public class YangDataOperatorImpl implements YangDataOperator {
                 yangDataOperator.merge((YangData<? extends DataNode>) candidateChild,autoDelete);
             }
         }
+    }
+
+    private void ensureDataExists(YangData<? extends DataNode> node) throws YangDataException {
+        YangData<? extends DataNode> originalNode = (YangData<? extends DataNode>) operatedData.getDataChild(node.getIdentifier());
+        if(originalNode != null){
+            return;
+        }
+        throw new YangDataException(ErrorTag.DATA_MISSING,getOperateDataPath(),
+                new ErrorMessage("data missing"));
     }
 
     @Override

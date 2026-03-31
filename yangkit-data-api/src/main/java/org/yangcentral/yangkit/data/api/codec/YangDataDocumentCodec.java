@@ -9,5 +9,15 @@ public interface YangDataDocumentCodec<T> {
 
    YangDataDocument deserialize(T document, ValidatorResultBuilder builder);
 
+   default YangDataDocument deserialize(T document, ValidatorResultBuilder builder,
+                                        AnydataValidationContextResolver resolver) {
+      return deserialize(document, builder);
+   }
+
+   default YangDataDocument deserialize(T document, ValidatorResultBuilder builder,
+                                        AnydataValidationOptions options) {
+      return deserialize(document, builder, (AnydataValidationContextResolver) options);
+   }
+
    T serialize(YangDataDocument yangDataDocument);
 }

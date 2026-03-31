@@ -4,6 +4,7 @@ import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.codec.YangDataCodec;
@@ -20,6 +21,8 @@ import java.util.List;
 public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<S>>
         implements YangDataCodec<S, D, Element> {
     private S schemaNode;
+    private AnydataValidationContextResolver anydataValidationContextResolver;
+    private String sourcePath;
 
     protected YangDataXmlCodec(S schemaNode) {
         this.schemaNode = schemaNode;
@@ -35,31 +38,56 @@ public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<
     }
 
     public static YangDataXmlCodec<?, ?> getInstance(SchemaNode dataSchemaNode) {
+        return getInstance(dataSchemaNode, null, null);
+    }
+
+    public static YangDataXmlCodec<?, ?> getInstance(SchemaNode dataSchemaNode,
+                                                     AnydataValidationContextResolver resolver,
+                                                     String sourcePath) {
         if (null == dataSchemaNode) {
             return null;
         }
+        YangDataXmlCodec<?, ?> codec;
         if (dataSchemaNode instanceof Container) {
-            return new ContainerDataXmlCodec((Container) dataSchemaNode);
+            codec = new ContainerDataXmlCodec((Container) dataSchemaNode);
         } else if (dataSchemaNode instanceof YangList) {
-            return new ListDataXmlCodec((YangList) dataSchemaNode);
+            codec = new ListDataXmlCodec((YangList) dataSchemaNode);
         } else if (dataSchemaNode instanceof Leaf) {
-            return new LeafDataXmlCodec((Leaf) dataSchemaNode);
+            codec = new LeafDataXmlCodec((Leaf) dataSchemaNode);
         } else if (dataSchemaNode instanceof LeafList) {
-            return new LeafListDataXmlCodec( (LeafList) dataSchemaNode);
+            codec = new LeafListDataXmlCodec( (LeafList) dataSchemaNode);
         } else if (dataSchemaNode instanceof Anydata) {
-            return new AnyDataDataXmlCodec( (Anydata) dataSchemaNode);
+            codec = new AnyDataDataXmlCodec( (Anydata) dataSchemaNode);
         } else if (dataSchemaNode instanceof Anyxml) {
-            return new AnyxmlDataXmlCodec( (Anyxml) dataSchemaNode);
+            codec = new AnyxmlDataXmlCodec( (Anyxml) dataSchemaNode);
         } else if (dataSchemaNode instanceof Notification){
-            return new NotificationDataXmlCodec((Notification) dataSchemaNode);
+            codec = new NotificationDataXmlCodec((Notification) dataSchemaNode);
         } else if (dataSchemaNode instanceof Rpc) {
-            return new RpcDataXmlCodec((Rpc) dataSchemaNode);
+            codec = new RpcDataXmlCodec((Rpc) dataSchemaNode);
         } else if (dataSchemaNode instanceof Action) {
-            return new ActionDataXmlCodec((Action) dataSchemaNode);
-        }
-        else {
+            codec = new ActionDataXmlCodec((Action) dataSchemaNode);
+        } else {
             throw new IllegalArgumentException("not-support data schema type");
         }
+        codec.setAnydataValidationContextResolver(resolver);
+        codec.setSourcePath(sourcePath);
+        return codec;
+    }
+
+    protected AnydataValidationContextResolver getAnydataValidationContextResolver() {
+        return anydataValidationContextResolver;
+    }
+
+    protected void setAnydataValidationContextResolver(AnydataValidationContextResolver anydataValidationContextResolver) {
+        this.anydataValidationContextResolver = anydataValidationContextResolver;
+    }
+
+    protected String getSourcePath() {
+        return sourcePath;
+    }
+
+    protected void setSourcePath(String sourcePath) {
+        this.sourcePath = sourcePath;
     }
 
     public void processAttributers(YangData yangData, Element element) {

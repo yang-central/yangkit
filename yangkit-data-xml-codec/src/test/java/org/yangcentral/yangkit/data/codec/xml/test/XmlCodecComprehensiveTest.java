@@ -7,6 +7,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.xml.YangDataDocumentXmlCodec;
+import org.yangcentral.yangkit.data.impl.operation.YangDataDocumentOperatorImpl;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.parser.YangYinParser;
 
@@ -331,5 +332,156 @@ public class XmlCodecComprehensiveTest {
         
         assertNotNull(result);
         assertTrue(validatorBuilder.build().isOk());
+    }
+
+    @Test
+    public void testValueAttributeForLeafList() throws Exception {
+        YangSchemaContext schemaContext = loadSchemaContext();
+        if (schemaContext == null) return;
+        
+        String namespace = getNamespace(schemaContext, "xml-test-types");
+        if (namespace == null) return;
+        
+        // Test leaf-list with value attribute instead of text content
+        String xmlStr = "<leaf-list-test xmlns=\"" + namespace + "\">" +
+                        "<item value=\"first-value\"/>" +
+                        "<item>second-value</item>" +  // mix both encodings
+                        "</leaf-list-test>";
+        Document xmlDoc = DocumentHelper.parseText(xmlStr);
+        
+        YangDataDocumentXmlCodec codec = new YangDataDocumentXmlCodec(schemaContext);
+        ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
+        YangDataDocument result = codec.deserialize(xmlDoc.getRootElement(), validatorBuilder);
+        
+        assertNotNull(result);
+        assertTrue(validatorBuilder.build().isOk());
+
+        String serialized = codec.serialize(result).asXML();
+        assertTrue(serialized.contains("<item>first-value</item>"));
+        assertTrue(serialized.contains("<item>second-value</item>"));
+    }
+
+    @Test
+    public void testInsertAttributeForOrderedList() throws Exception {
+        YangSchemaContext schemaContext = loadSchemaContext();
+        if (schemaContext == null) return;
+        
+        String namespace = getNamespace(schemaContext, "xml-test-types");
+        if (namespace == null) return;
+        
+        // Test ordered list with insert attribute
+        // Note: Requires schema with ordered-by user list
+        String xmlStr = "<ordered-list xmlns=\"" + namespace + "\">" +
+                        "<entry>" +
+                        "<name>second-item</name>" +
+                        "</entry>" +
+                        "<entry nc:insert=\"first\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">" +
+                        "<name>first-item</name>" +
+                        "</entry>" +
+                        "</ordered-list>";
+        Document xmlDoc = DocumentHelper.parseText(xmlStr);
+        
+        YangDataDocumentXmlCodec codec = new YangDataDocumentXmlCodec(schemaContext);
+        ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
+        YangDataDocument result = codec.deserialize(xmlDoc.getRootElement(), validatorBuilder);
+        
+        assertNotNull(result);
+        ValidatorResult validation = validatorBuilder.build();
+        assertTrue(validation.isOk());
+
+        String serialized = codec.serialize(result).asXML();
+        assertTrue(serialized.indexOf("<name>first-item</name>") < serialized.indexOf("<name>second-item</name>"));
+    }
+
+    @Test
+    public void testOperationAttributeAppliedDuringMerge() throws Exception {
+        YangSchemaContext schemaContext = loadSchemaContext();
+        if (schemaContext == null) return;
+
+        String namespace = getNamespace(schemaContext, "xml-test-types");
+        if (namespace == null) return;
+
+        String baseXml = "<ordered-list xmlns=\"" + namespace + "\">" +
+                "<entry><name>second-item</name></entry>" +
+                "</ordered-list>";
+        String editXml = "<ordered-list xmlns=\"" + namespace + "\">" +
+                "<entry nc:operation=\"create\" nc:insert=\"first\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">" +
+                "<name>first-item</name>" +
+                "</entry>" +
+                "</ordered-list>";
+
+        YangDataDocumentXmlCodec codec = new YangDataDocumentXmlCodec(schemaContext);
+        ValidatorResultBuilder baseValidator = new ValidatorResultBuilder();
+        ValidatorResultBuilder editValidator = new ValidatorResultBuilder();
+        YangDataDocument baseDoc = codec.deserialize(DocumentHelper.parseText(baseXml).getRootElement(), baseValidator);
+        YangDataDocument editDoc = codec.deserialize(DocumentHelper.parseText(editXml).getRootElement(), editValidator);
+
+        assertNotNull(baseDoc);
+        assertNotNull(editDoc);
+        assertTrue(baseValidator.build().isOk());
+        assertTrue(editValidator.build().isOk());
+
+        YangDataDocumentOperatorImpl operator = new YangDataDocumentOperatorImpl(baseDoc);
+        operator.merge(editDoc, false);
+
+        String serialized = codec.serialize(baseDoc).asXML();
+        assertTrue(serialized.indexOf("<name>first-item</name>") < serialized.indexOf("<name>second-item</name>"));
+    }
+
+    @Test
+    public void testSelectAttributeForAnydata() throws Exception {
+        YangSchemaContext schemaContext = loadSchemaContext();
+        if (schemaContext == null) return;
+        
+        String namespace = getNamespace(schemaContext, "xml-test-types");
+        if (namespace == null) return;
+        
+        String xmlStr = "<anydata-node nc:select=\"//leaf-list-test\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\" xmlns=\"" + namespace + "\">" +
+                        "<ordered-list>" +
+                        "<entry><name>first-item</name></entry>" +
+                        "</ordered-list>" +
+                        "<leaf-list-test>" +
+                        "<item>value1</item>" +
+                        "</leaf-list-test>" +
+                        "</anydata-node>";
+        Document xmlDoc = DocumentHelper.parseText(xmlStr);
+        
+        YangDataDocumentXmlCodec codec = new YangDataDocumentXmlCodec(schemaContext);
+        ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
+        YangDataDocument result = codec.deserialize(xmlDoc.getRootElement(), validatorBuilder);
+        
+        assertNotNull(result);
+        ValidatorResult validation = validatorBuilder.build();
+        assertTrue(validation.isOk());
+
+        String serialized = codec.serialize(result).asXML();
+        assertTrue(serialized.contains("<leaf-list-test>"));
+        assertFalse(serialized.contains("<ordered-list>"));
+    }
+
+    @Test
+    public void testSelectAttributeForAnyxml() throws Exception {
+        YangSchemaContext schemaContext = loadSchemaContext();
+        if (schemaContext == null) return;
+
+        String namespace = getNamespace(schemaContext, "xml-test-types");
+        if (namespace == null) return;
+
+        String xmlStr = "<any-xml nc:select=\"//*[local-name()='beta']\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\" xmlns=\"" + namespace + "\">" +
+                "<alpha><value>a</value></alpha>" +
+                "<beta><value>b</value></beta>" +
+                "</any-xml>";
+        Document xmlDoc = DocumentHelper.parseText(xmlStr);
+
+        YangDataDocumentXmlCodec codec = new YangDataDocumentXmlCodec(schemaContext);
+        ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
+        YangDataDocument result = codec.deserialize(xmlDoc.getRootElement(), validatorBuilder);
+
+        assertNotNull(result);
+        assertTrue(validatorBuilder.build().isOk());
+
+        String serialized = codec.serialize(result).asXML();
+        assertTrue(serialized.contains("<beta><value>b</value></beta>"));
+        assertFalse(serialized.contains("<alpha><value>a</value></alpha>"));
     }
 }

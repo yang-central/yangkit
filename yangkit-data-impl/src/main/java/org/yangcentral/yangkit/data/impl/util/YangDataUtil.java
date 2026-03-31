@@ -30,14 +30,24 @@ public class YangDataUtil {
         if (doc.getQName() != null) {
             SchemaNode node = doc.getSchemaContext().getTreeNodeChild(doc.getQName());
             if (node == null) {
+                node = findSchemaNodeByQName(doc.getSchemaContext().getTreeNodeChildren(), doc.getQName());
+            }
+            if (node == null) {
                 // Search for sx:structure definitions in loaded modules
-                List<Module> modules = doc.getSchemaContext().getModule(doc.getQName().getNamespace());
+                List<Module> modules = doc.getSchemaContext().getModules();
                 if (modules != null) {
                     for (Module module : modules) {
+                        if (module == null || module.getMainModule() == null || module.getMainModule().getNamespace() == null
+                                || module.getMainModule().getNamespace().getUri() == null
+                                || !module.getMainModule().getNamespace().getUri().toString()
+                                .equals(doc.getQName().getNamespace().toString())) {
+                            continue;
+                        }
                         for (YangUnknown unknown : module.getUnknowns()) {
                             if (unknown instanceof YangStructure) {
                                 YangStructure structure = (YangStructure) unknown;
-                                if (structure.getArgStr().equals(doc.getQName().getLocalName())) {
+                                if (isSameQName(structure.getIdentifier(), doc.getQName())
+                                        || structure.getArgStr().equals(doc.getQName().getLocalName())) {
                                     node = structure;
                                     break;
                                 }
@@ -54,6 +64,34 @@ public class YangDataUtil {
             }
         }
         return doc.getSchemaContext();
+    }
+
+    private static SchemaNode findSchemaNodeByQName(List<SchemaNode> schemaNodes, QName qName) {
+        if (schemaNodes == null || qName == null) {
+            return null;
+        }
+        for (SchemaNode schemaNode : schemaNodes) {
+            if (schemaNode == null) {
+                continue;
+            }
+            if (isSameQName(schemaNode.getIdentifier(), qName)) {
+                return schemaNode;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isSameQName(QName schemaQName, QName requestedQName) {
+        if (schemaQName == null || requestedQName == null) {
+            return false;
+        }
+        if (!schemaQName.getLocalName().equals(requestedQName.getLocalName())) {
+            return false;
+        }
+        if (schemaQName.getNamespace() == null || requestedQName.getNamespace() == null) {
+            return schemaQName.getNamespace() == requestedQName.getNamespace();
+        }
+        return schemaQName.getNamespace().toString().equals(requestedQName.getNamespace().toString());
     }
 
     public static Boolean getXPathBooleanValue(Object obj) {

@@ -7,6 +7,7 @@ import com.google.protobuf.Message;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -52,6 +53,15 @@ public class ProtoCodecUtil {
     public static void deserializeChildren(YangDataContainer container,
                                            DynamicMessage message,
                                            ValidatorResultBuilder validatorResultBuilder) {
+        deserializeChildren(container, message, validatorResultBuilder, ProtoCodecMode.SIMPLE, null, null);
+    }
+
+    public static void deserializeChildren(YangDataContainer container,
+                                           DynamicMessage message,
+                                           ValidatorResultBuilder validatorResultBuilder,
+                                           ProtoCodecMode mode,
+                                           AnydataValidationContextResolver resolver,
+                                           String sourcePath) {
         if (message == null) return;
 
         for (Descriptors.FieldDescriptor field : message.getDescriptorForType().getFields()) {
@@ -67,11 +77,13 @@ public class ProtoCodecUtil {
                 int count = message.getRepeatedFieldCount(field);
                 for (int i = 0; i < count; i++) {
                     Object fieldValue = message.getRepeatedField(field, i);
-                    createAndAdd(container, field, fieldValue, schemaNode, validatorResultBuilder);
+                    createAndAdd(container, field, fieldValue, schemaNode, validatorResultBuilder,
+                            mode, resolver, buildChildSourcePath(sourcePath, schemaNode, i));
                 }
             } else {
                 Object fieldValue = message.getField(field);
-                createAndAdd(container, field, fieldValue, schemaNode, validatorResultBuilder);
+                createAndAdd(container, field, fieldValue, schemaNode, validatorResultBuilder,
+                        mode, resolver, buildChildSourcePath(sourcePath, schemaNode, null));
             }
         }
     }
@@ -80,7 +92,10 @@ public class ProtoCodecUtil {
                                      Descriptors.FieldDescriptor field,
                                      Object fieldValue,
                                      SchemaNode schemaNode,
-                                     ValidatorResultBuilder validatorResultBuilder) {
+                                     ValidatorResultBuilder validatorResultBuilder,
+                                     ProtoCodecMode mode,
+                                     AnydataValidationContextResolver resolver,
+                                     String sourcePath) {
         if (fieldValue == null) return;
 
         YangData<?> yangData = null;
@@ -98,17 +113,21 @@ public class ProtoCodecUtil {
         } else if (schemaNode instanceof Container) {
             if (fieldValue instanceof DynamicMessage) {
                 yangData = createContainerData((Container) schemaNode,
-                        (DynamicMessage) fieldValue, validatorResultBuilder);
+                        (DynamicMessage) fieldValue, validatorResultBuilder, mode, resolver, sourcePath);
             }
 
         } else if (schemaNode instanceof YangList) {
             if (fieldValue instanceof DynamicMessage) {
                 yangData = createListData((YangList) schemaNode,
-                        (DynamicMessage) fieldValue, validatorResultBuilder);
+                        (DynamicMessage) fieldValue, validatorResultBuilder, mode, resolver, sourcePath);
             }
 
         } else if (schemaNode instanceof Anydata) {
-            yangData = createAnyDataData((Anydata) schemaNode, fieldValue);
+            if (fieldValue instanceof DynamicMessage) {
+                AnyDataDataProtoCodec codec = (AnyDataDataProtoCodec) YangDataProtoCodec.getInstance(
+                        schemaNode, mode, resolver, sourcePath);
+                yangData = codec.deserialize((DynamicMessage) fieldValue, validatorResultBuilder);
+            }
 
         } else if (schemaNode instanceof Anyxml) {
             yangData = createAnyXmlData((Anyxml) schemaNode, fieldValue);
@@ -136,7 +155,8 @@ public class ProtoCodecUtil {
      * @param yangDataContainer  the YANG data container to read from
      */
     public static void serializeChildren(Message.Builder messageBuilder,
-                                         YangDataContainer yangDataContainer) {
+                                         YangDataContainer yangDataContainer,
+                                         ProtoCodecMode mode) {
         List<YangData<?>> children = yangDataContainer.getDataChildren();
         if (children == null) return;
 
@@ -159,7 +179,18 @@ public class ProtoCodecUtil {
             } else if (schema instanceof Container || schema instanceof YangList) {
                 // Recurse into child codec
                 DynamicMessage childMsg = YangDataProtoCodec
-                        .getInstance(schema)
+                        .getInstance(schema, mode)
+                        .serialize(child);
+                if (childMsg != null) {
+                    if (fieldDesc.isRepeated()) {
+                        messageBuilder.addRepeatedField(fieldDesc, childMsg);
+                    } else {
+                        messageBuilder.setField(fieldDesc, childMsg);
+                    }
+                }
+            } else if (schema instanceof Anydata) {
+                DynamicMessage childMsg = YangDataProtoCodec
+                        .getInstance(schema, mode)
                         .serialize(child);
                 if (childMsg != null) {
                     if (fieldDesc.isRepeated()) {
@@ -362,12 +393,15 @@ public class ProtoCodecUtil {
 
     private static YangData<?> createContainerData(Container container,
                                                     DynamicMessage message,
-                                                    ValidatorResultBuilder validatorResultBuilder) {
+                                                    ValidatorResultBuilder validatorResultBuilder,
+                                                    ProtoCodecMode mode,
+                                                    AnydataValidationContextResolver resolver,
+                                                    String sourcePath) {
         try {
             org.yangcentral.yangkit.data.impl.model.ContainerDataImpl data =
                     new org.yangcentral.yangkit.data.impl.model.ContainerDataImpl(container);
             data.setQName(container.getIdentifier());
-            deserializeChildren(data, message, validatorResultBuilder);
+            deserializeChildren(data, message, validatorResultBuilder, mode, resolver, sourcePath);
             return data;
         } catch (Exception e) {
             System.err.println("[ProtoCodecUtil] Failed to create container data: " + e.getMessage());
@@ -377,26 +411,18 @@ public class ProtoCodecUtil {
 
     private static YangData<?> createListData(YangList list,
                                                DynamicMessage message,
-                                               ValidatorResultBuilder validatorResultBuilder) {
+                                               ValidatorResultBuilder validatorResultBuilder,
+                                               ProtoCodecMode mode,
+                                               AnydataValidationContextResolver resolver,
+                                               String sourcePath) {
         try {
             org.yangcentral.yangkit.data.impl.model.ListDataImpl data =
                     new org.yangcentral.yangkit.data.impl.model.ListDataImpl(list, null);
             data.setQName(list.getIdentifier());
-            deserializeChildren(data, message, validatorResultBuilder);
+            deserializeChildren(data, message, validatorResultBuilder, mode, resolver, sourcePath);
             return data;
         } catch (Exception e) {
             System.err.println("[ProtoCodecUtil] Failed to create list data: " + e.getMessage());
-            return null;
-        }
-    }
-
-    private static YangData<?> createAnyDataData(Anydata anydata, Object fieldValue) {
-        try {
-            org.yangcentral.yangkit.data.impl.model.AnyDataDataImpl data =
-                    new org.yangcentral.yangkit.data.impl.model.AnyDataDataImpl(anydata);
-            data.setQName(anydata.getIdentifier());
-            return data;
-        } catch (Exception e) {
             return null;
         }
     }
@@ -503,5 +529,19 @@ public class ProtoCodecUtil {
     /** Converts a YANG identifier to protobuf snake_case field name. */
     static String toSnakeCase(String s) {
         return ProtoSchemaGenerator.toSnakeCase(s);
+    }
+
+    private static String buildChildSourcePath(String parentSourcePath, SchemaNode schemaNode, Integer index) {
+        String localName = schemaNode == null ? null : schemaNode.getIdentifier().getLocalName();
+        if (localName == null) {
+            return parentSourcePath;
+        }
+        String path = (parentSourcePath == null || parentSourcePath.isEmpty())
+                ? "/" + localName
+                : parentSourcePath + "/" + localName;
+        if (index != null) {
+            path += "[" + index + "]";
+        }
+        return path;
     }
 }

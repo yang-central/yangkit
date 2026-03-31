@@ -23,7 +23,7 @@ public class AnyxmlDataXmlCodec extends YangDataXmlCodec<Anyxml, AnyxmlData> {
     @Override
     protected void buildElement(Element element, YangData<?> yangData) {
         AnyxmlData anyxmlData = (AnyxmlData) yangData;
-        Document document = anyxmlData.getValue();
+        Document document = anyxmlData.getEffectiveValue();
 
         for(Element child: document.getRootElement().elements()){
             child.detach();

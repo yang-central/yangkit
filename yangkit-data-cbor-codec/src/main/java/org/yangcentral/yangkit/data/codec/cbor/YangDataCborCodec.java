@@ -21,7 +21,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.model.YangData;
+import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 
 /**
@@ -40,6 +43,8 @@ public abstract class YangDataCborCodec<N extends SchemaNode, D extends YangData
     protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     
     private final N schemaNode;
+    private AnydataValidationContextResolver anydataValidationContextResolver;
+    private String sourcePath;
     
     /**
      * Constructs a new CBOR codec for the given schema node.
@@ -57,6 +62,26 @@ public abstract class YangDataCborCodec<N extends SchemaNode, D extends YangData
      */
     protected N getSchemaNode() {
         return schemaNode;
+    }
+
+    protected YangSchemaContext getSchemaContext() {
+        return schemaNode.getContext().getSchemaContext();
+    }
+
+    protected AnydataValidationContextResolver getAnydataValidationContextResolver() {
+        return anydataValidationContextResolver;
+    }
+
+    protected void setAnydataValidationContextResolver(AnydataValidationContextResolver anydataValidationContextResolver) {
+        this.anydataValidationContextResolver = anydataValidationContextResolver;
+    }
+
+    protected String getSourcePath() {
+        return sourcePath;
+    }
+
+    protected void setSourcePath(String sourcePath) {
+        this.sourcePath = sourcePath;
     }
     
     /**
@@ -88,12 +113,25 @@ public abstract class YangDataCborCodec<N extends SchemaNode, D extends YangData
      */
     public D deserialize(byte[] cborData, ValidatorResultBuilder validatorResultBuilder) 
             throws YangDataCborCodecException {
+        return deserialize(cborData, validatorResultBuilder, (AnydataValidationContextResolver) null);
+    }
+
+    public D deserialize(byte[] cborData, ValidatorResultBuilder validatorResultBuilder,
+                         AnydataValidationContextResolver resolver)
+            throws YangDataCborCodecException {
         try {
+            this.anydataValidationContextResolver = resolver;
             JsonNode jsonNode = CBOR_MAPPER.readTree(cborData);
             return buildData(jsonNode, validatorResultBuilder);
         } catch (Exception e) {
             throw new YangDataCborCodecException("Failed to deserialize CBOR data", e);
         }
+    }
+
+    public D deserialize(byte[] cborData, ValidatorResultBuilder validatorResultBuilder,
+                         AnydataValidationOptions options)
+            throws YangDataCborCodecException {
+        return deserialize(cborData, validatorResultBuilder, (AnydataValidationContextResolver) options);
     }
     
     /**

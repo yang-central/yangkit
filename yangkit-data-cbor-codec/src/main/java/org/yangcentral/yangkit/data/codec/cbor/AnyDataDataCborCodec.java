@@ -17,11 +17,15 @@
 package org.yangcentral.yangkit.data.codec.cbor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContext;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationRequest;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
+import org.yangcentral.yangkit.data.api.model.YangDataDocument;
+import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
 import org.yangcentral.yangkit.data.impl.model.AnyDataDataImpl;
+import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Anydata;
 
 /**
@@ -49,19 +53,32 @@ public class AnyDataDataCborCodec extends YangDataCborCodec<Anydata, AnyDataData
 
     @Override
     protected JsonNode buildJson(AnyDataData yangData) throws YangDataCborCodecException {
-        // anydata value is a YangDataDocument; without a full YANG schema context
-        // we cannot traverse it generically. Return an empty map as placeholder.
-        ObjectNode rootNode = JSON_MAPPER.createObjectNode();
-        return rootNode;
+        YangDataDocument document = yangData.getEffectiveValue();
+        if (document == null) {
+            return JSON_MAPPER.createObjectNode();
+        }
+        YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(getSchemaContext());
+        return documentJsonCodec.serialize(document);
     }
 
     @Override
     protected AnyDataData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder)
             throws YangDataCborCodecException {
+        YangSchemaContext payloadSchemaContext = getSchemaContext();
+        if (getAnydataValidationContextResolver() != null) {
+            AnydataValidationContext context = getAnydataValidationContextResolver().resolve(
+                    new AnydataValidationRequest(getSchemaNode(), getSourcePath(), getSchemaContext()));
+            if (context != null && context.getSchemaContext() != null) {
+                payloadSchemaContext = context.getSchemaContext();
+            }
+        }
+        YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(payloadSchemaContext);
+        YangDataDocument dataDocument = documentJsonCodec.deserialize(jsonNode, validatorResultBuilder,
+                getAnydataValidationContextResolver());
         AnyDataDataImpl anyDataData = new AnyDataDataImpl(getSchemaNode());
         QName qName = getSchemaNode().getIdentifier();
         anyDataData.setQName(qName);
-        // Value population requires schema context - left as null
+        anyDataData.setValue(dataDocument);
         return anyDataData;
     }
 }

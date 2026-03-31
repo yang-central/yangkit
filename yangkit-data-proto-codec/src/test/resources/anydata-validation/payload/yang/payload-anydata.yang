@@ -1,0 +1,12 @@
+module payload-anydata {
+  yang-version 1.1;
+  namespace "urn:test:payload-anydata";
+  prefix payload;
+
+  container payload-root {
+    leaf value {
+      type string;
+    }
+  }
+}
+

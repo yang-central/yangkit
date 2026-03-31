@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.data.impl.model;
 import org.dom4j.Document;
 import org.yangcentral.yangkit.data.api.model.AnyxmlData;
 import org.yangcentral.yangkit.data.api.model.DataIdentifier;
+import org.yangcentral.yangkit.data.impl.util.NetconfSelectUtil;
 import org.yangcentral.yangkit.model.api.stmt.Anyxml;
 
 public class AnyXmlDataImpl extends YangDataImpl<Anyxml> implements AnyxmlData {
@@ -15,6 +16,11 @@ public class AnyXmlDataImpl extends YangDataImpl<Anyxml> implements AnyxmlData {
     @Override
     public Document getValue() {
         return this.value;
+    }
+
+    @Override
+    public Document getEffectiveValue() {
+        return NetconfSelectUtil.getEffectiveValue(this);
     }
 
     @Override

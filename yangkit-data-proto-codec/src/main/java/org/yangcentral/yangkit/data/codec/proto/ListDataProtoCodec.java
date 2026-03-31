@@ -20,7 +20,8 @@ public class ListDataProtoCodec extends YangDataProtoCodec<YangList, ListData> {
                                  ValidatorResultBuilder validatorResultBuilder) {
         ListDataImpl data = new ListDataImpl(getSchemaNode(), null);
         data.setQName(getSchemaNode().getIdentifier());
-        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder);
+        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder, mode,
+                getAnydataValidationContextResolver(), getSourcePath());
         return data;
     }
 

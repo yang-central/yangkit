@@ -14,6 +14,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.common.impl.validate.ValidatorRecordImpl;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
@@ -228,7 +229,12 @@ public class JsonCodecUtil {
         if(!moduleOp.isPresent()){
             return null;
         }
-        ns = moduleOp.get().getMainModule().getNamespace().getUri();
+        Module module = moduleOp.get();
+        if (module.getMainModule() == null || module.getMainModule().getNamespace() == null
+                || module.getMainModule().getNamespace().getUri() == null) {
+            return null;
+        }
+        ns = module.getMainModule().getNamespace().getUri();
 
         return new QName(ns,fName.getLocalName());
     }
@@ -367,10 +373,16 @@ public class JsonCodecUtil {
 
 
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode){
-        return buildChildData(yangDataContainer, child, childSchemaNode, new ExtraValidationDataJsonCodec());
+        return buildChildData(yangDataContainer, child, childSchemaNode, new ExtraValidationDataJsonCodec(), null);
     }
 
     public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child, SchemaNode childSchemaNode, ExtraValidationDataJsonCodec extraValidationData){
+        return buildChildData(yangDataContainer, child, childSchemaNode, extraValidationData, null);
+    }
+
+    public static ValidatorResult buildChildData(YangDataContainer yangDataContainer, JsonNode child,
+                                                 SchemaNode childSchemaNode, ExtraValidationDataJsonCodec extraValidationData,
+                                                 AnydataValidationContextResolver resolver){
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         if((childSchemaNode instanceof YangList) || (childSchemaNode instanceof LeafList)) {
             if(!child.isArray() && !extraValidationData.isNodeInJsonArray(child)){
@@ -390,7 +402,8 @@ public class JsonCodecUtil {
                     JsonNode childElement = child.get(i);
                     extraValidationData.addJsonChildArray(childElement);
                     extraValidationData.addJsonChild(child, childElement, Integer.toString(i));
-                    validatorResultBuilder.merge(buildChildData(yangDataContainer,childElement,childSchemaNode, extraValidationData));
+                    validatorResultBuilder.merge(buildChildData(yangDataContainer,childElement,childSchemaNode,
+                            extraValidationData, resolver));
                 }
             } else {
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
@@ -403,7 +416,8 @@ public class JsonCodecUtil {
             }
             return validatorResultBuilder.build();
         }
-        YangDataJsonCodec sonCodec = YangDataJsonCodec.getInstance(childSchemaNode);
+        String sourcePath = extraValidationData.getJsonPath(child);
+        YangDataJsonCodec sonCodec = YangDataJsonCodec.getInstance(childSchemaNode, resolver, sourcePath);
         YangData<?> sonData = sonCodec.deserialize(child, validatorResultBuilder);
         if (null == sonData) {
             return validatorResultBuilder.build();
@@ -428,7 +442,8 @@ public class JsonCodecUtil {
         }
         sonData = yangDataContainer.getDataChild(sonData.getIdentifier());
         if (sonData instanceof YangDataContainer) {
-            validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, child, extraValidationData));
+            validatorResultBuilder.merge(buildChildrenData((YangDataContainer) sonData, child, extraValidationData,
+                    resolver));
         } else if (sonData instanceof RpcData){
 
         }
@@ -516,8 +531,13 @@ public class JsonCodecUtil {
         return sonData;
     }
     public static ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element) {
+        return buildChildrenData(yangDataContainer, element, (AnydataValidationContextResolver) null);
+    }
+
+    public static ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element,
+                                                    AnydataValidationContextResolver resolver) {
         ExtraValidationDataJsonCodec extraValidationData = new ExtraValidationDataJsonCodec();
-        ValidatorResult validatorResult = buildChildrenData(yangDataContainer, element, extraValidationData);
+        ValidatorResult validatorResult = buildChildrenData(yangDataContainer, element, extraValidationData, resolver);
         if(validatorResult.getRecords() == null){
             return validatorResult;
         }
@@ -538,6 +558,12 @@ public class JsonCodecUtil {
         return validatorResultBuilderWithErrorPath.build();
     }
     public static ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element, ExtraValidationDataJsonCodec extraValidationData) {
+        return buildChildrenData(yangDataContainer, element, extraValidationData, null);
+    }
+
+    public static ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, JsonNode element,
+                                                    ExtraValidationDataJsonCodec extraValidationData,
+                                                    AnydataValidationContextResolver resolver) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         SchemaNodeContainer schemaNodeContainer = null;
         if (yangDataContainer instanceof YangDataDocument) {
@@ -572,7 +598,8 @@ public class JsonCodecUtil {
                 continue;
             }
 
-            validatorResultBuilder.merge(buildChildData(yangDataContainer,child,sonSchemaNode, extraValidationData));
+            validatorResultBuilder.merge(buildChildData(yangDataContainer,child,sonSchemaNode, extraValidationData,
+                    resolver));
 
         }
         for(Map.Entry<String,JsonNode> attribute:attributes){

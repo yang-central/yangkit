@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.data.impl.model;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.DataIdentifier;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
+import org.yangcentral.yangkit.data.impl.util.NetconfSelectUtil;
 import org.yangcentral.yangkit.model.api.stmt.Anydata;
 
 public class AnyDataDataImpl extends YangDataImpl<Anydata> implements AnyDataData {
@@ -15,6 +16,11 @@ public class AnyDataDataImpl extends YangDataImpl<Anydata> implements AnyDataDat
     @Override
     public YangDataDocument getValue() {
         return value;
+    }
+
+    @Override
+    public YangDataDocument getEffectiveValue() {
+        return NetconfSelectUtil.getEffectiveValue(this);
     }
 
     @Override

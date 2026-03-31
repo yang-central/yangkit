@@ -40,6 +40,11 @@
         </dependency>
         <dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
+            <artifactId>yangkit-data-json-codec</artifactId>
+            <version>${io.github.yang-central.yangkit.yangkit-data-json-codec.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-model-impl</artifactId>
             <version>${io.github.yang-central.yangkit.yangkit-model-impl.version}</version>
             <scope>test</scope>

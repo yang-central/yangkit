@@ -13,6 +13,8 @@ import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.codec.YangDataDocumentCodec;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.YangData;
@@ -36,6 +38,7 @@ import java.util.*;
 public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode> {
 
     private YangSchemaContext yangSchemaContext;
+    private AnydataValidationContextResolver anydataValidationContextResolver;
 
     public YangDataDocumentJsonCodec(YangSchemaContext yangSchemaContext) {
         this.yangSchemaContext = yangSchemaContext;
@@ -49,9 +52,16 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
 
     @Override
     public YangDataDocument deserialize(JsonNode element, ValidatorResultBuilder validatorResultBuilder) {
+        return deserialize(element, validatorResultBuilder, (AnydataValidationContextResolver) null);
+    }
+
+    @Override
+    public YangDataDocument deserialize(JsonNode element, ValidatorResultBuilder validatorResultBuilder,
+                                        AnydataValidationContextResolver resolver) {
         if (element.isNull()) {
             return null;
         }
+        this.anydataValidationContextResolver = resolver;
         int size = 0;
         Iterator<String> fields = element.fieldNames();
         String field = null;
@@ -77,8 +87,15 @@ public class YangDataDocumentJsonCodec implements YangDataDocumentCodec<JsonNode
         }
         YangDataDocument yangDataDocument = new YangDataDocumentImpl(qName, yangSchemaContext, element.toString());
 
-        validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(yangDataDocument, element.get(field)));
+        validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(yangDataDocument, element.get(field),
+                anydataValidationContextResolver));
         return yangDataDocument;
+    }
+
+    @Override
+    public YangDataDocument deserialize(JsonNode element, ValidatorResultBuilder validatorResultBuilder,
+                                        AnydataValidationOptions options) {
+        return deserialize(element, validatorResultBuilder, (AnydataValidationContextResolver) options);
     }
 
     @Override
