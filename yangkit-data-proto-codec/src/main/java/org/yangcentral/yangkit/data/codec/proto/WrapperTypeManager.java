@@ -77,6 +77,24 @@ public class WrapperTypeManager {
     }
 
     /**
+     * Returns the Descriptor for a wrapper message type.
+     *
+     * @param messageName the name of the wrapper message (e.g., "StringValue", "IntValue")
+     * @return the Descriptor for the specified message type
+     * @throws IllegalArgumentException if the message name is not found
+     */
+    public Descriptors.Descriptor getDescriptor(String messageName) {
+        if (fileDescriptor == null) {
+            throw new IllegalStateException("FileDescriptor not initialized");
+        }
+        Descriptors.Descriptor descriptor = fileDescriptor.findMessageTypeByName(messageName);
+        if (descriptor == null) {
+            throw new IllegalArgumentException("Unknown wrapper message type: " + messageName);
+        }
+        return descriptor;
+    }
+
+    /**
      * Builds the FileDescriptorProto for ywrapper.proto and compiles it.
      */
     private void buildFileDescriptor() {
