@@ -1,0 +1,156 @@
+module test-proto-types {
+    namespace "http://example.com/test-proto-types";
+    prefix tpt;
+
+    yang-version 1.1;
+
+    organization "Example Corp";
+    contact "test@example.com";
+    description "Test module for advanced type coverage in protobuf codec testing.
+                 Covers: enumeration, bits, union, leafref, identityref.";
+
+    revision 2024-01-01 {
+        description "Initial version";
+    }
+
+    // -------------------------------------------------------------------------
+    // Typedef re-used by leafref tests
+    // -------------------------------------------------------------------------
+
+    typedef name-type {
+        type string {
+            length "1..64";
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Enumeration
+    // -------------------------------------------------------------------------
+
+    container enum-container {
+        description "Container to test enumeration type mapping";
+
+        leaf status {
+            type enumeration {
+                enum "ACTIVE"  { value 1; }
+                enum "INACTIVE" { value 2; }
+                enum "PENDING"  { value 3; }
+            }
+            description "Status leaf with enumeration type";
+        }
+
+        leaf priority {
+            type enumeration {
+                enum "LOW"    { value 0; }
+                enum "MEDIUM" { value 1; }
+                enum "HIGH"   { value 2; }
+            }
+            description "Priority leaf — zero-value enum";
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Bits
+    // -------------------------------------------------------------------------
+
+    container bits-container {
+        description "Container to test bits type mapping";
+
+        leaf permissions {
+            type bits {
+                bit "READ"    { position 0; }
+                bit "WRITE"   { position 1; }
+                bit "EXECUTE" { position 2; }
+                bit "ADMIN"   { position 7; }
+            }
+            description "Bit flags for permissions";
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Union
+    // -------------------------------------------------------------------------
+
+    container union-container {
+        description "Container to test union type mapping (oneof in YGOT mode)";
+
+        leaf flexible-value {
+            type union {
+                type int32;
+                type string;
+                type boolean;
+            }
+            description "Union of int32, string, and boolean";
+        }
+
+        leaf ip-or-name {
+            type union {
+                type string {
+                    pattern '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
+                        + '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])';
+                }
+                type string;
+            }
+            description "IP address or hostname union";
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Leafref
+    // -------------------------------------------------------------------------
+
+    list interface-list {
+        key "name";
+        description "List used as leafref source";
+
+        leaf name {
+            type name-type;
+            description "Interface name (key)";
+        }
+
+        leaf mtu {
+            type uint32;
+            description "MTU value";
+        }
+    }
+
+    container leafref-container {
+        description "Container to test leafref resolution";
+
+        leaf ref-interface {
+            type leafref {
+                path "/tpt:interface-list/tpt:name";
+            }
+            description "Reference to an interface name";
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Mixed types container (for comprehensive round-trip testing)
+    // -------------------------------------------------------------------------
+
+    container mixed-container {
+        description "Container with mixed scalar and complex types for codec mode comparison";
+
+        leaf int-value    { type int32; }
+        leaf uint-value   { type uint64; }
+        leaf str-value    { type string; }
+        leaf bool-value   { type boolean; }
+        leaf dec-value    { type decimal64 { fraction-digits 4; } }
+        leaf empty-value  { type empty; }
+        leaf binary-value { type binary; }
+
+        leaf enum-value {
+            type enumeration {
+                enum "ONE"   { value 1; }
+                enum "TWO"   { value 2; }
+                enum "THREE" { value 3; }
+            }
+        }
+
+        leaf-list tags {
+            type string;
+            description "List of string tags";
+        }
+    }
+}
