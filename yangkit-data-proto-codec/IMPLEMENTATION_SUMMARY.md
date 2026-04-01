@@ -107,6 +107,123 @@ Implemented codec classes for different YANG data types:
 - **AnyxmlDataProtoCodec** - Anyxml node encoding/decoding
 - **YangStructureDataProtoCodec** - YANG structure encoding/decoding
 
+## Anydata Handling
+
+This section collects the implementation-specific `anydata` behavior of the proto codec.
+The module README covers user-facing usage, while this document keeps the lower-level representation details together.
+
+### Current Representation
+
+For `anydata` nodes, the current protobuf codec generates a wrapper protobuf message for the `anydata` schema node.
+Its payload is carried in a `value` field as JSON text, and deserialization resolves the payload schema through `AnydataValidationOptions`.
+
+This design reuses the existing JSON document parsing logic used by the other codecs; it does not imply protobuf-level wire compatibility with other `anydata` representations.
+
+Typical behavior:
+
+- outer protobuf message identifies the `anydata` schema node
+- embedded JSON payload is read from the generated wrapper message
+- payload schema is resolved by rule, schema-node registration, or default context
+- if no context matches, the `anydata` node still exists but its payload may have zero recognized children
+
+### Validation Options
+
+- `AnydataValidationOptions` matching order is: rule > schema-node registration > default context
+- rule-based matching can use `request.getSourcePath()` when the same schema node may carry different payload schema sets in different locations
+- the shared API itself is documented in [`../yangkit-data-api/README.md`](../yangkit-data-api/README.md)
+
+### Complete Minimal Runnable Example
+
+```java
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
+import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
+import org.yangcentral.yangkit.data.api.model.AnyDataData;
+import org.yangcentral.yangkit.data.api.model.ContainerData;
+import org.yangcentral.yangkit.data.codec.proto.ProtoDescriptorManager;
+import org.yangcentral.yangkit.data.codec.proto.YangDataProtoCodec;
+import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.stmt.Container;
+import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.parser.YangYinParser;
+
+public class ProtoAnydataExample {
+    public static void main(String[] args) throws Exception {
+        YangSchemaContext outerSchemaContext = YangYinParser.parse("src/test/resources/anydata-validation/outer/yang");
+        YangSchemaContext payloadSchemaContext = YangYinParser.parse("src/test/resources/anydata-validation/payload/yang");
+
+        if (!outerSchemaContext.validate().isOk() || !payloadSchemaContext.validate().isOk()) {
+            throw new IllegalStateException("schema validation failed");
+        }
+
+        Container wrapperContainer = null;
+        for (Module module : outerSchemaContext.getModules()) {
+            if ("outer-anydata".equals(module.getArgStr())) {
+                wrapperContainer = (Container) module.getDataNodeChildren().get(0);
+                break;
+            }
+        }
+        if (wrapperContainer == null) {
+            throw new IllegalStateException("wrapper container not found");
+        }
+
+        Descriptors.Descriptor wrapperDescriptor = ProtoDescriptorManager.getInstance().getDescriptor(wrapperContainer);
+        Descriptors.FieldDescriptor payloadHolderField = wrapperDescriptor.findFieldByName("payload_holder");
+        Descriptors.FieldDescriptor valueField = payloadHolderField.getMessageType().findFieldByName("value");
+
+        DynamicMessage.Builder anydataBuilder = DynamicMessage.newBuilder(payloadHolderField.getMessageType());
+        anydataBuilder.setField(valueField, "{\"payload-anydata:payload-root\":{\"value\":\"abc\"}}");
+
+        DynamicMessage.Builder wrapperBuilder = DynamicMessage.newBuilder(wrapperDescriptor);
+        wrapperBuilder.setField(payloadHolderField, anydataBuilder.build());
+
+        AnydataValidationOptions options = new AnydataValidationOptions()
+                .registerSchemaContext(
+                        new QName("urn:test:outer-anydata", "payload-holder"),
+                        payloadSchemaContext);
+
+        ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
+        ContainerData containerData = (ContainerData) YangDataProtoCodec
+                .getInstance(wrapperContainer)
+                .deserialize(wrapperBuilder.build(), validatorBuilder, options);
+
+        AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
+        System.out.println(anyDataData.getValue().getDataChildren().get(0).getQName().getLocalName());
+        // expected output: value
+    }
+}
+```
+
+Expected test YANG files:
+
+```yang
+module outer-anydata {
+  yang-version 1.1;
+  namespace "urn:test:outer-anydata";
+  prefix outer;
+
+  container anydata-wrapper {
+    anydata payload-holder;
+  }
+}
+```
+
+```yang
+module payload-anydata {
+  yang-version 1.1;
+  namespace "urn:test:payload-anydata";
+  prefix payload;
+
+  container payload-root {
+    leaf value {
+      type string;
+    }
+  }
+}
+```
+
 ## Technical Highlights
 
 ### Design Patterns Used

@@ -10,12 +10,12 @@ Yangkit is a toolkit for YANG([RFC7950](https://datatracker.ietf.org/doc/html/rf
 * [yangkit-model-impl](yangkit-model-impl/README.md): The implementations for YANG model
 * [yangkit-xpath-api](yangkit-xpath-api/README.md): The APIs for YANG XPATH parser, validator and evaluator.
 * [yangkit-xpath-impl](yangkit-xpath-impl/README.md): The Implementations for YANG XPATH parser, validator and evaluator.
-* [yangkit-data-api](yangkit-data-api/README.md): Shared YANG data abstractions, operations, and the document-level `anydata` validation context API.
+* [yangkit-data-api](yangkit-data-api/README.md): Shared YANG data abstractions and operations.
 * [yangkit-data-impl](yangkit-data-impl/README.md): Implementations for YANG data representation and operation.
-* [yangkit-data-json-codec](yangkit-data-json-codec/README.md): JSON codec for YANG data, including document-level `anydata` payload schema resolution.
-* [yangkit-data-xml-codec](yangkit-data-xml-codec/README.md): XML codec for YANG data, including document-level `anydata` payload schema resolution.
-* [yangkit-data-proto-codec](yangkit-data-proto-codec/README.md): Protocol Buffers codec for YANG data, with `anydata` payload transport via generated wrapper messages.
-* [yangkit-data-cbor-codec](yangkit-data-cbor-codec/README.md): CBOR codec for YANG data based on RFC 9254, with `anydata` payload parsing via the shared validation-context model.
+* [yangkit-data-json-codec](yangkit-data-json-codec/README.md): JSON codec for YANG data.
+* [yangkit-data-xml-codec](yangkit-data-xml-codec/README.md): XML codec for YANG data.
+* [yangkit-data-proto-codec](yangkit-data-proto-codec/README.md): Protocol Buffers codec for YANG data.
+* [yangkit-data-cbor-codec](yangkit-data-cbor-codec/README.md): CBOR codec for YANG data based on RFC 9254.
 * [yangkit-examples](yangkit-examples): Example applications demonstrating how to use Yangkit.
 
 ## Installation
@@ -146,46 +146,9 @@ Version 1.6.0 includes bug fixes and improvements:
 - 📝 Improved test coverage for all codecs
 - 🐛 Fixed YANG module naming conventions
 - ✨ Enhanced schema node lookup in XML codec
-- 🔄 Added document-level `anydata` validation context support for XML, JSON, Protocol Buffers, and CBOR codecs
+- 🔄 Added shared `anydata` validation-context support across XML, JSON, Protocol Buffers, and CBOR codecs
 - 📚 Added comprehensive developer guide
 
-### Quick Start: document-level `anydata` validation context
-
-The XML, JSON, CBOR, and Protocol Buffers codecs now share one runtime model for resolving embedded `anydata` payload schemas.
-
-Typical flow:
-
-1. load the outer document schema
-2. load the embedded payload schema
-3. build one `AnydataValidationOptions`
-4. pass that options object into the outer document or codec deserialize entry
-
-**Example usage:**
-```java
-YangSchemaContext outerSchemaContext = YangYinParser.parse("outer-anydata.yang");
-YangSchemaContext payloadSchemaContext = YangYinParser.parse("payload-anydata.yang");
-
-AnydataValidationOptions options = new AnydataValidationOptions()
-        .registerSchemaContext(
-                new QName("urn:test:outer-anydata", "payload-holder"),
-                payloadSchemaContext);
-
-// JSON
-YangDataDocument jsonDocument = new YangDataDocumentJsonCodec(outerSchemaContext)
-        .deserialize(jsonNode, validatorResultBuilder, options);
-
-// XML
-YangDataDocument xmlDocument = new YangDataDocumentXmlCodec(outerSchemaContext)
-        .deserialize(xmlDocumentDom4j, validatorResultBuilder, options);
-```
-
-For complete runnable examples, see:
-
-- `yangkit-data-api/README.md`
-- `yangkit-data-json-codec/README.md`
-- `yangkit-data-xml-codec/README.md`
-- `yangkit-data-cbor-codec/README.md`
-- `yangkit-data-proto-codec/README.md`
 
 ## Documentation
 Please see the JavaDoc in each component or visit:
