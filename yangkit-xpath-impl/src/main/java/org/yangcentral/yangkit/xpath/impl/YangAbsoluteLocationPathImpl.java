@@ -8,8 +8,9 @@ import org.jaxen.JaxenException;
 import org.jaxen.Navigator;
 import org.jaxen.util.SingletonList;
 import org.yangcentral.yangkit.xpath.YangContextSupport;
+import org.yangcentral.yangkit.xpath.YangAbsoluteLocationPath;
 
-public class YangAbsoluteLocationPathImpl extends YangLocationPathImpl {
+public class YangAbsoluteLocationPathImpl extends YangLocationPathImpl implements YangAbsoluteLocationPath {
    public boolean isAbsolute() {
       return true;
    }

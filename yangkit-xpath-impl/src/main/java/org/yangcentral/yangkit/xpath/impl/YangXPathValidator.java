@@ -2,7 +2,6 @@ package org.yangcentral.yangkit.xpath.impl;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.jaxen.expr.AdditiveExpr;
@@ -12,7 +11,6 @@ import org.jaxen.expr.Expr;
 import org.jaxen.expr.FunctionCallExpr;
 import org.jaxen.expr.LocationPath;
 import org.jaxen.expr.MultiplicativeExpr;
-import org.jaxen.expr.NameStep;
 import org.jaxen.expr.PathExpr;
 import org.jaxen.expr.Predicate;
 import org.jaxen.expr.Predicated;
@@ -130,37 +128,209 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       }
    }
 
+   private ModelException invalidXPath(String message) {
+      return new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+              ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().toString()
+                      + (message == null || message.isEmpty() ? "" : " " + message));
+   }
+
+   private QName resolveStepQName(YangNameStep nameStep) throws ModelException {
+      String prefix = nameStep.getPrefix();
+      String localName = nameStep.getLocalName();
+      URI namespace;
+      if (prefix != null && prefix.length() > 0) {
+         Module module = ModelUtil.findModuleByPrefix(this.getContext().getYangContext(), prefix);
+         if (null == module) {
+            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                    ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + prefix}));
+         }
+
+         namespace = module.getMainModule().getNamespace().getUri();
+      } else {
+         Object contextNode = this.getContext().getContextNode();
+         if (contextNode instanceof Module) {
+            Module curModule = (Module) contextNode;
+            namespace = curModule.getMainModule().getNamespace().getUri();
+            prefix = curModule.getSelfPrefix();
+         } else {
+            namespace = ((SchemaNode) contextNode).getIdentifier().getNamespace();
+            prefix = ((SchemaNode) contextNode).getIdentifier().getPrefix();
+         }
+      }
+
+      return new QName(namespace, prefix, localName);
+   }
+
+   private void validateCandidateNode(SchemaNode child, Object currentNode) throws ModelException {
+      if (this.getContext().getDefineNode().isActive() && !child.isActive()) {
+         throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                 ErrorCode.INVALID_XPATH_INACTIVE_CHILD.toString(new String[]{
+                         "xpath=" + this.getYangXPath().toString(),
+                         "nodename=" + (!(currentNode instanceof SchemaNodeContainer)
+                                 || !((SchemaNodeContainer) currentNode).isSchemaTreeRoot()
+                                 ? ((SchemaNode) currentNode).getIdentifier().getQualifiedName() : "/"),
+                         "child=" + child.getIdentifier().getQualifiedName()}));
+      }
+
+      if (this.getContext().getContextNode() instanceof SchemaNode
+              && ((SchemaNode) this.getContext().getContextNode()).isConfig()
+              && !child.isConfig()) {
+         throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
+                 ErrorCode.INVALID_XPATH_UNCMPATIBLE_CHILD.toString(new String[]{
+                         "xpath=" + this.getYangXPath().toString(),
+                         "nodename=" + (!(currentNode instanceof SchemaNodeContainer)
+                                 || !((SchemaNodeContainer) currentNode).isSchemaTreeRoot()
+                                 ? ((SchemaNode) currentNode).getIdentifier().getQualifiedName() : "/"),
+                         "context=" + ((SchemaNode) this.getContext().getContextNode()).getIdentifier().getQualifiedName()}));
+      }
+
+      if (child instanceof WhenSupport && this.validateType == VALIDATE_TYPE_WHEN) {
+         WhenSupport whenSupport = (WhenSupport) child;
+         if (whenSupport.getWhen() != null) {
+            ValidatorResult whenResult = whenSupport.validateWhen();
+            if (!whenResult.isOk()) {
+               throw new ModelException(Severity.WARNING, child, whenResult.toString());
+            }
+         }
+      }
+   }
+
+   private void collectDescendants(SchemaNodeContainer parent, List<SchemaNode> descendants) {
+      for (SchemaNode child : parent.getTreeNodeChildren()) {
+         descendants.add(child);
+         if (child instanceof SchemaNodeContainer) {
+            collectDescendants((SchemaNodeContainer) child, descendants);
+         }
+      }
+   }
+
+   private List<SchemaNode> matchAxisCandidates(List<SchemaNode> candidates, Step step, Object currentNode) throws ModelException {
+      List<SchemaNode> matched = new ArrayList<>();
+      if (!(step instanceof YangNameStep)) {
+         for (SchemaNode candidate : candidates) {
+            validateCandidateNode(candidate, currentNode);
+            matched.add(candidate);
+         }
+         return matched;
+      }
+
+      YangNameStep nameStep = (YangNameStep) step;
+      if (nameStep.isMatchesAnyName()) {
+         for (SchemaNode candidate : candidates) {
+            validateCandidateNode(candidate, currentNode);
+            matched.add(candidate);
+         }
+         return matched;
+      }
+
+      QName candidateQName = resolveStepQName(nameStep);
+      for (SchemaNode candidate : candidates) {
+         if (candidate.getIdentifier().equals(candidateQName)) {
+            validateCandidateNode(candidate, currentNode);
+            matched.add(candidate);
+         }
+      }
+
+      if (matched.isEmpty()) {
+         throw invalidXPath("unrecognized step=" + step.getText());
+      }
+      return matched;
+   }
+
+   private List<SchemaNode> getAncestorCandidates(Object currentNode, boolean includeSelf) throws ModelException {
+      if (!(currentNode instanceof SchemaNode)) {
+         throw invalidXPath("ancestor axis requires schema node context");
+      }
+
+      List<SchemaNode> candidates = new ArrayList<>();
+      SchemaNode current = (SchemaNode) currentNode;
+      if (includeSelf) {
+         candidates.add(current);
+      }
+
+      SchemaNodeContainer parent = current.getParentSchemaNode();
+      while (parent instanceof SchemaNode) {
+         candidates.add((SchemaNode) parent);
+         parent = ((SchemaNode) parent).getParentSchemaNode();
+      }
+      return candidates;
+   }
+
+   private List<SchemaNode> getDescendantCandidates(Object currentNode, boolean includeSelf) throws ModelException {
+      if (!(currentNode instanceof SchemaNodeContainer)) {
+         throw invalidXPath("descendant axis requires schema node container context");
+      }
+
+      List<SchemaNode> candidates = new ArrayList<>();
+      if (includeSelf && currentNode instanceof SchemaNode) {
+         candidates.add((SchemaNode) currentNode);
+      }
+      collectDescendants((SchemaNodeContainer) currentNode, candidates);
+      return candidates;
+   }
+
+   private List<SchemaNode> getSiblingCandidates(Object currentNode, boolean following) throws ModelException {
+      if (!(currentNode instanceof SchemaNode)) {
+         throw invalidXPath("sibling axis requires schema node context");
+      }
+
+      SchemaNode schemaNode = (SchemaNode) currentNode;
+      SchemaNodeContainer parent = schemaNode.getParentSchemaNode();
+      if (parent == null) {
+         throw invalidXPath("sibling axis requires parent context");
+      }
+
+      List<SchemaNode> siblings = parent.getTreeNodeChildren();
+      List<SchemaNode> candidates = new ArrayList<>();
+      boolean foundCurrent = false;
+      for (SchemaNode sibling : siblings) {
+         if (sibling == schemaNode) {
+            foundCurrent = true;
+            continue;
+         }
+         if (following) {
+            if (foundCurrent) {
+               candidates.add(sibling);
+            }
+         } else if (!foundCurrent) {
+            candidates.add(sibling);
+         }
+      }
+      return candidates;
+   }
+
+   private boolean pointsToDefineNodeOrAncestor(Object currentNode) {
+      if (currentNode instanceof List) {
+         for (Object candidate : (List<?>) currentNode) {
+            if (pointsToDefineNodeOrAncestor(candidate)) {
+               return true;
+            }
+         }
+         return false;
+      }
+
+      if (!(currentNode instanceof SchemaNode)) {
+         return false;
+      }
+
+      SchemaNode schemaNode = (SchemaNode) currentNode;
+      return schemaNode == this.getContext().getDefineNode()
+              || schemaNode.isAncestorNode(this.getContext().getDefineNode());
+   }
+
    private Object visitChildStep(Step step, Object context, Object currentNode) throws ModelException{
       if (step instanceof YangNameStep) {
          YangNameStep nameStep = (YangNameStep)step;
          if(nameStep.isMatchesAnyName()){
             SchemaNodeContainer schemaNodeContainer = (SchemaNodeContainer) currentNode;
-            currentNode = schemaNodeContainer.getTreeNodeChildren();
-            return currentNode;
-         }
-         String prefix = nameStep.getPrefix();
-         String localName = nameStep.getLocalName();
-         URI namespace = null;
-         if (prefix != null && prefix.length() > 0) {
-            Module module = ModelUtil.findModuleByPrefix(this.getContext().getYangContext(), prefix);
-            if (null == module) {
-               throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_PREFIX.toString(new String[]{"name=" + prefix}));
+            List<SchemaNode> children = new ArrayList<>();
+            for (SchemaNode child : schemaNodeContainer.getTreeNodeChildren()) {
+               validateCandidateNode(child, currentNode);
+               children.add(child);
             }
-
-            namespace = module.getMainModule().getNamespace().getUri();
-         } else {
-            Object contextNode = this.getContext().getContextNode();
-            if (contextNode instanceof Module) {
-               Module curModule = (Module)contextNode;
-               namespace = curModule.getMainModule().getNamespace().getUri();
-               prefix = curModule.getSelfPrefix();
-            } else {
-               namespace = ((SchemaNode)contextNode).getIdentifier().getNamespace();
-               prefix = ((SchemaNode)contextNode).getIdentifier().getPrefix();
-            }
+            return children;
          }
-
-         QName childQName = new QName(namespace, prefix, localName);
+         QName childQName = resolveStepQName(nameStep);
          if (!(currentNode instanceof SchemaNodeContainer)) {
             throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_TERMIANL_HAS_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + ((SchemaNode)currentNode).getIdentifier().getQualifiedName(), "keyword=" + ((SchemaNode)currentNode).getYangKeyword().getLocalName()}));
          }
@@ -170,24 +340,7 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
          if (child == null) {
             throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_UNRECOGNIZED_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
          }
-
-         if (this.getContext().getDefineNode().isActive() && !child.isActive()) {
-            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_INACTIVE_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "child=" + childQName.getQualifiedName()}));
-         }
-
-         if (this.getContext().getContextNode() instanceof SchemaNode && ((SchemaNode) this.getContext().getContextNode()).isConfig() && !child.isConfig()) {
-            throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), ErrorCode.INVALID_XPATH_UNCMPATIBLE_CHILD.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "nodename=" + (!((SchemaNodeContainer)currentNode).isSchemaTreeRoot() ? ((SchemaNode)currentNode).getIdentifier().getQualifiedName() : "/"), "context=" + ((SchemaNode) this.getContext().getContextNode()).getIdentifier().getQualifiedName()}));
-         }
-
-         if (child instanceof WhenSupport && this.validateType == VALIDATE_TYPE_WHEN) {
-            WhenSupport whenSupport = (WhenSupport)child;
-            if (whenSupport.getWhen() != null) {
-               ValidatorResult whenResult = whenSupport.validateWhen();
-               if (!whenResult.isOk()) {
-                  throw new ModelException(Severity.WARNING, child, whenResult.toString());
-               }
-            }
-         }
+         validateCandidateNode(child, currentNode);
 
          currentNode = child;
       }
@@ -250,13 +403,16 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
                }
 
             }catch (ModelException e){
-               if(null != modelException){
+                if(null == modelException){
                   modelException = e;
                }
             }
          }
          if(newCurrentNodes.isEmpty()){
-            throw modelException;
+             if (modelException != null) {
+                throw modelException;
+             }
+             throw invalidXPath(null);
          }
          return newCurrentNodes;
       } else {
@@ -269,10 +425,24 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
             currentNode = parent;
          } else if (step.getAxis() == Axis.CHILD) {
             currentNode = visitChildStep(step, context, currentNode);
+          } else if (step.getAxis() == Axis.ANCESTOR) {
+             currentNode = matchAxisCandidates(getAncestorCandidates(currentNode, false), step, currentNode);
+          } else if (step.getAxis() == Axis.ANCESTOR_OR_SELF) {
+             currentNode = matchAxisCandidates(getAncestorCandidates(currentNode, true), step, currentNode);
+          } else if (step.getAxis() == Axis.DESCENDANT) {
+             currentNode = matchAxisCandidates(getDescendantCandidates(currentNode, false), step, currentNode);
+          } else if (step.getAxis() == Axis.DESCENDANT_OR_SELF) {
+             currentNode = matchAxisCandidates(getDescendantCandidates(currentNode, true), step, currentNode);
+          } else if (step.getAxis() == Axis.FOLLOWING_SIBLING) {
+             currentNode = matchAxisCandidates(getSiblingCandidates(currentNode, true), step, currentNode);
+          } else if (step.getAxis() == Axis.PRECEDING_SIBLING) {
+             currentNode = matchAxisCandidates(getSiblingCandidates(currentNode, false), step, currentNode);
          } else if (step.getAxis() == Axis.SELF) {
-            // Do nothing, currentNode remains the same
+             if (step instanceof YangNameStep && currentNode instanceof SchemaNode) {
+                currentNode = matchAxisCandidates(java.util.Collections.singletonList((SchemaNode) currentNode), step, currentNode);
+             }
          } else {
-            throw new IllegalArgumentException("un-support axis.");
+             throw invalidXPath("unsupported axis=" + step.getAxis());
          }
          return currentNode;
       }
@@ -325,9 +495,7 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
          }
       }
 
-      if (this.validateType == VALIDATE_TYPE_WHEN
-              && (currentNode == this.getContext().getDefineNode()
-              || ((SchemaNode)currentNode).isAncestorNode(this.getContext().getDefineNode()))) {
+      if (this.validateType == VALIDATE_TYPE_WHEN && pointsToDefineNodeOrAncestor(currentNode)) {
          ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
          validatorRecordBuilder.setBadElement(this.getContext().getDefineNode());
          validatorRecordBuilder.setErrorPath(this.getContext().getDefineNode().getElementPosition());

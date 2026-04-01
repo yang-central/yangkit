@@ -412,7 +412,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
          YangBuiltinStatement builtinStatement = (YangBuiltinStatement) subElement;
          ValidatorRecordBuilder validatorRecordBuilder;
          if (builtinStatement.getYangKeyword().equals(YangBuiltinKeyword.REQUIREINSTANCE.getQName())) {
-            if (this.getContext().getCurModule().getYangVersion().equals(Yang.VERSION_1)) {
+            if (Yang.VERSION_1.equals(this.getContext().getCurModule().getEffectiveYangVersion())) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
                    ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
                continue;
