@@ -253,7 +253,10 @@ public class ProtoCodecUtil {
 
     /**
      * Wraps a scalar proto value into a ywrapper message (YGOT mode).
-     * The wrapper message is expected to have exactly one field named "value".
+     *
+     * <p>Most ywrapper scalar messages use a single {@code value} field.
+     * {@code Decimal64Value} is the exception: it uses {@code digits} and
+     * {@code precision} fields and is handled separately by callers.</p>
      */
     private static DynamicMessage wrapScalarValue(Object value, Descriptors.Descriptor wrapperDesc) {
         if (wrapperDesc == null) return null;

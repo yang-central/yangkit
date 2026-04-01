@@ -2,7 +2,7 @@
 
 Protocol Buffers codec for YANG data - provides bidirectional conversion between YANG data and Protocol Buffers messages.
 
-**Note**: This module is fully compatible with [openconfig ygot](https://github.com/openconfig/ygot) protobuf naming conventions and type mappings.
+**Note**: This module supports two protobuf codec modes: `SIMPLE` (default, primitive proto3 fields) and `YGOT` (ygot-style scalar wrappers and hash-based field numbers).
 
 ## Overview
 
@@ -11,8 +11,9 @@ This module implements the `YangDataCodec` interface to enable serialization and
 ## Features
 
 - Bidirectional conversion between YANG data and Protocol Buffers messages
-- **ygot-compatible** type mappings and naming conventions
-- Support for all YANG data node types:
+- Support for both `SIMPLE` and `YGOT` schema generation modes
+- ygot-style naming conventions and scalar wrapper support in `YGOT` mode
+- Codec implementations for these YANG node categories:
   - Container
   - List
   - Leaf
@@ -23,6 +24,7 @@ This module implements the `YangDataCodec` interface to enable serialization and
   - RPC (Input/Output)
   - Action
   - YangStructure
+- `anydata` payloads are currently serialized as JSON text inside a generated wrapper message's `value` field
 
 ## Architecture
 
@@ -108,23 +110,26 @@ YangData<?> yangData = YangDataProtoCodec
 
 ### Type Mapping
 
-The codec handles conversion between YANG types and Protocol Buffer types with full compatibility to openconfig ygot specifications:
+The codec handles conversion between YANG types and Protocol Buffer types according to the selected `ProtoCodecMode`:
 
-| YANG Type | Protobuf Type | Notes |
-|-----------|---------------|-------|
-| int8, int16, int32 | int32 | |
-| int64 | int64 | |
-| uint8, uint16, uint32 | uint32 | |
-| uint64 | uint64 | |
-| string | string | |
-| boolean | bool | |
-| decimal64 | **string** | Mapped to string to preserve precision (ygot compatible) |
-| binary | bytes | |
-| enumeration | enum/string | |
-| empty | bool | |
-| date-and-time | int64 | Unix timestamp in milliseconds |
-| date-only | int32 | Days since epoch |
-| time-of-day | int64 | Milliseconds since midnight |
+| YANG Type | `SIMPLE` mode | `YGOT` mode | Notes |
+|-----------|---------------|-------------|-------|
+| int8, int16, int32 | `int32` | `.ywrapper.IntValue` | `IntValue.value` uses `sint64` |
+| int64 | `int64` | `.ywrapper.IntValue` | |
+| uint8, uint16, uint32 | `uint32` | `.ywrapper.UintValue` | `UintValue.value` uses `uint64` |
+| uint64 | `uint64` | `.ywrapper.UintValue` | |
+| string | `string` | `.ywrapper.StringValue` | |
+| boolean | `bool` | `.ywrapper.BoolValue` | |
+| decimal64 | `string` | `.ywrapper.Decimal64Value` | `Decimal64Value` stores `digits:uint64` + `precision:uint32` |
+| binary | `bytes` | `.ywrapper.BytesValue` | |
+| enumeration / bits | generated enum | generated enum | Not wrapped in `ywrapper` |
+| empty | `bool` | `.ywrapper.BoolValue` | Presence/absence semantics |
+| identityref | `string` | `.ywrapper.StringValue` | QName string form |
+| union / leafref | `string` | generated `oneof` / wrapper-backed message fields | Mode-specific schema generation |
+
+Types not recognized by the built-in mapper fall back to `string` handling unless a caller normalizes them before encoding.
+
+`SIMPLE` mode is the default for `ProtoSchemaGenerator` and `YangDataProtoCodec.getInstance(schemaNode)`. Use `ProtoCodecMode.YGOT` when you want ywrapper-based scalar fields and ygot-style field numbering.
 
 ### Descriptor Generation
 
@@ -138,7 +143,7 @@ To convert between YANG and Protocol Buffers, protobuf descriptors need to be ge
 For `anydata` nodes, the current protobuf codec generates a wrapper protobuf message for the `anydata` schema node.
 Its payload is carried in a `value` field as JSON text, and deserialization resolves the payload schema through `AnydataValidationOptions`.
 
-This design keeps protobuf transport compatible with the existing JSON document parsing logic used by the other codecs.
+This design reuses the existing JSON document parsing logic used by the other codecs; it does not imply protobuf-level wire compatibility with other `anydata` representations.
 
 Typical behavior:
 
@@ -149,7 +154,7 @@ Typical behavior:
 
 ### Naming Conventions
 
-All protobuf message and field names follow ygot-compatible naming conventions:
+All protobuf message and field names follow ygot-style naming conventions:
 
 - **Message Names**: PascalCase (e.g., `TpContainer`, `LeafList`)
   - Converts YANG names: `tp-container` → `TpContainer`

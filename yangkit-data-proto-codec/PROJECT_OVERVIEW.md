@@ -25,7 +25,7 @@ yangkit-data-proto-codec/
 │   ├── InputDataProtoCodec.java           # Input codec
 │   ├── OutputDataProtoCodec.java          # Output codec
 │   ├── ActionDataProtoCodec.java          # Action codec
-│   ├── AnyDataDataProtoCodec.java         # Anydata codec
+│   ├── AnyDataDataProtoCodec.java         # Anydata codec (JSON payload wrapper)
 │   ├── AnyxmlDataProtoCodec.java          # Anyxml codec
 │   ├── YangStructureDataProtoCodec.java   # Structure codec
 │   └── package-info.java                  # Package documentation
@@ -77,26 +77,30 @@ DescriptorProtos.FileDescriptorProto fileDescriptor =
 
 ### 2. Type System Mapping
 
-Comprehensive mapping between YANG and Protobuf type systems:
+Comprehensive mapping between YANG and Protobuf type systems. The module supports two schema-generation modes:
 
-**Integer Types:**
+**`SIMPLE` mode (default):**
 - int8/int16/int32 → TYPE_INT32
 - int64 → TYPE_INT64
 - uint8/uint16/uint32 → TYPE_UINT32
 - uint64 → TYPE_UINT64
-
-**Other Types:**
-- boolean → TYPE_BOOL
-- string → TYPE_STRING
-- decimal64 → TYPE_DOUBLE
-- enumeration → TYPE_ENUM
+- boolean / empty → TYPE_BOOL
+- string / identityref / leafref / union / decimal64 → TYPE_STRING
+- enumeration / bits → TYPE_ENUM
 - binary → TYPE_BYTES
-- empty → TYPE_BOOL
 
-**Time Types:**
-- date-and-time → TYPE_INT64 (timestamp millis)
-- date-only → TYPE_INT32 (days since epoch)
-- time-of-day → TYPE_INT64 (millis since midnight)
+**`YGOT` mode:**
+- integer scalars → TYPE_MESSAGE using `.ywrapper.IntValue` / `.ywrapper.UintValue`
+- boolean / empty → TYPE_MESSAGE using `.ywrapper.BoolValue`
+- string / identityref → TYPE_MESSAGE using `.ywrapper.StringValue`
+- binary → TYPE_MESSAGE using `.ywrapper.BytesValue`
+- decimal64 → TYPE_MESSAGE using `.ywrapper.Decimal64Value`
+- enumeration / bits → TYPE_ENUM
+- scalar field numbers use FNV-1a hash-based numbering
+
+For `decimal64`, `SIMPLE` mode keeps the lexical value as `string`, while `YGOT` mode uses a dedicated wrapper message with `digits:uint64` and `precision:uint32` fields.
+
+Types that are not recognized by `YangProtoTypeMapper.getBaseTypeName(...)` currently fall back to string-based handling.
 
 ### 3. Value Conversion
 

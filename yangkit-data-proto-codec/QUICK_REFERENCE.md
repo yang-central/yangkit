@@ -105,40 +105,34 @@ Object protoValue =
 
 ### Integer Types
 
-| YANG Type | Protobuf Type | Java Type | Range |
-|-----------|---------------|-----------|-------|
-| int8 | TYPE_INT32 | byte | -128 to 127 |
-| int16 | TYPE_INT32 | short | -32,768 to 32,767 |
-| int32 | TYPE_INT32 | int | -2³¹ to 2³¹-1 |
-| int64 | TYPE_INT64 | long | -2⁶³ to 2⁶³-1 |
-| uint8 | TYPE_UINT32 | int | 0 to 255 |
-| uint16 | TYPE_UINT32 | int | 0 to 65,535 |
-| uint32 | TYPE_UINT32 | long | 0 to 2³²-1 |
-| uint64 | TYPE_UINT64 | long | 0 to 2⁶⁴-1 |
+| YANG Type | `SIMPLE` mode | `YGOT` mode | Java Type | Range |
+|-----------|---------------|-------------|-----------|-------|
+| int8 | TYPE_INT32 | TYPE_MESSAGE (`.ywrapper.IntValue`) | byte | -128 to 127 |
+| int16 | TYPE_INT32 | TYPE_MESSAGE (`.ywrapper.IntValue`) | short | -32,768 to 32,767 |
+| int32 | TYPE_INT32 | TYPE_MESSAGE (`.ywrapper.IntValue`) | int | -2³¹ to 2³¹-1 |
+| int64 | TYPE_INT64 | TYPE_MESSAGE (`.ywrapper.IntValue`) | long | -2⁶³ to 2⁶³-1 |
+| uint8 | TYPE_UINT32 | TYPE_MESSAGE (`.ywrapper.UintValue`) | int | 0 to 255 |
+| uint16 | TYPE_UINT32 | TYPE_MESSAGE (`.ywrapper.UintValue`) | int | 0 to 65,535 |
+| uint32 | TYPE_UINT32 | TYPE_MESSAGE (`.ywrapper.UintValue`) | long | 0 to 2³²-1 |
+| uint64 | TYPE_UINT64 | TYPE_MESSAGE (`.ywrapper.UintValue`) | long | 0 to 2⁶⁴-1 |
 
 ### Other Primitive Types
 
-| YANG Type | Protobuf Type | Java Type | Notes |
-|-----------|---------------|-----------|-------|
-| boolean | TYPE_BOOL | boolean | true/false |
-| string | TYPE_STRING | String | UTF-8 encoded |
-| decimal64 | TYPE_DOUBLE | double | IEEE 754 |
-| binary | TYPE_BYTES | ByteString | Base64 encoded |
-| empty | TYPE_BOOL | boolean | present=true, absent=false |
+| YANG Type | `SIMPLE` mode | `YGOT` mode | Java Type | Notes |
+|-----------|---------------|-------------|-----------|-------|
+| boolean | TYPE_BOOL | TYPE_MESSAGE (`.ywrapper.BoolValue`) | boolean | true/false |
+| string | TYPE_STRING | TYPE_MESSAGE (`.ywrapper.StringValue`) | String | UTF-8 encoded |
+| decimal64 | TYPE_STRING | TYPE_MESSAGE (`.ywrapper.Decimal64Value`) | BigDecimal / String | `SIMPLE` preserves the lexical decimal string; `YGOT` uses `digits` + `precision` |
+| binary | TYPE_BYTES | TYPE_MESSAGE (`.ywrapper.BytesValue`) | ByteString | Base64 encoded |
+| empty | TYPE_BOOL | TYPE_MESSAGE (`.ywrapper.BoolValue`) | boolean | present=true, absent=false |
 
 ### Enumeration
 
-| YANG Type | Protobuf Type | Java Type | Notes |
-|-----------|---------------|-----------|-------|
-| enumeration | TYPE_ENUM | int/str | Value→Int, Name→String |
+| YANG Type | `SIMPLE` mode | `YGOT` mode | Java Type | Notes |
+|-----------|---------------|-------------|-----------|-------|
+| enumeration | TYPE_ENUM | TYPE_ENUM | int/str | Value→Int, Name→String |
 
-### Time Types
-
-| YANG Type | Protobuf Type | Java Type | Representation |
-|-----------|---------------|-----------|----------------|
-| date-and-time | TYPE_INT64 | long | Milliseconds since epoch (UTC) |
-| date-only | TYPE_INT32 | int | Days since epoch |
-| time-of-day | TYPE_INT64 | long | Milliseconds since midnight |
+Unrecognized or caller-defined derived types currently fall back to `TYPE_STRING` / string conversion unless normalized before encoding.
 
 ## Value Conversion Examples
 
@@ -204,7 +198,8 @@ Object data = YangProtoTypeMapper.convertToYangValue(protoBytes, binaryType);
 ```java
 BigDecimal val = new BigDecimal("123.456");
 Object proto = YangProtoTypeMapper.convertToProtoValue(val, decimalType);
-// Result: 123.456 (Double)
+// Result in SIMPLE mode: "123.456" (String)
+// Schema result in YGOT mode: .ywrapper.Decimal64Value { digits, precision }
 ```
 
 ## Cache Operations

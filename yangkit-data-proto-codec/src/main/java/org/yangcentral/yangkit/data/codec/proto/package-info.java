@@ -26,6 +26,19 @@
  *   <li>Action - {@link org.yangcentral.yangkit.data.codec.proto.ActionDataProtoCodec}</li>
  *   <li>YangStructure - {@link org.yangcentral.yangkit.data.codec.proto.YangStructureDataProtoCodec}</li>
  * </ul>
+ *
+ * <h2>Codec Modes:</h2>
+ * <ul>
+ *   <li>{@link org.yangcentral.yangkit.data.codec.proto.ProtoCodecMode#SIMPLE} uses proto3 primitive fields where possible.
+ *       For example, {@code decimal64} is emitted as its lexical decimal {@code string} form.</li>
+ *   <li>{@link org.yangcentral.yangkit.data.codec.proto.ProtoCodecMode#YGOT} uses the ywrapper messages implemented by this module.
+ *       In this mode {@code decimal64} uses {@code .ywrapper.Decimal64Value} with {@code digits} and {@code precision} fields.</li>
+ * </ul>
+ *
+ * <h2>Current anydata Representation:</h2>
+ * <p>{@code anydata} payloads are currently carried as JSON text in a generated wrapper message's
+ * {@code value} field. During deserialization, payload schema resolution is delegated through the
+ * anydata validation context APIs rather than protobuf-native {@code Any} handling.</p>
  * 
  * <h2>Usage Example:</h2>
  * <pre>

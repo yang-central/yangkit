@@ -16,12 +16,12 @@ import org.yangcentral.yangkit.model.api.stmt.Anydata;
 /**
  * Codec for YANG {@code anydata} nodes.
  *
- * <p>In YGOT mode anydata nodes are typically encoded as
- * {@code google.protobuf.Any} messages (wire-format compatible).
- * In SIMPLE mode they are encoded as an opaque {@code bytes} field.
- * The current implementation stores the content as an opaque object;
- * full structural round-tripping of arbitrary sub-trees is left to
- * higher-level layers.
+ * <p>The current implementation generates a wrapper message for the {@code anydata}
+ * schema node and stores the payload JSON text in its {@code value} field.
+ * Deserialization reuses the JSON document codec and resolves the payload schema
+ * through the anydata validation context APIs.
+ * This class does not currently expose protobuf-native {@code google.protobuf.Any}
+ * encoding or claim general wire-format compatibility with external anydata layouts.
  */
 public class AnyDataDataProtoCodec extends YangDataProtoCodec<Anydata, AnyDataData> {
 

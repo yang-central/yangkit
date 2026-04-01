@@ -30,24 +30,25 @@ The `yangkit-data-proto-codec` module provides bidirectional codec functionality
 
 **Type Mapping Table:**
 
-| YANG Type | Protobuf Type | Description |
-|-----------|---------------|-------------|
-| int8, int16, int32 | TYPE_INT32 | Signed integer |
-| int64 | TYPE_INT64 | Long integer |
-| uint8, uint16, uint32 | TYPE_UINT32 | Unsigned integer |
-| uint64 | TYPE_UINT64 | Unsigned long |
-| boolean | TYPE_BOOL | Boolean value |
-| string | TYPE_STRING | String |
-| decimal64 | TYPE_DOUBLE | Double precision float |
-| enumeration | TYPE_ENUM | Enumeration (as integer) |
-| binary | TYPE_BYTES | Binary data (Base64 encoded) |
-| empty | TYPE_BOOL | Empty type (as boolean) |
-| date-and-time | TYPE_INT64 | Timestamp (milliseconds) |
-| date-only | TYPE_INT32 | Date (days since epoch) |
-| time-of-day | TYPE_INT64 | Time (milliseconds) |
+| YANG Type | `SIMPLE` mode | `YGOT` mode | Description |
+|-----------|---------------|-------------|-------------|
+| int8, int16, int32 | TYPE_INT32 | TYPE_MESSAGE (`.ywrapper.IntValue`) | Signed integer |
+| int64 | TYPE_INT64 | TYPE_MESSAGE (`.ywrapper.IntValue`) | Long integer |
+| uint8, uint16, uint32 | TYPE_UINT32 | TYPE_MESSAGE (`.ywrapper.UintValue`) | Unsigned integer |
+| uint64 | TYPE_UINT64 | TYPE_MESSAGE (`.ywrapper.UintValue`) | Unsigned long |
+| boolean | TYPE_BOOL | TYPE_MESSAGE (`.ywrapper.BoolValue`) | Boolean value |
+| string | TYPE_STRING | TYPE_MESSAGE (`.ywrapper.StringValue`) | String |
+| decimal64 | TYPE_STRING | TYPE_MESSAGE (`.ywrapper.Decimal64Value`) | Preserves lexical value in `SIMPLE`; `YGOT` wrapper carries `digits` + `precision` |
+| enumeration / bits | TYPE_ENUM | TYPE_ENUM | Generated enum descriptor |
+| binary | TYPE_BYTES | TYPE_MESSAGE (`.ywrapper.BytesValue`) | Binary data |
+| empty | TYPE_BOOL | TYPE_MESSAGE (`.ywrapper.BoolValue`) | Presence/absence scalar |
+| identityref | TYPE_STRING | TYPE_MESSAGE (`.ywrapper.StringValue`) | QName string form |
+
+Types that are not recognized by the built-in mapper currently fall back to string handling.
 
 **Conversion Methods:**
-- `getProtoType(Type yangType)` - Maps YANG type to Protobuf type
+- `getProtoType(Type yangType)` - Convenience mapping using `SIMPLE` mode
+- `getProtoFieldType(Type yangType, ProtoCodecMode mode)` - Mode-aware schema mapping for SIMPLE vs YGOT
 - `convertToProtoValue(Object value, Type yangType)` - Converts YANG value to Protobuf format
 - `convertToYangValue(Object value, Type yangType)` - Converts Protobuf value back to YANG format
 
@@ -102,7 +103,7 @@ Implemented codec classes for different YANG data types:
 - **InputDataProtoCodec** - RPC input encoding/decoding
 - **OutputDataProtoCodec** - RPC output encoding/decoding
 - **ActionDataProtoCodec** - Action operation encoding/decoding
-- **AnyDataDataProtoCodec** - Anydata node encoding/decoding
+- **AnyDataDataProtoCodec** - Anydata node encoding/decoding via a generated wrapper message whose `value` field carries JSON text
 - **AnyxmlDataProtoCodec** - Anyxml node encoding/decoding
 - **YangStructureDataProtoCodec** - YANG structure encoding/decoding
 
@@ -164,7 +165,7 @@ BUILD SUCCESS
 
 All tests pass successfully, verifying:
 - ✅ Correctness of type mapping
-- ✅ Bidirectional compatibility of value conversion
+- ✅ Bidirectional value conversion paths
 - ✅ Effectiveness of caching mechanism
 - ✅ Robustness of null value handling
 
