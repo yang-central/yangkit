@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 public class XmlCodecDataTestString {
     
     private static final String YANG_FILE = "type/string/string.yang";
+    private static final String XSD_REGEX_YANG_FILE = "type/string/xml-schema-regex.yang";
     
     @Test
     public void validNormal() throws Exception {
@@ -58,5 +59,45 @@ public class XmlCodecDataTestString {
     @Test
     public void simpleTest() throws Exception {
         XmlCodecTypeTestFunc.expectedNoError("type/simple.xml", "type/simple.yang");
+    }
+
+    @Test
+    public void validXmlSchemaIdentifierPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedNoError("type/string/xsd-valid-identifier.xml", XSD_REGEX_YANG_FILE);
+    }
+
+    @Test
+    public void invalidXmlSchemaIdentifierPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedError("type/string/xsd-invalid-identifier.xml", XSD_REGEX_YANG_FILE);
+    }
+
+    @Test
+    public void validXmlSchemaBasicLatinPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedNoError("type/string/xsd-valid-basic-latin.xml", XSD_REGEX_YANG_FILE);
+    }
+
+    @Test
+    public void invalidXmlSchemaBasicLatinPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedError("type/string/xsd-invalid-basic-latin.xml", XSD_REGEX_YANG_FILE);
+    }
+
+    @Test
+    public void validXmlSchemaAnchorLiteralPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedNoError("type/string/xsd-valid-anchor-literal.xml", XSD_REGEX_YANG_FILE);
+    }
+
+    @Test
+    public void invalidXmlSchemaAnchorLiteralPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedError("type/string/xsd-invalid-anchor-literal.xml", XSD_REGEX_YANG_FILE);
+    }
+
+    @Test
+    public void validXmlSchemaInvertMatchPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedNoError("type/string/xsd-valid-invert-match.xml", XSD_REGEX_YANG_FILE);
+    }
+
+    @Test
+    public void invalidXmlSchemaInvertMatchPattern() throws Exception {
+        XmlCodecTypeTestFunc.expectedError("type/string/xsd-invalid-invert-match.xml", XSD_REGEX_YANG_FILE);
     }
 }

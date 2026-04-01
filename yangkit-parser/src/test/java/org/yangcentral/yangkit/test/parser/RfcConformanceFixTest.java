@@ -5,6 +5,7 @@ import org.jaxen.saxpath.Axis;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.model.api.restriction.InstanceIdentifier;
+import org.yangcentral.yangkit.model.api.restriction.YangString;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
@@ -12,8 +13,10 @@ import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
 import org.yangcentral.yangkit.xpath.YangAbsoluteLocationPath;
+import org.yangcentral.yangkit.xpath.YangXPath;
 import org.yangcentral.yangkit.xpath.impl.YangAbsoluteLocationPathImpl;
 import org.yangcentral.yangkit.xpath.impl.YangXPathFactory;
+import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,6 +47,13 @@ public class RfcConformanceFixTest {
             absoluteLocationPath.addStep(factory.createNameStep(Axis.CHILD, prefix, localName));
         }
         return absoluteLocationPath;
+    }
+
+    private YangAbsoluteLocationPath parseXPathAbsolutePath(String path) throws Exception {
+        YangXPath xpath = new YangXPathImpl(path);
+        assertTrue(xpath.getRootExpr() instanceof YangAbsoluteLocationPath,
+                "path should parse as an absolute instance-identifier");
+        return (YangAbsoluteLocationPath) xpath.getRootExpr();
     }
 
     @Test
@@ -135,6 +145,132 @@ public class RfcConformanceFixTest {
         assertTrue(strictRestriction.evaluate(parseAbsolutePath("/iit:target")));
         assertFalse(strictRestriction.evaluate(parseAbsolutePath("/iit:missing")));
         assertTrue(laxRestriction.evaluate(parseAbsolutePath("/iit:missing")));
+    }
+
+    @Test
+    public void instanceIdentifierShouldRequireCompleteKeyPredicates() throws Exception {
+        String yang = String.join("\n",
+                "module instance-id-list {",
+                "  yang-version 1.1;",
+                "  namespace \"urn:test:instance-id:list\";",
+                "  prefix iil;",
+                "",
+                "  list items {",
+                "    key \"id\";",
+                "    leaf id {",
+                "      type string;",
+                "    }",
+                "    leaf value {",
+                "      type string;",
+                "    }",
+                "  }",
+                "",
+                "  leaf strict-id {",
+                "    type instance-identifier;",
+                "  }",
+                "",
+                "  leaf lax-id {",
+                "    type instance-identifier {",
+                "      require-instance false;",
+                "    }",
+                "  }",
+                "}");
+
+        YangSchemaContext schemaContext = parseModule("instance-id-list.yang", yang);
+        assertTrue(schemaContext.validate().isOk(), "instance-identifier keyed-list module should validate");
+
+        Module module = schemaContext.getLatestModule("instance-id-list").orElse(null);
+        assertNotNull(module);
+
+        Leaf strictLeaf = (Leaf) module.getDataDefChild("strict-id");
+        Leaf laxLeaf = (Leaf) module.getDataDefChild("lax-id");
+        assertNotNull(strictLeaf);
+        assertNotNull(laxLeaf);
+
+        InstanceIdentifier strictRestriction = (InstanceIdentifier) strictLeaf.getType().getRestriction();
+        InstanceIdentifier laxRestriction = (InstanceIdentifier) laxLeaf.getType().getRestriction();
+
+        YangAbsoluteLocationPath valid = parseXPathAbsolutePath("/iil:items[iil:id='alpha']/iil:value");
+        YangAbsoluteLocationPath missingKeyPredicate = parseXPathAbsolutePath("/iil:items/iil:value");
+        YangAbsoluteLocationPath nonKeyPredicate = parseXPathAbsolutePath("/iil:items[iil:value='alpha']/iil:value");
+
+        assertTrue(((YangAbsoluteLocationPathImpl) valid).isInstanceIdentifier(schemaContext));
+        assertFalse(((YangAbsoluteLocationPathImpl) missingKeyPredicate).isInstanceIdentifier(schemaContext));
+        assertFalse(((YangAbsoluteLocationPathImpl) nonKeyPredicate).isInstanceIdentifier(schemaContext));
+
+        assertTrue(strictRestriction.evaluate(valid));
+        assertFalse(strictRestriction.evaluate(missingKeyPredicate));
+        assertFalse(strictRestriction.evaluate(nonKeyPredicate));
+        assertFalse(laxRestriction.evaluate(missingKeyPredicate),
+                "missing key predicates make the instance-identifier invalid even when require-instance=false");
+        assertTrue(laxRestriction.evaluate(parseAbsolutePath("/iil:missing")),
+                "require-instance=false should still allow unresolved but syntactically valid absolute paths");
+    }
+
+    @Test
+    public void stringPatternShouldUseXmlSchemaRegexSemantics() throws Exception {
+        String yang = String.join("\n",
+                "module xsd-pattern-test {",
+                "  yang-version 1.1;",
+                "  namespace \"urn:test:xsd-pattern\";",
+                "  prefix xpt;",
+                "",
+                "  leaf identifier {",
+                "    type string {",
+                "      pattern \"\\\\i\\\\c*\";",
+                "    }",
+                "  }",
+                "",
+                "  leaf basic-latin {",
+                "    type string {",
+                "      pattern \"\\\\p{IsBasicLatin}+\";",
+                "    }",
+                "  }",
+                "",
+                "  leaf anchor-literal {",
+                "    type string {",
+                "      pattern \"^a$\";",
+                "    }",
+                "  }",
+                "",
+                "  leaf non-identifier {",
+                "    type string {",
+                "      pattern \"\\\\i\\\\c*\" {",
+                "        modifier invert-match;",
+                "      }",
+                "    }",
+                "  }",
+                "}");
+
+        YangSchemaContext schemaContext = parseModule("xsd-pattern-test.yang", yang);
+        assertTrue(schemaContext.validate().isOk(),
+                "XML Schema regex syntax should be accepted for YANG string patterns");
+
+        Module module = schemaContext.getLatestModule("xsd-pattern-test").orElse(null);
+        assertNotNull(module);
+
+        Leaf identifierLeaf = (Leaf) module.getDataDefChild("identifier");
+        Leaf basicLatinLeaf = (Leaf) module.getDataDefChild("basic-latin");
+        Leaf anchorLiteralLeaf = (Leaf) module.getDataDefChild("anchor-literal");
+        Leaf nonIdentifierLeaf = (Leaf) module.getDataDefChild("non-identifier");
+        assertNotNull(identifierLeaf);
+        assertNotNull(basicLatinLeaf);
+        assertNotNull(anchorLiteralLeaf);
+        assertNotNull(nonIdentifierLeaf);
+
+        YangString identifierRestriction = (YangString) identifierLeaf.getType().getRestriction();
+        YangString basicLatinRestriction = (YangString) basicLatinLeaf.getType().getRestriction();
+        YangString anchorLiteralRestriction = (YangString) anchorLiteralLeaf.getType().getRestriction();
+        YangString nonIdentifierRestriction = (YangString) nonIdentifierLeaf.getType().getRestriction();
+
+        assertTrue(identifierRestriction.evaluate("node1"));
+        assertFalse(identifierRestriction.evaluate("1node"));
+        assertTrue(basicLatinRestriction.evaluate("ABC123"));
+        assertFalse(basicLatinRestriction.evaluate("中文"));
+        assertTrue(anchorLiteralRestriction.evaluate("^a$"));
+        assertFalse(anchorLiteralRestriction.evaluate("a"));
+        assertFalse(nonIdentifierRestriction.evaluate("node1"));
+        assertTrue(nonIdentifierRestriction.evaluate("1node"));
     }
 
     @Test

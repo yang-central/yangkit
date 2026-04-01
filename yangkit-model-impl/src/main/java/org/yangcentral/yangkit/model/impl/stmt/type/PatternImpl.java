@@ -1,5 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt.type;
 
+import org.apache.xerces.impl.xpath.regex.RegularExpression;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
@@ -20,6 +21,7 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
    private Description description;
    private Reference reference;
    private java.util.regex.Pattern pattern;
+   private RegularExpression xmlSchemaPattern;
    private Modifier modifier;
 
    public PatternImpl(String argStr) {
@@ -58,6 +60,11 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
       return this.pattern;
    }
 
+   @Override
+   public boolean matches(String value) {
+      return this.xmlSchemaPattern != null && this.xmlSchemaPattern.matches(value);
+   }
+
    public Modifier getModifier() {
       return this.modifier;
    }
@@ -65,6 +72,7 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
    @Override
    protected void clearSelf() {
       this.pattern = null;
+      this.xmlSchemaPattern = null;
       this.description = null;
       this.reference = null;
       this.errorMessage = null;
@@ -78,9 +86,14 @@ public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
       validatorResultBuilder.merge(super.initSelf());
 
       try {
-         String fixedName = this.getArgStr().replaceAll("\\\\p\\{IsBasicLatin\\}", "\\\\p\\{InBasicLatin\\}");
-         fixedName = fixedName.replaceAll("\\\\p\\{IsLatin-1Supplement\\}", "\\\\p\\{InLatin-1Supplement\\}");
-         this.pattern = java.util.regex.Pattern.compile(fixedName);
+         this.xmlSchemaPattern = new RegularExpression(this.getArgStr(), "X");
+         try {
+            String fixedName = this.getArgStr().replace("\\p{IsBasicLatin}", "\\p{InBasicLatin}");
+            fixedName = fixedName.replace("\\p{IsLatin-1Supplement}", "\\p{InLatin-1Supplement}");
+            this.pattern = java.util.regex.Pattern.compile(fixedName);
+         } catch (RuntimeException e) {
+            this.pattern = null;
+         }
       } catch (RuntimeException e) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.INVALID_PATTERN.toString(new String[]{"name=" + this.getArgStr()})));

@@ -1,0 +1,40 @@
+module json-xsd-regex-test {
+    yang-version 1.1;
+    namespace "urn:json:test:string:xsd";
+    prefix jxr;
+
+    revision 2026-04-01 {
+        description "JSON codec XML Schema regex regression test.";
+    }
+
+    container string-container {
+        config false;
+
+        leaf identifier {
+            type string {
+                pattern "\\i\\c*";
+            }
+        }
+
+        leaf basic-latin {
+            type string {
+                pattern "\\p{IsBasicLatin}+";
+            }
+        }
+
+        leaf anchor-literal {
+            type string {
+                pattern "^a$";
+            }
+        }
+
+        leaf non-identifier {
+            type string {
+                pattern "\\i\\c*" {
+                    modifier invert-match;
+                }
+            }
+        }
+    }
+}
+

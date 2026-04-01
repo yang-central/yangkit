@@ -8,6 +8,7 @@ import org.yangcentral.yangkit.parser.YangParserException;
 import java.io.IOException;
 
 public class JsonCodecDataTestString {
+    private static final String XSD_REGEX_YANG = "type/string/xml-schema-regex.yang";
 
     @Test
     public void validTest1() throws DocumentException, IOException, YangParserException {
@@ -195,6 +196,62 @@ public class JsonCodecDataTestString {
     public void invalidAllTest2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("type/string/invalidall2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("type/string/string.yang").getFile();
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void validXmlSchemaIdentifierPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-valid-identifier.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
+        JsonCodecDataFunc.expectedNoError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void invalidXmlSchemaIdentifierPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-invalid-identifier.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void validXmlSchemaBasicLatinPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-valid-basic-latin.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
+        JsonCodecDataFunc.expectedNoError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void invalidXmlSchemaBasicLatinPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-invalid-basic-latin.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void validXmlSchemaAnchorLiteralPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-valid-anchor-literal.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
+        JsonCodecDataFunc.expectedNoError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void invalidXmlSchemaAnchorLiteralPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-invalid-anchor-literal.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
+        JsonCodecDataFunc.expectedError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void validXmlSchemaInvertMatchPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-valid-invert-match.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
+        JsonCodecDataFunc.expectedNoError(jsonFile, yangFile);
+    }
+
+    @Test
+    public void invalidXmlSchemaInvertMatchPattern() throws DocumentException, IOException, YangParserException {
+        String jsonFile = this.getClass().getClassLoader().getResource("type/string/xsd-invalid-invert-match.json").getFile();
+        String yangFile = this.getClass().getClassLoader().getResource(XSD_REGEX_YANG).getFile();
         JsonCodecDataFunc.expectedError(jsonFile, yangFile);
     }
 

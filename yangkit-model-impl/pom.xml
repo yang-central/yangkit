@@ -72,6 +72,11 @@
             <version>${org.antlr.antlr4-runtime.version}</version>
         </dependency>
         <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>${xerces.xercesImpl.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.jupyter.version}</version>

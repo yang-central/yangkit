@@ -38,10 +38,10 @@ public class YangStringImpl extends RestrictionImpl<String> implements YangStrin
          while(patternIterator.hasNext()) {
             Pattern pattern = (Pattern)patternIterator.next();
             if (pattern.getModifier() != null) {
-               if (pattern.getPattern().matcher(value).matches()) {
+               if (pattern.matches(value)) {
                   return false;
                }
-            } else if (!pattern.getPattern().matcher(value).matches()) {
+            } else if (!pattern.matches(value)) {
                return false;
             }
          }

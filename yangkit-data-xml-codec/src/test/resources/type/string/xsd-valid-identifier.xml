@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<string-container xmlns="urn:xml:test:string:xsd">
+    <identifier>node1</identifier>
+</string-container>
+

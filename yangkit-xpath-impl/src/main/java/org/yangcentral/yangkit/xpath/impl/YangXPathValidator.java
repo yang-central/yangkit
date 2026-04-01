@@ -42,6 +42,7 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
    public static final int VALIDATE_TYPE_MUST = 0;
    public static final int VALIDATE_TYPE_WHEN = 1;
    public static final int VALIDATE_TYPE_LEAFREF = 2;
+   public static final int VALIDATE_TYPE_INSTANCE_IDENTIFIER = 3;
    private int validateType = 0;
 
    public YangXPathValidator(YangXPath yangXPath, YangXPathContext context, BuilderFactory<ValidatorResult> builderFactory) {
@@ -132,6 +133,17 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       return new ModelException(Severity.WARNING, this.getContext().getDefineNode(),
               ErrorCode.INVALID_XPATH.getFieldName() + " xpath=" + this.getYangXPath().toString()
                       + (message == null || message.isEmpty() ? "" : " " + message));
+   }
+
+   private void addMissingPredicatesRecord(Builder<ValidatorResult> builder) {
+      ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
+      validatorRecordBuilder.setBadElement(this.getContext().getDefineNode());
+      validatorRecordBuilder.setSeverity(ErrorCode.MISSING_PREDICATES.getSeverity());
+      validatorRecordBuilder.setErrorPath(this.getContext().getDefineNode().getElementPosition());
+      validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_PREDICATES.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "listNode="})));
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+      builder.merge(validatorResultBuilder.build());
    }
 
    private QName resolveStepQName(YangNameStep nameStep) throws ModelException {
@@ -357,6 +369,37 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       }
    }
 
+   private void validateSinglePredicateForInstanceIdentifier(Predicate predicate, Object currentNode) throws ModelException {
+      if (!(currentNode instanceof YangList)) {
+         throw invalidXPath("instance-identifier predicate only allowed on list predicate=" + predicate.getText());
+      }
+      if (!(predicate.getExpr() instanceof EqualityExpr)) {
+         throw invalidXPath("instance-identifier predicate must be equality predicate=" + predicate.getText());
+      }
+
+      Expr exprLHS = ((EqualityExpr) predicate.getExpr()).getLHS();
+      if (!(exprLHS instanceof LocationPath)) {
+         throw invalidXPath("instance-identifier predicate must reference a key predicate=" + predicate.getText());
+      }
+
+      YangList list = (YangList) currentNode;
+      if (list.getKey() == null) {
+         throw invalidXPath("instance-identifier predicate requires keyed list predicate=" + predicate.getText());
+      }
+
+      YangLocationPathImpl keyLocation = (YangLocationPathImpl) exprLHS;
+      YangXPathContext keyXPathContext = this.getContext().newContext();
+      keyXPathContext.setCurrentNode(currentNode);
+      try {
+         SchemaNode keyNode = keyLocation.getTargetSchemaNode(keyXPathContext);
+         if (keyNode == null || list.getKey().getKeyNode(keyNode.getIdentifier()) == null) {
+            throw invalidXPath("instance-identifier predicate must reference a key predicate=" + predicate.getText());
+         }
+      } catch (ModelException e) {
+         throw invalidXPath("instance-identifier predicate must reference a key predicate=" + predicate.getText());
+      }
+   }
+
    private void validateSinglePredicate (Predicate predicate, Object currentNode) throws ModelException {
       ValidatorResult predicateResult;
       if (this.validateType == VALIDATE_TYPE_LEAFREF) {
@@ -364,6 +407,8 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
          if (!predicateResult.isOk()) {
             throw new ModelException(Severity.WARNING, this.getContext().getDefineNode(), predicateResult.toString());
          }
+      } else if (this.validateType == VALIDATE_TYPE_INSTANCE_IDENTIFIER) {
+         validateSinglePredicateForInstanceIdentifier(predicate, currentNode);
       }
       predicateResult = this.visit(predicate.getExpr(), currentNode);
       if (!predicateResult.isOk()) {
@@ -495,6 +540,13 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
          }
       }
 
+      if (this.validateType == VALIDATE_TYPE_INSTANCE_IDENTIFIER
+              && expr.isAbsolute()
+              && expr instanceof YangLocationPathImpl
+              && !((YangLocationPathImpl) expr).isStrictPath()) {
+         addMissingPredicatesRecord(builder);
+      }
+
       if (this.validateType == VALIDATE_TYPE_WHEN && pointsToDefineNodeOrAncestor(currentNode)) {
          ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
          validatorRecordBuilder.setBadElement(this.getContext().getDefineNode());
@@ -515,24 +567,10 @@ public class YangXPathValidator extends YangXPathBaseVisitor<ValidatorResult, Ob
       if(this.validateType == VALIDATE_TYPE_MUST || this.validateType == VALIDATE_TYPE_WHEN) {
          if (expr instanceof AdditiveExpr || expr instanceof EqualityExpr || expr instanceof MultiplicativeExpr || expr instanceof RelationalExpr) {
             if (expr.getLHS() instanceof LocationPath && ((LocationPath) expr.getLHS()).isAbsolute() && !((YangLocationPathImpl) expr.getLHS()).isStrictPath()) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(this.getContext().getDefineNode());
-               validatorRecordBuilder.setSeverity(ErrorCode.MISSING_PREDICATES.getSeverity());
-               validatorRecordBuilder.setErrorPath(this.getContext().getDefineNode().getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_PREDICATES.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "listNode="})));
-               ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               builder.merge(validatorResultBuilder.build());
+                addMissingPredicatesRecord(builder);
             }
             if (expr.getRHS() instanceof LocationPath && ((LocationPath) expr.getRHS()).isAbsolute() && !((YangLocationPathImpl) expr.getRHS()).isStrictPath()) {
-               ValidatorRecordBuilder<Position, YangStatement> validatorRecordBuilder = new ValidatorRecordBuilder();
-               validatorRecordBuilder.setBadElement(this.getContext().getDefineNode());
-               validatorRecordBuilder.setSeverity(ErrorCode.MISSING_PREDICATES.getSeverity());
-               validatorRecordBuilder.setErrorPath(this.getContext().getDefineNode().getElementPosition());
-               validatorRecordBuilder.setErrorMessage(new ErrorMessage(ErrorCode.MISSING_PREDICATES.toString(new String[]{"xpath=" + this.getYangXPath().toString(), "listNode="})));
-               ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-               validatorResultBuilder.addRecord(validatorRecordBuilder.build());
-               builder.merge(validatorResultBuilder.build());
+                addMissingPredicatesRecord(builder);
             }
          }
       }

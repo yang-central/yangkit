@@ -1,0 +1,8 @@
+{
+  "data" : {
+    "json-xsd-regex-test:string-container" : {
+      "basic-latin" : "ABC123"
+    }
+  }
+}
+

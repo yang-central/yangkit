@@ -1,0 +1,7 @@
+{
+  "data" : {
+    "json-xsd-regex-test:string-container" : {
+      "basic-latin" : "中文"
+    }
+  }
+}

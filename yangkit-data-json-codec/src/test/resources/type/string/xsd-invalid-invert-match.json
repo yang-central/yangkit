@@ -1,0 +1,7 @@
+{
+  "data" : {
+    "json-xsd-regex-test:string-container" : {
+      "non-identifier" : "node1"
+    }
+  }
+}

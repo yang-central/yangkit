@@ -7,5 +7,7 @@ import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 public interface Pattern extends YangBuiltinStatement, MetaDef, ErrorReporter {
    java.util.regex.Pattern getPattern();
 
+   boolean matches(String value);
+
    Modifier getModifier();
 }
