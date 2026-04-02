@@ -5,7 +5,6 @@ import com.google.protobuf.Descriptors;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -150,16 +149,36 @@ public class ProtoDescriptorManager {
     private Descriptors.Descriptor findMessageInFile(
             Descriptors.FileDescriptor fileDesc, SchemaNode schemaNode) {
 
-        String name = ProtoSchemaGenerator.messageName((DataNode) schemaNode);
+        String name = ProtoSchemaGenerator.messageName(schemaNode);
 
         // Try top-level first
         Descriptors.Descriptor topLevel = fileDesc.findMessageTypeByName(name);
         if (topLevel != null) return topLevel;
 
-        // Search nested types (e.g. RPC input / output are nested inside the Rpc message)
+        // Search nested types recursively (e.g. RPC input/output and containers nested beneath them)
         for (Descriptors.Descriptor msg : fileDesc.getMessageTypes()) {
-            Descriptors.Descriptor nested = msg.findNestedTypeByName(name);
+            Descriptors.Descriptor nested = findNestedMessageRecursive(msg, name);
             if (nested != null) return nested;
+        }
+
+        return null;
+    }
+
+    private Descriptors.Descriptor findNestedMessageRecursive(Descriptors.Descriptor parent, String name) {
+        if (parent == null || name == null) {
+            return null;
+        }
+
+        Descriptors.Descriptor direct = parent.findNestedTypeByName(name);
+        if (direct != null) {
+            return direct;
+        }
+
+        for (Descriptors.Descriptor nested : parent.getNestedTypes()) {
+            Descriptors.Descriptor found = findNestedMessageRecursive(nested, name);
+            if (found != null) {
+                return found;
+            }
         }
 
         return null;
@@ -211,6 +230,29 @@ public class ProtoDescriptorManager {
     // =========================================================================
 
     private String cacheKey(SchemaNode schemaNode) {
-        return mode.name() + ":" + schemaNode.getIdentifier().toString();
+        return mode.name() + ":" + schemaPathKey(schemaNode);
+    }
+
+    private static String schemaPathKey(SchemaNode schemaNode) {
+        if (schemaNode == null) return "null";
+
+        StringBuilder builder = new StringBuilder();
+        SchemaNode current = schemaNode;
+        while (current != null) {
+            if (builder.length() > 0) {
+                builder.insert(0, '/');
+            }
+            builder.insert(0,
+                    current.getClass().getSimpleName() + "(" + current.getIdentifier().toString() + ")");
+
+            SchemaNodeContainer parent = current.getParentSchemaNode();
+            if (parent instanceof SchemaNode) {
+                current = (SchemaNode) parent;
+            } else {
+                current = null;
+            }
+        }
+
+        return builder.toString();
     }
 }

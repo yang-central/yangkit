@@ -4,7 +4,7 @@
 
 ### ProtoSchemaGenerator
 
-Generate Protobuf schema from YANG schema.
+Generate the module's current Protobuf schema view from YANG schema.
 
 ```java
 // Create generator
@@ -45,7 +45,7 @@ Object yangValue =
 
 ### ProtoDescriptorManager
 
-Manage Protobuf descriptors.
+Manage the generated Protobuf descriptors used by this module.
 
 ```java
 // Get manager instance
@@ -58,7 +58,7 @@ Descriptors.Descriptor descriptor =
 
 ### ProtoCache
 
-High-performance caching service.
+Caching service for descriptor and helper reuse in the current implementation.
 
 ```java
 // Get cache instance
@@ -100,6 +100,16 @@ Object yangValue =
 Object protoValue = 
     ProtoCodecUtil.convertYangValueToProto(yangValue, null);
 ```
+
+## Current Tested Paths
+
+- **List**: keyed entry descriptor generation plus SIMPLE/YGOT round-trip coverage for the module's generated message shapes
+- **Repeated children**: SIMPLE/YGOT regression coverage for repeated `leaf-list` ordering and repeated keyed `list` entries inside `repeated-container`
+- **RPC**: RPC / input / output descriptor generation, SIMPLE/YGOT round-trip coverage for simple RPC paths, and SIMPLE/YGOT nested-container round-trip coverage for complex RPC input/output
+- **YangStructure**: SIMPLE/YGOT descriptor generation and round-trip coverage for RFC 8791 structure content
+- **Anydata**: module-specific JSON-text wrapper handling with validation-option based payload resolution
+
+These paths describe the current regression coverage for this module's generated descriptors/messages, not blanket protobuf interoperability with arbitrary external schemas.
 
 ## Type Mapping Reference
 
@@ -252,7 +262,7 @@ cache.clear();
 Type yangType = leaf.getType();
 Object yangValue = leaf.getValue();
 
-// Convert with full type safety
+// Convert with explicit type guidance
 Object protoValue = YangProtoTypeMapper.convertToProtoValue(
     yangValue, yangType);
 ```
@@ -471,6 +481,8 @@ mvn clean package
 ```bash
 mvn test
 ```
+
+These commands validate the module's current generator/codec behavior; they should not be read as blanket interoperability certification for every protobuf consumer.
 
 ### Check Dependencies
 

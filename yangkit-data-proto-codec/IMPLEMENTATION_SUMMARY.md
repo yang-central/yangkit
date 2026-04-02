@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `yangkit-data-proto-codec` module provides bidirectional codec functionality between YANG data models and Protocol Buffers format. This document summarizes the implementation details.
+The `yangkit-data-proto-codec` module provides the current bidirectional codec functionality between YANG data models and the generated Protocol Buffers structures used by this project. This document summarizes the present implementation details and tested areas.
 
 ## Core Components Implemented
 
@@ -18,7 +18,7 @@ The `yangkit-data-proto-codec` module provides bidirectional codec functionality
 
 **Key Methods:**
 - `generateFileDescriptor(Module module)` - Generates file descriptor for a YANG module
-- `generateMessage(DataNode dataNode)` - Generates Protobuf message from YANG data node
+- `generateMessage(SchemaNode dataNode)` - Generates a Protobuf message from a supported YANG schema node, including `YangStructure`
 - `addContainerFields()` - Adds fields for container nodes
 - `addListFields()` - Adds fields for list nodes with key support
 - `addLeafField()` - Adds leaf field to message
@@ -92,7 +92,7 @@ Types that are not recognized by the built-in mapper currently fall back to stri
 
 ### 6. Data Codecs
 
-Implemented codec classes for different YANG data types:
+Main-code codec classes currently present for different YANG data types:
 
 - **LeafDataProtoCodec** - Leaf node encoding/decoding
 - **LeafListDataProtoCodec** - Leaf-list encoding/decoding  
@@ -106,6 +106,15 @@ Implemented codec classes for different YANG data types:
 - **AnyDataDataProtoCodec** - Anydata node encoding/decoding via a generated wrapper message whose `value` field carries JSON text
 - **AnyxmlDataProtoCodec** - Anyxml node encoding/decoding
 - **YangStructureDataProtoCodec** - YANG structure encoding/decoding
+
+These classes do not all have the same maturity level or interoperability guarantees; current regression evidence is strongest for value conversion, `anydata` wrapper handling, keyed `List` round-trips, repeated child collection handling, RPC input/output descriptor and round-trip paths, and `YangStructure` descriptor plus SIMPLE/YGOT round-trip paths.
+
+Current highlighted coverage areas include:
+
+- `ListDataProtoCodec`: SIMPLE/YGOT descriptor generation and keyed-entry round-trip coverage
+- repeated child collection handling inside `repeated-container`: SIMPLE/YGOT repeated `leaf-list` ordering and repeated keyed `list` entry round-trips
+- `RpcDataProtoCodec` / `InputDataProtoCodec` / `OutputDataProtoCodec`: RPC descriptor coverage plus executable simple and nested RPC regression cases in SIMPLE/YGOT mode
+- `YangStructureDataProtoCodec`: SIMPLE/YGOT descriptor generation and structure-content round-trip coverage
 
 ## Anydata Handling
 
@@ -255,36 +264,43 @@ module payload-anydata {
 
 ### Test Classes
 
-1. **SimpleProtoCodecTest** - Basic type conversion tests
-   - testConvertYangValueToProto - Tests YANG to Protobuf value conversion
-   - testConvertProtoValueToYang - Tests Protobuf to YANG value conversion
-   - testCacheMechanism - Tests basic cache operations
-   - testCacheStats - Tests cache statistics functionality
+Current regression coverage includes these active test groups:
 
-2. **ProtoSchemaGeneratorTest** - Generator and mapping system tests
-   - testProtoSchemaGeneratorCreation - Tests generator instantiation
-   - testGenerateFileDescriptorForNullModule - Tests null handling
-   - testGenerateMessageForNullNode - Tests null node handling
-   - testCacheMechanismInGenerator - Tests generator cache clearing
-   - testTypeMapperWithNullType - Tests null type mapping
-   - testValueConversionWithNulls - Tests null value conversion
-   - testValueConversionWithPrimitives - Tests primitive type conversion
-   - testValueConversionWithNumbers - Tests numeric type conversion
-   - testProtoCacheOperations - Tests cache put/get/remove operations
-   - testProtoCacheStats - Tests cache statistics
+1. **AnydataValidationOptionsProtoCodecTest**
+   - `anydata` payload schema-resolution behavior for the module-specific JSON-text wrapper path
 
-### Test Results
+2. **ProtoCodecDataTest**
+   - container sanity checks
+   - keyed `List` descriptor generation and SIMPLE/YGOT round-trip coverage
+   - repeated `leaf-list` ordering and repeated keyed `list` entry coverage inside `repeated-container`
+   - basic leaf-list error-path contract checks
+
+3. **ProtoCodecModeTest**
+   - SIMPLE vs YGOT mapping, wrapper, numbering, and descriptor behavior
+
+4. **ProtoCodecStructureTest**
+   - `YangStructure` descriptor generation
+   - SIMPLE/YGOT structure round-trip coverage
+
+5. **RpcProtoCodecTest**
+   - RPC / input / output descriptor generation
+   - SIMPLE/YGOT round-trip coverage for simple RPC paths
+   - SIMPLE/YGOT nested-container round-trip coverage for complex RPC input/output
+
+### Current Module Test Snapshot
+
+The current module test snapshot observed in this workspace is:
 
 ```
-Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 53, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
-All tests pass successfully, verifying:
-- ✅ Correctness of type mapping
-- ✅ Bidirectional value conversion paths
-- ✅ Effectiveness of caching mechanism
-- ✅ Robustness of null value handling
+This provides evidence for:
+- ✅ Core type mapping behavior
+- ✅ Descriptor generation for container, list, RPC, and `YangStructure` paths covered by the active tests
+- ✅ SIMPLE/YGOT round-trip behavior for selected `List`, repeated-child container, RPC, and `YangStructure` scenarios
+- ✅ Module-specific `anydata` wrapper handling and validation-option flow
 
 ## Build Output
 
@@ -329,4 +345,4 @@ Main dependencies:
 
 ## Conclusion
 
-The `yangkit-data-proto-codec` module provides an efficient, extensible YANG-Protobuf bidirectional conversion solution. Through intelligent type mapping, multi-level caching mechanisms, and modular design, the module is capable of handling various YANG data processing scenarios, especially applications requiring high-performance serialization.
+The `yangkit-data-proto-codec` module provides a usable, extensible YANG-to-Protobuf conversion stack with test evidence for core type/value conversion, descriptor generation helpers, module-specific `anydata` wrapper handling, keyed `List` round-trips, repeated child collection handling, RPC descriptor/input/output coverage, and `YangStructure` descriptor plus SIMPLE/YGOT round-trip paths. Additional interoperability depth and broader schema coverage remain active enhancement areas.

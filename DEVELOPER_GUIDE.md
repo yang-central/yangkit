@@ -19,17 +19,17 @@
 
 ### Introduction
 
-YangKit is a powerful YANG modeling language toolkit with full support for [RFC 7950](https://datatracker.ietf.org/doc/html/rfc7950) and [RFC 6020](https://datatracker.ietf.org/doc/html/rfc6020) standards. It provides a complete solution from YANG file parsing and XPath evaluation to multiple data encoding/decoding formats.
+YangKit is a YANG modeling language toolkit with implemented and tested support for major parts of [RFC 7950](https://datatracker.ietf.org/doc/html/rfc7950) and [RFC 6020](https://datatracker.ietf.org/doc/html/rfc6020), together with JSON, XML, Protocol Buffers, and CBOR codec support. It provides an end-to-end solution from YANG file parsing and XPath evaluation to multiple data encoding/decoding formats.
 
 ### Key Features
 
-- **Complete YANG Parser**: Based on ANTLR4, supports YANG 1.1 version
+- **YANG Parser**: Based on ANTLR4, with tested core support for YANG 1.1 and compatibility-oriented coverage for YANG 1.0
 - **XPath Evaluator**: Full XPath 1.0 implementation for YANG data validation
 - **Multiple Encoding Formats**:
-  - JSON (RFC 7951)
-  - XML (RFC 7950 Section 8)
+  - JSON (tested core RFC 7951 scenarios)
+  - XML (tested core RFC 7950 Section 8 scenarios)
   - Protocol Buffers
-  - CBOR (RFC 9254) - New in v1.5.0
+  - CBOR (tested core RFC 9254 scenarios) - New in v1.5.0
 - **Data Validation**: Comprehensive validation based on YANG schema
 - **Modular Design**: Clear API/Impl separation architecture
 

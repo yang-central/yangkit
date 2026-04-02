@@ -1,18 +1,18 @@
 # yangkit-data-cbor-codec
 
-CBOR codec for YANG data based on [RFC 9254](https://datatracker.ietf.org/doc/html/rfc9254).
+CBOR codec for YANG data with current [RFC 9254](https://datatracker.ietf.org/doc/html/rfc9254)-oriented support.
 
 ## Overview
 
 This module provides serialization and deserialization of YANG data to/from CBOR (Concise Binary Object Representation) format.
-It implements the specification defined in RFC 9254 - "YANG Data Model in Concise Binary Object Representation (CBOR)".
+It currently provides tested core support for the main RFC 9254-style CBOR encoding paths, with name-based encoding as the primary path and additional SID-based support documented in the SID-specific notes.
 
 ## Features
 
 - **Binary encoding**: Compact binary representation of YANG data
 - **Type-safe conversion**: Automatic mapping between YANG types and CBOR types
-- **RFC 9254 compliant**: Follows the standard for YANG data in CBOR
-- **Complete coverage**: Supports all common YANG data node types:
+- **Tested core RFC 9254 support**: Covers the currently tested name-based CBOR encoding and decoding paths
+- **Current node coverage**: Includes production codecs or partial implementations for common YANG data node types:
   - Container nodes
   - Leaf nodes
   - Leaf-list nodes
@@ -21,6 +21,27 @@ It implements the specification defined in RFC 9254 - "YANG Data Model in Concis
   - AnyXML nodes
   - RPC/Action nodes
   - Notification nodes
+
+Coverage depth is not identical for every node category; see [Implementation Status](#implementation-status) and the SID documents for current limitations.
+
+## Support Scope
+
+### Name-based encoding
+
+- Primary and most broadly exercised CBOR path in the module
+- Backed by the core RFC 9254-oriented encoding/decoding flow used by the standard CBOR codecs
+
+### SID-based encoding
+
+- Additional RFC 9254 Section 5-style support is available through the SID-specific codecs and helpers
+- See `SID_SUPPORT.md` and `SID_IMPLEMENTATION_SUMMARY.md` for the currently implemented and tested SID scope
+
+### Known limits
+
+- Deep list / leaf-list combinations still need broader boundary coverage
+- `AnyData` / `AnyXML` handling is not at the same maturity level as the core container/leaf paths
+- Some RPC / notification paths remain more limited than the main data-node codecs
+- Cross-implementation interoperability claims should be evaluated per data shape, not assumed uniformly for every node category
 
 ## Dependencies
 
@@ -257,7 +278,7 @@ ListData data = listCodec.deserialize(cborData, validatorResultBuilder);
 
 ## CBOR Encoding Rules
 
-The module follows RFC 9254 encoding rules:
+The current implementation follows the core RFC 9254 encoding rules used by the tested paths:
 
 - **Strings**: Encoded as CBOR text strings
 - **Numbers**: Encoded as CBOR integers or floating-point numbers based on type
@@ -279,13 +300,13 @@ The module uses a layered architecture:
 ## Implementation Status
 
 ✅ Core infrastructure (base classes, utilities, exceptions)
-✅ Container data codec
-✅ Leaf data codec
-✅ Leaf-list data codec
-✅ List data codec
+✅ Container data codec (main exercised path)
+✅ Leaf data codec (main exercised path)
+✅ Leaf-list data codec (main exercised path)
+✅ List data codec (main exercised path)
 ✅ AnyData codec with document-level validation context support
-⏳ AnyXML codec
-⏳ RPC/Notification codec (basic implementation)
+⚠️ AnyXML codec is present but less deeply covered than the core name-based paths
+⚠️ RPC/Notification codec paths exist, with coverage narrower than the main data-node codecs
 
 ## References
 

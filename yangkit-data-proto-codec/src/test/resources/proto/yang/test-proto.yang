@@ -131,4 +131,34 @@ module test-proto {
             }
         }
     }
+
+    // Container with repeated children
+    container repeated-container {
+        description "Container used to test repeated leaf-list and keyed list children";
+
+        leaf-list tags {
+            type string;
+            description "Repeated tags for order-preserving leaf-list tests";
+        }
+
+        list item {
+            key "id";
+            description "Repeated keyed list entries inside a container";
+
+            leaf id {
+                type string;
+                description "List entry key";
+            }
+
+            leaf quantity {
+                type uint32;
+                description "List entry quantity";
+            }
+
+            leaf enabled {
+                type boolean;
+                description "List entry flag";
+            }
+        }
+    }
 }

@@ -2,9 +2,9 @@
 
 ## Overview
 
-This module now supports **SID (Schema Item Identifier)** based encoding as defined in **RFC 9254 Section 5**.
+This document describes the module's current **SID (Schema Item Identifier)** based encoding support for the mechanisms described in **RFC 9254 Section 5**.
 
-SID is a unique 64-bit integer identifier assigned to YANG schema nodes, which can be used instead of string node names to reduce CBOR encoding size.
+SID is a unique 64-bit integer identifier assigned to YANG schema nodes, which can be used instead of string node names to reduce CBOR encoding size. The current implementation focuses on the tested core SID-based encoding/decoding paths and documents remaining gaps explicitly below.
 
 ## Key Components
 
@@ -50,7 +50,7 @@ ObjectNode decoded = SidEncoder.decodeWithSid(sidEncoded, sidManager);
 
 ### 3. SidContainerDataCborCodec
 
-A variant of ContainerDataCborCodec that uses SID-based encoding.
+A variant of `ContainerDataCborCodec` that uses the module's current SID-based encoding path.
 
 **Usage:**
 ```java
@@ -69,7 +69,7 @@ ContainerData data = codec.deserialize(cborBytes, validatorResultBuilder);
 
 ### 4. SidCborEncoder
 
-High-level API for SID-based CBOR encoding with CBOR tags.
+High-level API for the current SID-based CBOR encoding flow with CBOR tags.
 
 **Methods:**
 - `encodeToCbor(ContainerData container, SidManager sidManager)` - Encode to tagged CBOR
@@ -84,11 +84,11 @@ byte[] cborBytes = SidCborEncoder.encodeToCbor(containerData, sidManager);
 JsonNode result = SidCborEncoder.decodeFromCbor(cborBytes, sidManager);
 ```
 
-## RFC 9254 Compliance
+## RFC 9254 Alignment (Current Implementation)
 
 ### CBOR Tag Range
-- **Tag 60000-60999**: Reserved for SID-based encoded YANG data
-- This implementation uses tag **60000** by default
+- **Tag 60000-60999**: RFC 9254 defines this range for SID-based encoded YANG data
+- The current helper flow uses tag **60000** in its default path
 
 ### Encoding Format
 
@@ -142,17 +142,17 @@ sidManager.loadSidFile(sidFileContent);
 
 ## Benefits of SID-based Encoding
 
-1. **Reduced Size**: Integer SIDs are more compact than string node names
-2. **Faster Processing**: Numeric comparison is faster than string comparison
-3. **Standardized**: Complies with RFC 9254 Section 5
-4. **Backward Compatible**: Can coexist with name-based encoding
+1. **Reduced Size**: Integer SIDs are often more compact than string node names
+2. **Simpler Field Identifiers**: Numeric identifiers can reduce payload verbosity in the current SID flow
+3. **Standards-aligned scope**: Targets the SID-based mechanisms described in RFC 9254 Section 5 within the currently implemented paths
+4. **Can coexist with name-based encoding**: The module keeps the name-based path available alongside SID-oriented helpers
 
 ## When to Use SID
 
 ✅ **Use SID-based encoding when:**
 - Bandwidth or storage is constrained
 - You have control over both encoder and decoder
-- You need RFC 9254 compliance
+- You need compact SID-based CBOR encoding within the module's currently tested scope
 - Performance is critical
 
 ❌ **Use name-based encoding when:**
@@ -222,11 +222,11 @@ public class SidExample {
 
 ## Implementation Status
 
-✅ **Implemented:**
+✅ **Currently implemented:**
 - SidManager with caching and module registration
 - SID-based encoding for Leaf, LeafList, Container
 - SID-based decoding with field name resolution
-- CBOR tag support (60000-60999 range)
+- CBOR tag handling in the current helper/codec flow (default path uses tag 60000)
 - .sid file loading
 - Recursive nested container encoding
 
@@ -245,7 +245,7 @@ mvn test
 
 Test classes:
 - `SidManagerTest` - Unit tests for SID management
-- `SidCborIntegrationTest` - Integration tests for full encode/decode cycle
+- `SidCborIntegrationTest` - Integration tests for the current encode/decode cycle
 
 ## References
 

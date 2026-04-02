@@ -5,20 +5,28 @@
 ### SidManager - SID Management
 
 ```java
-// Create manager
-SidManager sidManager = new SidManager();
+public class SidQuickReferenceManagerExample {
+    public void run() {
+        // Create manager
+        SidManager sidManager = new SidManager();
 
-// Register module SID range
-sidManager.registerModule(namespace, baseSid, size);
+        // Register module SID range
+        sidManager.registerModule("http://example.com/module", 10000, 100);
 
-// Get SID
-Long sid = sidManager.getSid(qName);
+        // Get SID
+        QName qName = new QName("http://example.com/module", "node-name");
+        Long sid = sidManager.getSid(qName);
 
-// Reverse lookup
-QName qname = sidManager.getQName(sid);
+        // Reverse lookup
+        QName resolved = sidManager.getQName(sid);
 
-// Load .sid file
-sidManager.loadSidFile(content);
+        // Load .sid file
+        String content = "namespace: http://example.com/module\n"
+                + "sid-range: 10000-10099\n"
+                + "assignment: node-name 10001\n";
+        sidManager.loadSidFile(content);
+    }
+}
 ```
 
 ### SidEncoder - Encoding Utility
@@ -38,7 +46,7 @@ ObjectNode original = SidEncoder.decodeWithSid(json, sidManager);
 SidContainerDataCborCodec codec = 
     new SidContainerDataCborCodec(schemaNode, sidManager);
 
-// Serialize to CBOR (using SID)
+// Serialize to CBOR using the current SID-oriented flow
 byte[] cbor = codec.serialize(containerData);
 
 // Deserialize from CBOR
@@ -48,10 +56,10 @@ ContainerData data = codec.deserialize(cbor, validator);
 ### SidCborEncoder - High-level API
 
 ```java
-// Encode to CBOR (automatically adds tag)
+// Encode to CBOR (current helper flow adds the default SID tag)
 byte[] cbor = SidCborEncoder.encodeToCbor(container, sidManager);
 
-// Decode from CBOR (automatically handles tag)
+// Decode from CBOR (current helper flow handles the default SID tag path)
 JsonNode result = SidCborEncoder.decodeFromCbor(cbor, sidManager);
 ```
 
@@ -67,9 +75,9 @@ assignment: another-node 10002
 
 ## CBOR Tag
 
-- **Range**: 60000-60999
-- **Default**: 60000
-- **Purpose**: Identifies SID-encoded YANG data
+- **Range**: 60000-60999 (RFC 9254 SID tag range)
+- **Default helper path**: 60000
+- **Purpose**: Identifies SID-encoded YANG data in the current helper flow
 
 ## Encoding Comparison
 
@@ -99,7 +107,7 @@ assignment: another-node 10002
 import org.yangcentral.yangkit.data.codec.cbor.*;
 
 public class Example {
-    public static void main(String[] args) throws Exception {
+    static void main(String[] args) throws Exception {
         // 1. Configure SID manager
         SidManager sm = new SidManager();
         sm.registerModule("http://example.com/test", 10000, 100);

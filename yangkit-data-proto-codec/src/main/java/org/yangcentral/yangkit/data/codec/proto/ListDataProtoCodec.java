@@ -5,7 +5,6 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.ListData;
-import org.yangcentral.yangkit.data.impl.model.ListDataImpl;
 import org.yangcentral.yangkit.model.api.stmt.YangList;
 
 /** Codec for YANG {@code list} data. */
@@ -18,11 +17,8 @@ public class ListDataProtoCodec extends YangDataProtoCodec<YangList, ListData> {
     @Override
     protected ListData buildData(DynamicMessage message,
                                  ValidatorResultBuilder validatorResultBuilder) {
-        ListDataImpl data = new ListDataImpl(getSchemaNode(), null);
-        data.setQName(getSchemaNode().getIdentifier());
-        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder, mode,
-                getAnydataValidationContextResolver(), getSourcePath());
-        return data;
+        return (ListData) ProtoCodecUtil.createListData(getSchemaNode(), message,
+                validatorResultBuilder, mode, getAnydataValidationContextResolver(), getSourcePath());
     }
 
     @Override

@@ -2,7 +2,7 @@
 
 ## Implementation Overview
 
-Successfully added complete **SID (Schema Item Identifier)** support to the yangkit-data-cbor-codec module, implementing the SID-based CBOR encoding mechanism defined in RFC 9254 Section 5.
+This document summarizes the current **SID (Schema Item Identifier)** implementation work in the `yangkit-data-cbor-codec` module for the SID-based CBOR encoding mechanisms described in RFC 9254 Section 5.
 
 ## New Files List
 
@@ -19,7 +19,7 @@ Successfully added complete **SID (Schema Item Identifier)** support to the yang
    - SID encoding utility class
    - `encodeWithSid()` - Encodes container data to JSON structure using SIDs as field names
    - `decodeWithSid()` - Restores SID-encoded JSON back to original names
-   - Recursively handles nested containers and various data types (Leaf, LeafList, Container, List)
+   - Recursively handles the currently implemented nested-container and related data-node paths (Leaf, LeafList, Container, selected List handling)
 
 3. **SidContainerDataCborCodec.java**
    - Container CBOR codec with SID support
@@ -30,16 +30,16 @@ Successfully added complete **SID (Schema Item Identifier)** support to the yang
 4. **SidCborEncoder.java**
    - High-level SID CBOR encoder
    - Provides simplified API: `encodeToCbor()` and `decodeFromCbor()`
-   - Automatically handles CBOR tag (60000-60999 range)
-   - Complies with RFC 9254 Section 5 specification
+   - Handles the current SID-tagged CBOR flow (using the RFC 9254 SID tag range)
+   - Targets the Section 5 SID-based encoding model described in RFC 9254
 
 ### Documentation and Examples
 
 5. **SID_SUPPORT.md**
-   - Complete SID functionality documentation
+   - SID functionality and limitation documentation
    - API reference
    - Usage examples
-   - RFC 9254 compliance notes
+   - RFC 9254 alignment notes
 
 6. **SidExample.java** (test directory)
    - Usage example code
@@ -57,17 +57,21 @@ Successfully added complete **SID (Schema Item Identifier)** support to the yang
 ### 1. SID Generation and Management
 
 ```java
-SidManager sidManager = new SidManager();
+public class SidManagerExample {
+    public void run() {
+        SidManager sidManager = new SidManager();
 
-// Register module and SID range
-sidManager.registerModule("http://example.com/test", 10000, 100);
+        // Register module and SID range
+        sidManager.registerModule("http://example.com/test", 10000, 100);
 
-// Get SID for a node
-QName qName = new QName("http://example.com/test", "interface");
-Long sid = sidManager.getSid(qName);
+        // Get SID for a node
+        QName qName = new QName("http://example.com/test", "interface");
+        Long sid = sidManager.getSid(qName);
 
-// Reverse lookup
-QName resolved = sidManager.getQName(sid);
+        // Reverse lookup
+        QName resolved = sidManager.getQName(sid);
+    }
+}
 ```
 
 ### 2. SID-based Encoding
@@ -136,18 +140,20 @@ CBOR bytes → Parse to JSON → SidEncoder.decodeWithSid() → ContainerData
 
 ### Type Support
 
-✅ Supported data types:
+✅ Currently handled data types in the implementation summary:
 - LeafData
 - LeafListData  
 - ContainerData
 - ListData (structure encoding)
 
-⚠️ Simplified handling:
+⚠️ Simplified or partial handling:
 - LeafList deserialization (requires value construction)
 - List entry encoding/decoding
 - AnyXML/AnyData
 
 ## Build Status
+
+The snapshot below was captured during the implementation pass and should be treated as historical build evidence for this document, not as a blanket guarantee of current release status.
 
 ```bash
 $ cd D:\code\yangkit\yangkit-data-cbor-codec
@@ -165,17 +171,22 @@ $ mvn clean compile -DskipTests
 ### Method 1: Using SidContainerDataCborCodec
 
 ```java
-Container schemaNode = ...; // Obtain from parsed YANG model
-SidManager sidManager = new SidManager();
-sidManager.registerModule(namespace, baseSid, size);
+public class SidCodecExample {
+    public void run(Container schemaNode,
+                    ContainerData containerData,
+                    ValidatorResultBuilder validatorResultBuilder) {
+        SidManager sidManager = new SidManager();
+        sidManager.registerModule("http://example.com/example", 10000, 100);
 
-SidContainerDataCborCodec codec = new SidContainerDataCborCodec(schemaNode, sidManager);
+        SidContainerDataCborCodec codec = new SidContainerDataCborCodec(schemaNode, sidManager);
 
-// Encode
-byte[] cborBytes = codec.serialize(containerData);
+        // Encode
+        byte[] cborBytes = codec.serialize(containerData);
 
-// Decode
-ContainerData data = codec.deserialize(cborBytes, validatorResultBuilder);
+        // Decode
+        ContainerData data = codec.deserialize(cborBytes, validatorResultBuilder);
+    }
+}
 ```
 
 ### Method 2: Using SidEncoder Utility Class
@@ -198,26 +209,33 @@ byte[] cborBytes = SidCborEncoder.encodeToCbor(containerData, sidManager);
 JsonNode result = SidCborEncoder.decodeFromCbor(cborBytes, sidManager);
 ```
 
-## RFC 9254 Compliance
+## RFC 9254 Alignment (Current Scope)
 
-### Compliant Specifications
+### Implemented / Tested Areas
 
-✅ **Section 5.1**: SID as field name
+✅ **Section 5.1**: SID as field name in the currently implemented codec paths
 - Uses integer SID instead of string node name
 
-✅ **Section 5.2**: CBOR Tag
+✅ **Section 5.2**: CBOR tag handling in the current encoder/decoder flow
 - Uses tag range 60000-60999 to identify SID-encoded data
 
-✅ **Section 5.3**: Encoding rules
+✅ **Section 5.3**: Core encoding rules used by the tested nested-container flow
 - Follows YANG data to CBOR mapping rules
 - Supports nested container structure
 
+### Known Limits
+
+- Leaf-list deserialization remains simplified
+- List entry encoding/decoding is not yet fully expanded
+- AnyXML/AnyData SID handling is not yet implemented end-to-end
+- Decode-time schema-node resolution still has room for refinement in deeper scenarios
+
 ## Advantages
 
-1. **Reduced encoding size**: Integer SID is more compact than strings
-2. **Improved processing speed**: Numeric comparison is faster than string comparison
-3. **Standardization**: Complies with RFC 9254 standard
-4. **Backward compatible**: Can coexist with name-based encoding
+1. **Reduced encoding size**: Integer SIDs are often more compact than strings
+2. **Simpler encoded field identifiers**: Numeric field identifiers reduce name verbosity in the SID-oriented flow
+3. **Standards alignment**: Tracks RFC 9254 SID-based encoding concepts within the currently implemented scope
+4. **Coexistence with name-based encoding**: SID-oriented helpers can be used alongside the module's name-based path
 5. **Flexible configuration**: Supports automatic generation and manual assignment
 
 ## Applicable Scenarios
@@ -226,7 +244,7 @@ JsonNode result = SidCborEncoder.decodeFromCbor(cborBytes, sidManager);
 
 ✅ Bandwidth or storage constrained environments
 ✅ High-performance scenarios
-✅ RFC 9254 compliance requirements
+✅ RFC 9254-style SID-based CBOR encoding requirements within the currently implemented scope
 ✅ Both encoder and decoder are controllable
 
 ### Use Name-based Encoding
@@ -237,8 +255,8 @@ JsonNode result = SidCborEncoder.decodeFromCbor(cborBytes, sidManager);
 
 ## Future Improvements
 
-1. **Improve LeafList support**: Implement complete deserialization logic
-2. **List entry encoding**: Enhance full support for List data types
+1. **Improve LeafList support**: Implement more complete deserialization logic
+2. **List entry encoding**: Expand support for List data types
 3. **Schema node resolution**: Improve schema lookup mechanism during decoding
 4. **AnyXML/AnyData**: Add support for special types
 5. **Unit tests**: Write comprehensive integration tests to verify functionality
@@ -254,7 +272,7 @@ JsonNode result = SidCborEncoder.decodeFromCbor(cborBytes, sidManager);
 
 ## Summary
 
-The yangkit-data-cbor-codec module now fully supports the SID encoding mechanism defined in RFC 9254 Section 5. The implementation includes SID manager, encoder, decoder, and high-level API, providing a complete stack from basic to advanced functionality. Main code compilation passed and ready for use.
+The `yangkit-data-cbor-codec` module currently includes a working SID-oriented stack consisting of SID management, encoding helpers, decoding helpers, and high-level APIs. It provides implementation and test evidence for core Section 5-style flows, while deeper list, special-node, and schema-resolution scenarios remain documented enhancement areas.
 
 ---
 *Implementation date: 2026-03-26*

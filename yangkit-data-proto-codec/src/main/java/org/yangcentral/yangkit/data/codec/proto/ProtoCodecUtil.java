@@ -65,7 +65,13 @@ public class ProtoCodecUtil {
         if (message == null) return;
 
         for (Descriptors.FieldDescriptor field : message.getDescriptorForType().getFields()) {
-            if (!message.hasField(field) && !field.isRepeated()) continue;
+            if (field.isRepeated()) {
+                if (message.getRepeatedFieldCount(field) == 0) {
+                    continue;
+                }
+            } else if (!message.hasField(field)) {
+                continue;
+            }
 
             String protoFieldName = field.getName(); // already snake_case
 
@@ -102,12 +108,14 @@ public class ProtoCodecUtil {
 
         if (schemaNode instanceof Leaf) {
             Leaf leaf = (Leaf) schemaNode;
-            Object yangValue = YangProtoTypeMapper.convertToYangValue(fieldValue, leaf.getType());
+            Object scalarValue = unwrapScalarWrapperValue(fieldValue);
+            Object yangValue = YangProtoTypeMapper.convertToYangValue(scalarValue, leaf.getType());
             yangData = createLeafData(leaf, yangValue);
 
         } else if (schemaNode instanceof LeafList) {
             LeafList ll = (LeafList) schemaNode;
-            Object yangValue = YangProtoTypeMapper.convertToYangValue(fieldValue, ll.getType());
+            Object scalarValue = unwrapScalarWrapperValue(fieldValue);
+            Object yangValue = YangProtoTypeMapper.convertToYangValue(scalarValue, ll.getType());
             yangData = createLeafListData(ll, yangValue);
 
         } else if (schemaNode instanceof Container) {
@@ -174,7 +182,7 @@ public class ProtoCodecUtil {
                 setLeafField(messageBuilder, fieldDesc, (LeafData<?>) child);
 
             } else if (schema instanceof LeafList) {
-                setLeafListField(messageBuilder, fieldDesc, (LeafData<?>) child);
+                setLeafListField(messageBuilder, fieldDesc, (LeafListData<?>) child);
 
             } else if (schema instanceof Container || schema instanceof YangList) {
                 // Recurse into child codec
@@ -229,13 +237,13 @@ public class ProtoCodecUtil {
     }
 
     private static void setLeafListField(Message.Builder builder,
-                                          Descriptors.FieldDescriptor fieldDesc,
-                                          LeafData<?> leafData) {
+                                         Descriptors.FieldDescriptor fieldDesc,
+                                         LeafListData<?> leafListData) {
         try {
-            String strValue = leafData.getStringValue();
+            String strValue = leafListData.getStringValue();
             if (strValue == null) return;
 
-            LeafList llSchema = (LeafList) leafData.getSchemaNode();
+            LeafList llSchema = leafListData.getSchemaNode();
             Object protoValue = YangProtoTypeMapper.convertToProtoValue(strValue, llSchema.getType());
             if (protoValue == null) return;
 
@@ -277,6 +285,20 @@ public class ProtoCodecUtil {
                     + " into " + wrapperDesc.getName() + ": " + e.getMessage());
             return null;
         }
+    }
+
+    private static Object unwrapScalarWrapperValue(Object value) {
+        if (!(value instanceof DynamicMessage)) {
+            return value;
+        }
+
+        DynamicMessage wrapper = (DynamicMessage) value;
+        Descriptors.FieldDescriptor valueField = wrapper.getDescriptorForType().findFieldByName("value");
+        if (valueField != null && wrapper.hasField(valueField)) {
+            return wrapper.getField(valueField);
+        }
+
+        return value;
     }
 
     /** Coerces a value to the Java type expected by the protobuf field. */
@@ -412,15 +434,16 @@ public class ProtoCodecUtil {
         }
     }
 
-    private static YangData<?> createListData(YangList list,
-                                               DynamicMessage message,
-                                               ValidatorResultBuilder validatorResultBuilder,
-                                               ProtoCodecMode mode,
-                                               AnydataValidationContextResolver resolver,
-                                               String sourcePath) {
+    static YangData<?> createListData(YangList list,
+                                      DynamicMessage message,
+                                      ValidatorResultBuilder validatorResultBuilder,
+                                      ProtoCodecMode mode,
+                                      AnydataValidationContextResolver resolver,
+                                      String sourcePath) {
         try {
+            java.util.List<LeafData> keyData = extractListKeys(list, message);
             org.yangcentral.yangkit.data.impl.model.ListDataImpl data =
-                    new org.yangcentral.yangkit.data.impl.model.ListDataImpl(list, null);
+                    new org.yangcentral.yangkit.data.impl.model.ListDataImpl(list, keyData);
             data.setQName(list.getIdentifier());
             deserializeChildren(data, message, validatorResultBuilder, mode, resolver, sourcePath);
             return data;
@@ -428,6 +451,39 @@ public class ProtoCodecUtil {
             System.err.println("[ProtoCodecUtil] Failed to create list data: " + e.getMessage());
             return null;
         }
+    }
+
+    private static java.util.List<LeafData> extractListKeys(YangList list, DynamicMessage message) {
+        java.util.List<LeafData> keyData = new java.util.ArrayList<>();
+        if (list == null || message == null || list.getKey() == null) {
+            return keyData;
+        }
+
+        try {
+            java.util.List<Leaf> keys = list.getKey().getkeyNodes();
+            if (keys == null) {
+                return keyData;
+            }
+            for (Leaf keyLeaf : keys) {
+                String fieldName = toSnakeCase(keyLeaf.getIdentifier().getLocalName());
+                Descriptors.FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(fieldName);
+                if (fieldDescriptor == null || !message.hasField(fieldDescriptor)) {
+                    continue;
+                }
+                Object rawValue = message.getField(fieldDescriptor);
+                Object scalarValue = unwrapScalarWrapperValue(rawValue);
+                Object yangValue = YangProtoTypeMapper.convertToYangValue(scalarValue, keyLeaf.getType());
+                YangData<?> keyDatum = createLeafData(keyLeaf, yangValue);
+                if (keyDatum instanceof LeafData) {
+                    keyData.add((LeafData) keyDatum);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[ProtoCodecUtil] Failed to extract list keys for "
+                    + list.getIdentifier() + ": " + e.getMessage());
+        }
+
+        return keyData;
     }
 
     private static YangData<?> createAnyXmlData(Anyxml anyxml, Object fieldValue) {

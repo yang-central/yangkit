@@ -1,211 +1,232 @@
-# XML Codec 增强测试套件
+# XML Codec 测试说明
 
 ## 概述
 
-参考 JSON codec 的测试模式，为 yangkit-data-xml-codec 模块创建了全面的 RFC 7950/6020 符合性测试。
+本文档描述 `yangkit-data-xml-codec` 模块当前测试结构、自动执行的测试套件、补充类型测试以及后续扩展方向。
+
+与早期版本不同，当前 XML codec 的主测试套件已经在仓库现有日志中稳定通过，不再处于“7 个负向测试失败”的状态。当前应以最新日志为准，而不是以旧分析结论为准。
+
+主要证据：
+
+- `current-test.log`
+- `xml-codec-full-test.log`
+
+---
+
+## 当前测试现状
+
+### 自动执行的主测试套件
+
+根据 `current-test.log`，当前 XML codec 模块自动执行并通过以下测试类：
+
+1. `AnydataValidationOptionsXmlCodecTest`
+   - `Tests run: 3, Failures: 0, Errors: 0, Skipped: 0`
+2. `XmlCodecBasicTest`
+   - `Tests run: 8, Failures: 0, Errors: 0, Skipped: 0`
+3. `XmlCodecComprehensiveTest`
+   - `Tests run: 18, Failures: 0, Errors: 0, Skipped: 0`
+
+汇总结果：
+
+```text
+Tests run: 29, Failures: 0, Errors: 0, Skipped: 0
+```
+
+### 补充的类型测试
+
+当前还存在一组按类型组织的补充测试，用于针对特定基础类型做更细粒度验证：
+
+- `type/XmlCodecDataTestString.java`
+- `type/XmlCodecDataTestUint8.java`
+- `type/XmlCodecTypeTestFunc.java`
+
+这些测试类当前更适合作为**定向执行的补充类型测试**来使用，而不是将其误写成“自动执行主套件的一部分”。
+
+---
 
 ## 测试结构
 
-### 1. 按类型分类的测试目录
+### 1. 自动执行测试类
 
-```
-src/test/resources/type/
-├── string/          # String 类型测试
-│   ├── string.yang        # YANG 模型
-│   ├── valid*.xml         # 有效测试用例
-│   └── invalid*.xml       # 无效测试用例
-├── uint8/           # UInt8 类型测试
-│   ├── uint8.yang
-│   ├── valid*.xml
-│   └── invalid*.xml
-└── ... (其他类型)
+```text
+src/test/java/org/yangcentral/yangkit/data/codec/xml/test/
+├── AnydataValidationOptionsXmlCodecTest.java
+├── XmlCodecBasicTest.java
+└── XmlCodecComprehensiveTest.java
 ```
 
-### 2. 测试类组织
+### 2. 定向类型测试类
 
-```java
-// 辅助工具类
-XmlCodecTypeTestFunc
-├── expectedNoError()   // 验证有效数据
-└── expectedError()     // 验证无效数据
-
-// 类型测试类
-XmlCodecDataTestString    // String 类型测试
-XmlCodecDataTestUint8     // UInt8 类型测试
-XmlCodecDataTestInt8      // Int8 类型测试（待添加）
-XmlCodecDataTestBoolean   // Boolean 类型测试（待添加）
-...
+```text
+src/test/java/org/yangcentral/yangkit/data/codec/xml/test/type/
+├── XmlCodecDataTestString.java
+├── XmlCodecDataTestUint8.java
+└── XmlCodecTypeTestFunc.java
 ```
 
-## 已实现的测试覆盖
+### 3. 资源目录
 
-### String 类型测试
-- ✅ 正常字符串
-- ✅ Pattern 约束（正则表达式）
-- ✅ Length 约束（长度范围）
-- ✅ 多 Pattern 约束
-- ✅ Invert-match 修饰符
-- ❌ 违反 Pattern 约束
-- ❌ 违反 Length 约束
-- ❌ 违反多 Pattern 约束
-
-### UInt8 类型测试
-- ✅ 正常值（0-255）
-- ✅ Range 约束
-- ✅ 边界值（0, 255）
-- ❌ 超出范围（>255）
-- ❌ 负数值
-- ❌ 违反 Range 约束
-
-### 综合测试（XmlCodecComprehensiveTest）
-- ✅ 复杂嵌套结构
-- ✅ 各种数据类型
-- ✅ List / Leaf-list
-- ✅ Choice / Case
-- ✅ RPC Input/Output
-- ✅ Action
-- ✅ Notification
-- ✅ Augment
-- ✅ Config false 状态数据
-- ✅ Grouping / Uses
-- ✅ IdentityRef
-- ✅ Bits 类型
-
-## 测试结果
-
-### 当前状态
-```
-Tests run: 37
-- Passed: 30 (81%)
-- Failed: 7 (19%) - 负向测试，需要改进验证逻辑
+```text
+src/test/resources/
+├── comprehensive/
+│   └── yang/
+├── type/
+│   ├── string/
+│   └── uint8/
+└── anydata-validation/
 ```
 
-### 详细分析
+---
 
-#### 通过的测试（30 个）
-1. **基础测试** (8/8) - 基本编解码功能正常
-2. **综合测试** (13/13) - 复杂结构和高级特性支持良好
-3. **String 有效数据** (5/5) - 字符串类型解析正确
-4. **UInt8 有效数据** (4/4) - 无符号 8 位整数解析正确
+## 当前覆盖范围
 
-#### 失败的测试（7 个）
-这些测试**故意使用无效数据**，期望反序列化失败，但当前实现通过了验证：
+### `XmlCodecBasicTest`
 
-1. `invalidPattern` - Pattern 约束未触发验证错误
-2. `invalidLength` - Length 约束未触发验证错误
-3. `invalidPatternModifier` - Invert-match 修饰符未生效
-4. `invalidPatternMulti` - 多 Pattern 约束未生效
-5. `invalidOverflow` - UInt8 溢出未检测
-6. `invalidRange` - Range 约束未生效
-7. `invalidNegative` - 负数未检测
+主要覆盖：
 
-**这些失败表明**：XML codec 在数据验证阶段需要加强对 YANG 约束的检查。
+- 基本 XML 序列化与反序列化
+- 命名空间处理
+- config true / false 过滤行为
+- 空文档与多模块基本行为
 
-## 与 JSON Codec 对比
+### `XmlCodecComprehensiveTest`
 
-### JSON Codec 测试特点
-- 每个数据类型都有独立的测试类
-- 大量测试用例（每种类型 15-28 个测试）
-- 包含有效和无效数据的完整覆盖
-- 使用统一的测试辅助函数
+主要覆盖：
 
-### XML Codec 测试改进
-- ✅ 已采用相同的测试结构
-- ✅ 已创建类型化的测试目录
-- ✅ 已实现辅助测试函数
-- ⏳ 需要增加更多数据类型测试
-- ⏳ 需要修复验证逻辑以捕获无效数据
+- 复杂嵌套结构
+- List / Leaf-list
+- Choice / Case
+- RPC / Action / Notification
+- Augment
+- Grouping / Uses
+- IdentityRef
+- Bits
+- leaf-list `value` attribute 场景
+- ordered-by user list 的 `insert` 场景
+- anydata / anyxml 的 `select` 场景
 
-## 下一步工作
+### `AnydataValidationOptionsXmlCodecTest`
 
-### 1. 扩展测试覆盖
-- 添加其他数值类型（int8, int16, int32, int64, uint16, uint32, uint64）
-- 添加 boolean, empty, decimal64 类型
-- 添加 enumeration, bits 类型
-- 添加 identityref, union 类型
-- 添加 binary, instance-identifier 类型
+主要覆盖：
 
-### 2. 修复验证问题
-- 调查为什么 pattern 约束未生效
-- 检查 length 约束的验证逻辑
-- 确保数值范围约束被正确执行
-- 验证 must 约束的处理
+- `AnydataValidationOptions` 在 XML codec 中的文档级解析与匹配行为
+- payload schema context 的解析与注入
 
-### 3. 增加边界测试
-- 最小值/最大值边界
-- 空字符串处理
-- 特殊字符处理
-- Unicode 支持
+### 定向类型测试
+
+当前已提供：
+
+- String 类型测试
+  - 正常字符串
+  - Pattern 约束
+  - Length 约束
+  - 多 pattern 约束
+  - invert-match 修饰符
+- UInt8 类型测试
+  - 正常值
+  - 边界值
+  - Range 约束
+  - 非法数值场景
+
+---
+
+## 与旧状态的差异说明
+
+本文件此前记录过如下过时结论：
+
+- `Tests run: 37`
+- `Passed: 30`
+- `Failed: 7`
+- “负向测试，需要改进验证逻辑”
+
+这些信息反映的是**早期阶段的测试结果**，不再代表当前主分支状态。
+
+当前仓库中的最新日志显示：
+
+- XML 主测试套件已全绿
+- `insert` / `value` / `select` 等场景已有回归测试
+- 旧问题描述不能继续作为当前版本对外说明
+
+因此，后续文档、发布说明、RFC 合规分析应以最新日志与当前测试类为准。
+
+---
+
+## 建议的后续工作
+
+### 1. 扩展类型覆盖
+
+建议新增：
+
+- `int8`, `int16`, `int32`, `int64`
+- `uint16`, `uint32`, `uint64`
+- `boolean`, `empty`, `decimal64`
+- `enumeration`, `bits`
+- `identityref`, `union`
+- `binary`, `instance-identifier`
+
+### 2. 补强负向断言
+
+建议进一步增加：
+
+- 非法 `insert` 值
+- `before` / `after` 缺失引用值
+- 无效 XPath `select`
+- 复杂 anydata / anyxml 边界场景
+
+### 3. 明确自动执行与定向执行边界
+
+建议后续统一：
+
+- 哪些测试类属于 CI 默认执行集合
+- 哪些测试类属于手工定向回归集合
+
+避免再次出现“测试类存在，但文档误认为已默认执行”的偏差。
+
+---
 
 ## 使用方法
 
-### 运行特定类型测试
+### 运行默认 XML codec 测试
+
 ```bash
-# 运行 String 类型测试
+mvn test -pl yangkit-data-xml-codec
+```
+
+### 运行定向类型测试
+
+```bash
+# String 类型测试
 mvn test -pl yangkit-data-xml-codec "-Dtest=XmlCodecDataTestString"
 
-# 运行 UInt8 类型测试
+# UInt8 类型测试
 mvn test -pl yangkit-data-xml-codec "-Dtest=XmlCodecDataTestUint8"
-
-# 运行所有类型测试
-mvn test -pl yangkit-data-xml-codec "-Dtest=*type*"
 ```
 
-### 运行综合测试
+### 运行特定主测试套件
+
 ```bash
-# 运行基础测试
+# 基础功能测试
 mvn test -pl yangkit-data-xml-codec "-Dtest=XmlCodecBasicTest"
 
-# 运行综合测试
+# 综合测试
 mvn test -pl yangkit-data-xml-codec "-Dtest=XmlCodecComprehensiveTest"
 
-# 运行所有 XML codec 测试
-mvn test -pl yangkit-data-xml-codec "-Dtest=*XmlCodec*"
+# anydata 验证上下文测试
+mvn test -pl yangkit-data-xml-codec "-Dtest=AnydataValidationOptionsXmlCodecTest"
 ```
 
-## 文件清单
-
-### 测试资源
-- `type/string/string.yang` - String 类型 YANG 模型
-- `type/string/valid[1-5].xml` - String 有效测试数据
-- `type/string/invalid[1-4].xml` - String 无效测试数据
-- `type/uint8/uint8.yang` - UInt8 类型 YANG 模型
-- `type/uint8/valid[1-4].xml` - UInt8 有效测试数据
-- `type/uint8/invalid[1-3].xml` - UInt8 无效测试数据
-
-### 测试代码
-- `XmlCodecTypeTestFunc.java` - 测试辅助函数
-- `XmlCodecDataTestString.java` - String 类型测试
-- `XmlCodecDataTestUint8.java` - UInt8 类型测试
-- `XmlCodecBasicTest.java` - 基础功能测试
-- `XmlCodecComprehensiveTest.java` - 综合功能测试
-
-### 现有综合测试资源
-- `comprehensive/yang/xml-test-types.yang` - 综合测试 YANG 模型
-- `comprehensive/yang/xml-test-augment.yang` - Augment 测试模块
+---
 
 ## 参考资料
 
 - RFC 7950 - YANG 1.1 Data Modeling Language
 - RFC 6020 - YANG - A Data Modeling Language for NETCONF
-- JSON Codec 测试实现：`yangkit-data-json-codec/src/test/java/org/yangcentral/yangkit/data/codec/json/test/`
-
-## 维护说明
-
-### 添加新的数据类型测试
-1. 在 `src/test/resources/type/` 下创建类型目录
-2. 创建 YANG 模型文件定义测试容器
-3. 创建有效和无效的 XML 测试数据
-4. 创建对应的测试类继承测试模式
-5. 运行测试验证
-
-### 测试数据命名规范
-- `valid*.xml` - 应该成功反序列化的有效数据
-- `invalid*.xml` - 应该失败的反序列化测试数据
-- 文件名应描述测试场景（如 `validPattern`, `invalidLength`）
+- `current-test.log`
+- `xml-codec-full-test.log`
+- `yangkit-data-json-codec/src/test/java/org/yangcentral/yangkit/data/codec/json/test/`
 
 ---
 
 **创建日期**: 2024-03-28  
-**最后更新**: 2024-03-28  
-**版本**: 1.0
+**最后更新**: 2026-04-02  
+**版本**: 1.1

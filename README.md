@@ -4,6 +4,8 @@
 
 Yangkit is a toolkit for YANG([RFC7950](https://datatracker.ietf.org/doc/html/rfc7950)) data model language including a YANG parser, XPath evaluator, data APIs, and data codecs for JSON, XML, Protocol Buffers, and CBOR.
 
+Yangkit currently provides implemented and tested support for major parts of RFC 7950/6020, RFC 7951 JSON processing, RFC 8791 structure handling in selected paths, and RFC 9254 CBOR encoding.
+
 ## Yangkit components
 * [yangkit-parser](yangkit-parser/README.md): Parse YANG files and validate the parsed YANG modules
 * [yangkit-model-api](yangkit-model-api/README.md): The APIs for YANG model
@@ -130,14 +132,14 @@ mvn clean install
 ## Key Features
 
 ### 🎯 Core Capabilities
-- **YANG Parser**: Full support for RFC 7950 YANG grammar with ANTLR4
+- **YANG Parser**: Core RFC 7950 / RFC 6020 parsing and validation capabilities with targeted regression coverage
 - **XPath Evaluator**: Complete XPath 1.0 implementation for YANG data validation
 - **Data Validation**: Comprehensive validation against YANG schemas
 - **Multiple Codecs**: 
-  - JSON encoding/decoding (RFC 7951)
-  - XML encoding/decoding (RFC 7950 Section 8)
+  - JSON encoding/decoding with tested RFC 7951 coverage for core scenarios
+  - XML encoding/decoding with tested RFC 7950 Section 8 scenarios
   - Protocol Buffers encoding/decoding
-  - CBOR encoding/decoding (RFC 9254) - NEW in 1.5.0
+  - CBOR encoding/decoding with tested RFC 9254 coverage for core scenarios - NEW in 1.5.0
 
 ### 🆕 New in Version 1.6.0
 Version 1.6.0 includes bug fixes and improvements:
@@ -152,5 +154,5 @@ Version 1.6.0 includes bug fixes and improvements:
 
 ## Documentation
 Please see the JavaDoc in each component or visit:
-- [API Documentation](apidocs/index.html)
+- Module-specific API documentation under each component's `apidocs/` directory
 - [Examples](yangkit-examples)

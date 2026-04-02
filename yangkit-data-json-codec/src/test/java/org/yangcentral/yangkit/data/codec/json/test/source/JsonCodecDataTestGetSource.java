@@ -3,7 +3,6 @@ package org.yangcentral.yangkit.data.codec.json.test.source;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dom4j.DocumentException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
@@ -69,7 +68,6 @@ public class JsonCodecDataTestGetSource {
         System.out.println(withError.toPrettyString());
     }
 
-    @Disabled
     @Test
     public void getJsonDocError2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test2.json").getFile();
@@ -81,17 +79,14 @@ public class JsonCodecDataTestGetSource {
             jsonNode = objectMapper.readTree(new File(jsonFile));
         }catch (IOException ignored){}
         assert jsonNode != null;
+        final JsonNode invalidJsonNode = jsonNode;
 
         schemaContext.validate();
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        YangDataDocument yangDataDocument = new YangDataDocumentJsonParser(schemaContext).parse(jsonNode,validatorResultBuilder);
-
-        // YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(yangDataDocument.getSchemaContext());
-        // String result = codec.serialize(yangDataDocument).toString();
-        String result = yangDataDocument.getDocString();
-        assertTrue(result.equals(jsonNode.toString()) || result.equals(jsonNode.get("data").toString()));
-        JsonNode withError = JsonCodecUtil.convertValidatorResultToJson(validatorResultBuilder.build());
-        System.out.println(withError.toPrettyString());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> new YangDataDocumentJsonParser(schemaContext).parse(invalidJsonNode,validatorResultBuilder));
+        assertNotNull(ex.getCause());
+        assertTrue(ex.getCause().getMessage().contains("invalid value"));
     }
 
     @Test

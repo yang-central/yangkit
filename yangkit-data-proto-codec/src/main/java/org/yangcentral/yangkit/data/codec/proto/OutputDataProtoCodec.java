@@ -20,7 +20,8 @@ public class OutputDataProtoCodec extends YangDataProtoCodec<Output, OutPutData>
                                    ValidatorResultBuilder validatorResultBuilder) {
         OutputDataImpl data = new OutputDataImpl(getSchemaNode());
         data.setQName(getSchemaNode().getIdentifier());
-        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder);
+        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder, mode,
+                getAnydataValidationContextResolver(), getSourcePath());
         return data;
     }
 

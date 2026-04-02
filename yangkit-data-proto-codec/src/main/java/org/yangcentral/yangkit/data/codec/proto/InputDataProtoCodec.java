@@ -20,7 +20,8 @@ public class InputDataProtoCodec extends YangDataProtoCodec<Input, InputData> {
                                   ValidatorResultBuilder validatorResultBuilder) {
         InputDataImpl data = new InputDataImpl(getSchemaNode());
         data.setQName(getSchemaNode().getIdentifier());
-        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder);
+        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder, mode,
+                getAnydataValidationContextResolver(), getSourcePath());
         return data;
     }
 

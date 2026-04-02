@@ -9,6 +9,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.ContainerData;
 import org.yangcentral.yangkit.data.codec.json.ContainerDataJsonCodec;
+import org.yangcentral.yangkit.data.codec.json.JsonCodecUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Container;
 import org.yangcentral.yangkit.model.api.stmt.Module;
@@ -21,7 +22,6 @@ import java.net.URISyntaxException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled
 public class JsonCodecDataTest {
 
   @Test
@@ -45,13 +45,15 @@ public class JsonCodecDataTest {
     // Parsing JSON
     InputStream jsonInputStream = this.getClass().getClassLoader().getResourceAsStream("data/json/valid_data.json");
     ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode jsonElement = objectMapper.readTree(jsonInputStream);
+    JsonNode jsonElement = objectMapper.readTree(jsonInputStream).get(container.getJsonIdentifier());
+    assertNotNull(jsonElement, "Container content should be present in valid_data.json");
 
     // Data validation
     ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
     ContainerDataJsonCodec containerDataJsonCodec = new ContainerDataJsonCodec(container);
 
     ContainerData containerData = containerDataJsonCodec.deserialize(jsonElement, validatorResultBuilder);
+    validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(containerData, jsonElement));
     ValidatorResult validationResult = validatorResultBuilder.build();
     System.out.println(validationResult);
     assertTrue(validationResult.isOk(), "Message is valid");
@@ -76,17 +78,23 @@ public class JsonCodecDataTest {
     // Parsing JSON
     InputStream jsonInputStream = this.getClass().getClassLoader().getResourceAsStream("data/json/invalid_data_type.json");
     ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode jsonElement = objectMapper.readTree(jsonInputStream);
+    JsonNode jsonElement = objectMapper.readTree(jsonInputStream).get(container.getJsonIdentifier());
+    assertNotNull(jsonElement, "Container content should be present in invalid_data_type.json");
 
     // Data validation
     ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
     ContainerDataJsonCodec containerDataJsonCodec = new ContainerDataJsonCodec(container);
 
     ContainerData containerData = containerDataJsonCodec.deserialize(jsonElement, validatorResultBuilder);
-    ValidatorResult validationResult = validatorResultBuilder.build();
-    assertFalse(validationResult.isOk(), "Message should be invalid, type String in int8 leaf");
+    validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(containerData, jsonElement));
+    ValidatorResult parseResult = validatorResultBuilder.build();
+    boolean invalidDetected = !parseResult.isOk();
+    if (!invalidDetected && containerData != null) {
+      ValidatorResult validationResult = containerData.validate();
+      invalidDetected = !validationResult.isOk();
+    }
+    assertTrue(invalidDetected, "Message should be invalid, type String in int8 leaf");
   }
-
 
   @Test
   public void invalid_data_must() throws DocumentException, IOException, YangParserException, URISyntaxException {
@@ -107,14 +115,21 @@ public class JsonCodecDataTest {
     // Parsing JSON
     InputStream jsonInputStream = this.getClass().getClassLoader().getResourceAsStream("data/json/invalid_data_must.json");
     ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode jsonElement = objectMapper.readTree(jsonInputStream);
+    JsonNode jsonElement = objectMapper.readTree(jsonInputStream).get(container.getJsonIdentifier());
+    assertNotNull(jsonElement, "Container content should be present in invalid_data_must.json");
 
     // Data validation
     ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
     ContainerDataJsonCodec containerDataJsonCodec = new ContainerDataJsonCodec(container);
 
     ContainerData containerData = containerDataJsonCodec.deserialize(jsonElement, validatorResultBuilder);
-    ValidatorResult validationResult = validatorResultBuilder.build();
-    assertFalse(validationResult.isOk(), "Message should be invalid, mandatory leaf not present");
+    validatorResultBuilder.merge(JsonCodecUtil.buildChildrenData(containerData, jsonElement));
+    ValidatorResult parseResult = validatorResultBuilder.build();
+    boolean invalidDetected = !parseResult.isOk();
+    if (!invalidDetected && containerData != null) {
+      ValidatorResult validationResult = containerData.validate();
+      invalidDetected = !validationResult.isOk();
+    }
+    assertTrue(invalidDetected, "Message should be invalid, mandatory leaf not present");
   }
 }

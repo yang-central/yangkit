@@ -9,11 +9,8 @@ import org.yangcentral.yangkit.model.api.stmt.type.Bit;
 import org.yangcentral.yangkit.model.api.stmt.type.YangEnum;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -94,15 +91,14 @@ public class ProtoSchemaGenerator {
             file.addDependency(WrapperTypeManager.YWRAPPER_FILE);
         }
 
-        // Generate messages for all data nodes in the module
-        List<DataDefinition> defs = safeGetDataDefs(module);
-        if (defs != null) {
-            for (DataDefinition def : defs) {
-                if (def instanceof DataNode) {
-                    DescriptorProtos.DescriptorProto msg = generateMessage((DataNode) def, pkg);
-                    if (msg != null) {
-                        file.addMessageType(msg);
-                    }
+        // Generate messages for all top-level schema nodes in the module,
+        // including extension-defined nodes such as sx:structure.
+        List<SchemaNode> schemaNodes = safeGetSchemaNodes(module);
+        if (schemaNodes != null) {
+            for (SchemaNode schemaNode : schemaNodes) {
+                DescriptorProtos.DescriptorProto msg = generateMessage(schemaNode, pkg);
+                if (msg != null && generatedMessages.add(msg.getName())) {
+                    file.addMessageType(msg);
                 }
             }
         }
@@ -114,7 +110,7 @@ public class ProtoSchemaGenerator {
      * Generates a {@link DescriptorProtos.DescriptorProto} for a YANG data node.
      * Returns {@code null} for leaf nodes (they become fields, not messages).
      */
-    public DescriptorProtos.DescriptorProto generateMessage(DataNode dataNode, String parentPath) {
+    public DescriptorProtos.DescriptorProto generateMessage(SchemaNode dataNode, String parentPath) {
         if (dataNode == null) return null;
 
         String msgName = messageName(dataNode);
@@ -661,8 +657,14 @@ public class ProtoSchemaGenerator {
     }
 
     /** Returns the PascalCase message name for a DataNode. */
-    public static String messageName(DataNode node) {
+    public static String messageName(SchemaNode node) {
         if (node == null) return "Unknown";
+        if (node instanceof Input && node.getParentSchemaNode() instanceof Rpc) {
+            return toPascalCase(((Rpc) node.getParentSchemaNode()).getIdentifier().getLocalName()) + "Input";
+        }
+        if (node instanceof Output && node.getParentSchemaNode() instanceof Rpc) {
+            return toPascalCase(((Rpc) node.getParentSchemaNode()).getIdentifier().getLocalName()) + "Output";
+        }
         return toPascalCase(node.getIdentifier().getLocalName());
     }
 
@@ -749,7 +751,6 @@ public class ProtoSchemaGenerator {
             hash  = (hash * 16777619L) & 0xFFFFFFFFL;
         }
         int num = (int) (hash % 536870911L) + 1; // 1 … 536870911
-        if (num < 1) num = 1;
         // Avoid proto reserved range 19000-19999
         if (num >= 19000 && num <= 19999) num = 20000;
         // Collision resolution
@@ -764,16 +765,23 @@ public class ProtoSchemaGenerator {
 
     /** Returns the snake_case name of a DataDefinition child, or null for composite nodes. */
     private static String childSnakeName(DataDefinition child) {
-        if (child instanceof SchemaNode) {
-            return toSnakeCase(((SchemaNode) child).getIdentifier().getLocalName());
-        }
-        return null;
+        if (child == null) return null;
+        return toSnakeCase(child.getIdentifier().getLocalName());
     }
 
     private static List<DataDefinition> safeGetDataDefs(DataDefContainer c) {
         if (c == null) return null;
         try {
             return c.getDataDefChildren();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static List<SchemaNode> safeGetSchemaNodes(SchemaNodeContainer c) {
+        if (c == null) return null;
+        try {
+            return c.getSchemaNodeChildren();
         } catch (Exception e) {
             return null;
         }

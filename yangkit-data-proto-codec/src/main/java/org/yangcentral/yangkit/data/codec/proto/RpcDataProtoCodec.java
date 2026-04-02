@@ -20,7 +20,8 @@ public class RpcDataProtoCodec extends YangDataProtoCodec<Rpc, RpcData> {
                                 ValidatorResultBuilder validatorResultBuilder) {
         RpcDataImpl data = new RpcDataImpl(getSchemaNode());
         data.setQName(getSchemaNode().getIdentifier());
-        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder);
+        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder, mode,
+                getAnydataValidationContextResolver(), getSourcePath());
         return data;
     }
 

@@ -21,7 +21,8 @@ public class YangStructureDataProtoCodec
                                           ValidatorResultBuilder validatorResultBuilder) {
         YangStructureDataImpl data = new YangStructureDataImpl(getSchemaNode());
         data.setQName(getSchemaNode().getIdentifier());
-        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder);
+        ProtoCodecUtil.deserializeChildren(data, message, validatorResultBuilder, mode,
+                getAnydataValidationContextResolver(), getSourcePath());
         return data;
     }
 
