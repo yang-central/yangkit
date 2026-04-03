@@ -169,7 +169,7 @@ public class JsonCodecNotificationsTest {
 
   private List<? extends ValidatorRecord<?, ?>> getErrors(ValidatorResult result) {
     if (result == null || result.getRecords() == null) {
-      return List.of();
+      return new java.util.ArrayList<>();
     }
     return result.getRecords().stream()
             .filter(record -> record.getSeverity() == Severity.ERROR)

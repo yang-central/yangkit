@@ -266,7 +266,7 @@ public class ProtoCodecDataTest {
         });
 
         DynamicMessage simpleSerialized = simpleCodec.serialize(simpleContainer);
-        assertEquals(java.util.List.of("alpha", "beta"), simpleSerialized.getField(simpleDesc.findFieldByName("tags")));
+        assertEquals(java.util.Arrays.asList("alpha", "beta"), simpleSerialized.getField(simpleDesc.findFieldByName("tags")));
         assertEquals(2, simpleSerialized.getRepeatedFieldCount(simpleDesc.findFieldByName("item")));
 
         DynamicMessage ygotMessage = buildYgotRepeatedContainerMessage();
@@ -387,15 +387,15 @@ public class ProtoCodecDataTest {
         java.util.List<String> actualValues = container.getDataChildren().stream()
                 .filter(data -> data.getSchemaNode() != null && localName.equals(data.getSchemaNode().getArgStr()))
                 .map(data -> assertInstanceOf(LeafListData.class, data).getStringValue())
-                .toList();
-        assertEquals(java.util.List.of(expectedValues), actualValues,
+                .collect(java.util.stream.Collectors.toList());
+        assertEquals(java.util.Arrays.asList(expectedValues), actualValues,
                 "Repeated leaf-list values should preserve order");
     }
 
     private static void assertRepeatedListEntries(YangDataContainer container, String[][] expectedEntries) {
         java.util.List<YangData<?>> items = container.getDataChildren().stream()
                 .filter(data -> data.getSchemaNode() != null && "item".equals(data.getSchemaNode().getArgStr()))
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
         assertEquals(expectedEntries.length, items.size(), "Repeated list entry count should match");
         for (int i = 0; i < expectedEntries.length; i++) {
             ListData item = assertInstanceOf(ListData.class, items.get(i));
