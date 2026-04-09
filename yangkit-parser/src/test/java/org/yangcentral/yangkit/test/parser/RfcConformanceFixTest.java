@@ -5,11 +5,14 @@ import org.jaxen.saxpath.Axis;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.model.api.restriction.InstanceIdentifier;
+import org.yangcentral.yangkit.model.api.restriction.LeafRef;
+import org.yangcentral.yangkit.model.api.restriction.Union;
 import org.yangcentral.yangkit.model.api.restriction.YangString;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.yangcentral.yangkit.model.api.stmt.Module;
+import org.yangcentral.yangkit.model.api.stmt.Type;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
 import org.yangcentral.yangkit.xpath.YangAbsoluteLocationPath;
@@ -24,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RfcConformanceFixTest {
@@ -338,7 +342,54 @@ public class RfcConformanceFixTest {
         assertTrue(result.toString().contains(ErrorCode.INVALID_XPATH.getFieldName()),
                 "unsupported XPath axes should still emit INVALID_XPATH diagnostics");
     }
+
+    @Test
+    public void unionSubtypeLeafrefShouldResolveReferenceNodeDuringSchemaValidation() throws Exception {
+        String yang = String.join("\n",
+                "module union-leafref-test {",
+                "  yang-version 1.1;",
+                "  namespace \"urn:test:union-leafref\";",
+                "  prefix ult;",
+                "",
+                "  leaf target {",
+                "    type string;",
+                "  }",
+                "",
+                "  leaf selector {",
+                "    type union {",
+                "      type int32;",
+                "      type leafref {",
+                "        path \"../target\";",
+                "      }",
+                "    }",
+                "  }",
+                "}");
+
+        YangSchemaContext schemaContext = parseModule("union-leafref-test.yang", yang);
+        ValidatorResult result = schemaContext.validate();
+        assertTrue(result.isOk(), "schema with union member leafref should validate cleanly");
+
+        Module module = schemaContext.getLatestModule("union-leafref-test").orElse(null);
+        assertNotNull(module);
+
+        Leaf targetLeaf = (Leaf) module.getDataDefChild("target");
+        Leaf selectorLeaf = (Leaf) module.getDataDefChild("selector");
+        assertNotNull(targetLeaf);
+        assertNotNull(selectorLeaf);
+
+        Union union = (Union) selectorLeaf.getType().getRestriction();
+        LeafRef unionLeafRef = null;
+        for (Type memberType : union.getActualTypes()) {
+            if (memberType.getRestriction() instanceof LeafRef) {
+                unionLeafRef = (LeafRef) memberType.getRestriction();
+                break;
+            }
+        }
+
+        assertNotNull(unionLeafRef, "union should expose its leafref member type");
+        assertNotNull(unionLeafRef.getReferencedNode(),
+                "schema validation must resolve referencedNode for leafref members inside union");
+        assertSame(targetLeaf, unionLeafRef.getReferencedNode(),
+                "the union leafref member should resolve ../target against the owning leaf");
+    }
 }
-
-
-

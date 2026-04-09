@@ -8,6 +8,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilderFactory;
 import org.yangcentral.yangkit.model.api.restriction.LeafRef;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
+import org.yangcentral.yangkit.model.api.restriction.Union;
 import org.yangcentral.yangkit.model.api.stmt.Default;
 import org.yangcentral.yangkit.model.api.stmt.ModelException;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
@@ -100,36 +101,64 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
 
    protected ValidatorResult validateSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.validateSelf());
-      if (this.getType().getRestriction() instanceof LeafRef) {
-         LeafRef leafRef = (LeafRef)this.getType().getRestriction();
-         Path effectivePath = leafRef.getEffectivePath();
-         YangXPath xpath = effectivePath.getXPathExpression();
-         if (xpath != null) {
-            YangLocationPathImpl path = (YangLocationPathImpl) xpath.getRootExpr();
-            YangXPathContext yangXPathContext = new YangXPathContext(effectivePath.getContext(), this, this);
-            xpath.setXPathContext(yangXPathContext);
-            YangXPathValidator yangXPathValidator = new YangXPathValidator(xpath, yangXPathContext, new ValidatorResultBuilderFactory(), 2);
-            ValidatorResult xpathResult = yangXPathValidator.visit(path, this);
-            validatorResultBuilder.merge(xpathResult);
-            if (!xpathResult.isOk()) {
-               return validatorResultBuilder.build();
-            }
-            SchemaNode referencedNode = null;
+      validatorResultBuilder.merge(this.validateLeafRefReferences(this.getType()));
 
-            try {
-               referencedNode = path.getTargetSchemaNode(yangXPathContext);
-               if (null == referencedNode || !(referencedNode instanceof TypedDataNode)) {
-                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                          ErrorCode.WRONG_PATH.getFieldName()));
-                  return validatorResultBuilder.build();
-               }
+      return validatorResultBuilder.build();
+   }
 
-               leafRef.setReferencedNode((TypedDataNode) referencedNode);
-            } catch (ModelException e) {
-               validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
-                       e.getSeverity(), ErrorTag.BAD_ELEMENT, e.getDescription()));
-            }
+   private ValidatorResult validateLeafRefReferences(Type type) {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      if (type == null || type.getRestriction() == null) {
+         return validatorResultBuilder.build();
+      }
+
+      Restriction<?> restriction = type.getRestriction();
+      if (restriction instanceof LeafRef) {
+         validatorResultBuilder.merge(this.validateLeafRefReference((LeafRef) restriction));
+      } else if (restriction instanceof Union) {
+         Union union = (Union) restriction;
+         for (Type actualType : union.getActualTypes()) {
+            validatorResultBuilder.merge(this.validateLeafRefReferences(actualType));
          }
+      }
+
+      return validatorResultBuilder.build();
+   }
+
+   private ValidatorResult validateLeafRefReference(LeafRef leafRef) {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+      Path effectivePath = leafRef.getEffectivePath();
+      if (effectivePath == null) {
+         return validatorResultBuilder.build();
+      }
+
+      YangXPath xpath = effectivePath.getXPathExpression();
+      if (xpath == null) {
+         return validatorResultBuilder.build();
+      }
+
+      YangLocationPathImpl path = (YangLocationPathImpl) xpath.getRootExpr();
+      YangXPathContext yangXPathContext = new YangXPathContext(effectivePath.getContext(), this, this);
+      xpath.setXPathContext(yangXPathContext);
+      YangXPathValidator yangXPathValidator = new YangXPathValidator(xpath, yangXPathContext, new ValidatorResultBuilderFactory(), 2);
+      ValidatorResult xpathResult = yangXPathValidator.visit(path, this);
+      validatorResultBuilder.merge(xpathResult);
+      if (!xpathResult.isOk()) {
+         return validatorResultBuilder.build();
+      }
+
+      try {
+         SchemaNode referencedNode = path.getTargetSchemaNode(yangXPathContext);
+         if (!(referencedNode instanceof TypedDataNode)) {
+            validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                    ErrorCode.WRONG_PATH.getFieldName()));
+            return validatorResultBuilder.build();
+         }
+
+         leafRef.setReferencedNode((TypedDataNode) referencedNode);
+      } catch (ModelException e) {
+         validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),
+                 e.getSeverity(), ErrorTag.BAD_ELEMENT, e.getDescription()));
       }
 
       return validatorResultBuilder.build();
