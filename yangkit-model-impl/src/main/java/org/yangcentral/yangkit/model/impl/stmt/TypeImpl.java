@@ -491,7 +491,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
       return validatorResultBuilder.build();
    }
 
-   private ValidatorResult buildUnion(UnionImpl union) {
+   private ValidatorResult buildUnion(UnionImpl union,BuildPhase buildPhase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
 
       for (YangElement subElement : this.getSubElements()) {
@@ -506,6 +506,8 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                       ErrorCode.UNRECOGNIZED_KEYWORD.getFieldName()));
                } else {
                   Type newType = (Type) builtinStatement;
+                  ValidatorResult result = newType.build(buildPhase);
+                  validatorResultBuilder.merge(result);
                   boolean bool = union.addType(newType);
                   if (!bool) {
                      validatorResultBuilder.addRecord(ModelUtil.reportError(builtinStatement,
@@ -686,7 +688,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
             break;
          case UNION:
             UnionImpl union = new UnionImpl(this.getContext(), this.derived);
-            result = this.buildUnion(union);
+            result = this.buildUnion(union, phase);
             validatorResultBuilder.merge(result);
             if (!result.isOk()) {
                return validatorResultBuilder.build();
