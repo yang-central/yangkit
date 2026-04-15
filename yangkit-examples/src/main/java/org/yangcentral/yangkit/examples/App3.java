@@ -34,7 +34,7 @@ import java.net.URL;
  */
 public class App3 {
     public static void main(String[] args) throws IOException, YangParserException, DocumentException {
-        InputStream inputStream = App3.class.getClassLoader().getResourceAsStream("insa-test.yang");
+        InputStream inputStream = App3.class.getClassLoader().getResourceAsStream("App3/yang/insa-test.yang");
 
         // Parsing module
         YangSchemaContext schemaContext = YangYinParser.parse(inputStream, "insa-custom", null);
@@ -49,7 +49,7 @@ public class App3 {
 
         // Parsing from file with a yang module dependence
         System.out.println("-------------------");
-        URL dependentYang = App3.class.getClassLoader().getResource("insa-test-dependence.yang");
+        URL dependentYang = App3.class.getClassLoader().getResource("App3/yang/insa-test-dependence.yang");
         schemaContext = YangYinParser.parse(dependentYang.getFile(), schemaContext);
         ValidatorResult result2 = schemaContext.validate();
         System.out.println("Second yang is valid ? " + result2.isOk());

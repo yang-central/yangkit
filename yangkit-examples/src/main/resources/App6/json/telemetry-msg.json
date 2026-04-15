@@ -1,0 +1,61 @@
+{
+  "ietf-telemetry-message:message": {
+    "timestamp": "2024-02-14T12:10:10.12+01:00",
+    "session-protocol": "yp-push",
+    "network-node-manifest": {
+      "name": "pe1",
+      "vendor": "open source",
+      "software-version": "1.1.2"
+    },
+    "data-collection-manifest": {
+      "name": "collector-1",
+      "vendor": "open source",
+      "software-version": "2.1.0"
+    },
+    "telemetry-message-metadata": {
+      "event-time": "2024-02-14T12:10:10.10+01:00",
+      "ietf-yang-push-telemetry-message:yang-push-subscription": {
+        "id": 89,
+        "xpath-filter": "/ietf-interfaces:interfaces",
+        "datastore": "ietf-datastores:operational",
+        "transport": "ietf-udp-notif-transport:udp-notif",
+        "encoding": "ietf-subscribed-notifications:encode-json",
+        "module-version": [
+          {
+            "module-name": "ietf-interfaces",
+            "revision": "2018-02-20",
+            "revision-label": "2.0.0"
+          }
+        ],
+        "yang-library-content-id": "abc"
+      }
+    },
+    "data-collection-metadata": {
+      "remote-address": "192.168.1.100",
+      "remote-port": 123,
+      "local-address": "192.168.1.1",
+      "local-port": 9991,
+      "labels": [
+        {
+          "name": "platform-name",
+          "string-value": "name"
+        }
+      ]
+    },
+    "payload": {
+      "ietf-yang-push:push-update": {
+        "id": 89,
+        "datastore-contents": {
+          "ietf-interfaces:interfaces": {
+            "interface": [
+              {
+                "name": "eth0",
+                "oper-status": "down"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
