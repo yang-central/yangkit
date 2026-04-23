@@ -2,6 +2,8 @@ package org.yangcentral.yangkit.data.codec.proto;
 
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
+import org.yangcentral.yangkit.data.codec.proto.convention.YangProtoConvention;
+import org.yangcentral.yangkit.data.codec.proto.convention.YangProtoConventionRegistry;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 
@@ -10,117 +12,95 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Manages protobuf {@link Descriptors.Descriptor} objects for YANG schema nodes.
  *
- * <p>Two singleton instances are maintained — one per {@link ProtoCodecMode}.
- * Descriptors are cached using the schema node's qualified name as key.
- *
- * <p>Schema generation is fully delegated to {@link ProtoSchemaGenerator};
- * this class is responsible only for:
- * <ol>
- *   <li>Finding the root YANG module for a schema node</li>
- *   <li>Building the protobuf {@link Descriptors.FileDescriptor} with the
- *       correct dependency set (ywrapper in YGOT mode)</li>
- *   <li>Locating the right message within the file descriptor</li>
- *   <li>Caching the result</li>
- * </ol>
+ * <p>Instances are keyed by convention name. Use {@link #getInstance()} for the
+ * default convention, or {@link #getInstance(String)} / {@link #getInstance(ProtoCodecMode)}
+ * for a specific one.
  */
 public class ProtoDescriptorManager {
 
+    // Convention-keyed cache of manager instances
+    private static final ConcurrentHashMap<String, ProtoDescriptorManager> INSTANCES =
+            new ConcurrentHashMap<>();
+
+    // Legacy per-mode fields kept for backward compatibility
     private static volatile ProtoDescriptorManager instanceSimple;
     private static volatile ProtoDescriptorManager instanceYgot;
 
+    private final YangProtoConvention convention;
+    /** @deprecated Use {@link #convention}. Kept for legacy bridge methods. */
+    @Deprecated
     private final ProtoCodecMode mode;
     private final ConcurrentHashMap<String, Descriptors.Descriptor> cache =
             new ConcurrentHashMap<>();
 
-    private ProtoDescriptorManager(ProtoCodecMode mode) {
-        this.mode = mode;
+    private ProtoDescriptorManager(YangProtoConvention convention) {
+        this.convention = convention;
+        this.mode = "ygot".equals(convention.getName()) ? ProtoCodecMode.YGOT : ProtoCodecMode.SIMPLE;
     }
 
-    // =========================================================================
-    // Singleton accessors
-    // =========================================================================
+    // ── Singleton accessors ───────────────────────────────────────────────────
 
-    /** Returns the manager for SIMPLE mode. */
+    /** Returns the manager for the registry default convention. */
     public static ProtoDescriptorManager getInstance() {
-        return getInstance(ProtoCodecMode.SIMPLE);
+        return getInstance(YangProtoConventionRegistry.getDefault().getName());
     }
 
-    /** Returns the manager for the given mode. */
+    /** Returns the manager for the given convention name. */
+    public static ProtoDescriptorManager getInstance(String conventionName) {
+        return INSTANCES.computeIfAbsent(conventionName, name -> {
+            YangProtoConvention c = YangProtoConventionRegistry.get(name);
+            if (c == null) throw new IllegalArgumentException(
+                    "Convention '" + name + "' is not registered.");
+            return new ProtoDescriptorManager(c);
+        });
+    }
+
+    /** @deprecated Use {@link #getInstance(String)}. */
+    @Deprecated
     public static ProtoDescriptorManager getInstance(ProtoCodecMode mode) {
-        if (mode == ProtoCodecMode.YGOT) {
-            if (instanceYgot == null) {
-                synchronized (ProtoDescriptorManager.class) {
-                    if (instanceYgot == null) instanceYgot = new ProtoDescriptorManager(ProtoCodecMode.YGOT);
-                }
-            }
-            return instanceYgot;
-        } else {
-            if (instanceSimple == null) {
-                synchronized (ProtoDescriptorManager.class) {
-                    if (instanceSimple == null) instanceSimple = new ProtoDescriptorManager(ProtoCodecMode.SIMPLE);
-                }
-            }
-            return instanceSimple;
-        }
+        return getInstance(mode.name().toLowerCase());
     }
 
-    // =========================================================================
-    // Main API
-    // =========================================================================
+    // ── Main API ──────────────────────────────────────────────────────────────
+
+    /** Returns the convention this manager uses. */
+    public YangProtoConvention getConvention() { return convention; }
 
     /**
-     * Returns the protobuf {@link Descriptors.Descriptor} for the given schema
-     * node, creating and caching it if necessary.
-     *
-     * @param schemaNode the YANG schema node
-     * @return the message descriptor, or {@code null} on error
+     * Returns the protobuf {@link Descriptors.Descriptor} for the given schema node,
+     * creating and caching it if necessary.
      */
     public Descriptors.Descriptor getDescriptor(SchemaNode schemaNode) {
         if (schemaNode == null) return null;
-
         String key = cacheKey(schemaNode);
         Descriptors.Descriptor cached = cache.get(key);
         if (cached != null) return cached;
-
         Descriptors.Descriptor descriptor = createDescriptor(schemaNode);
-        if (descriptor != null) {
-            cache.put(key, descriptor);
-        }
+        if (descriptor != null) cache.put(key, descriptor);
         return descriptor;
     }
 
     /** Clears all cached descriptors (useful for testing). */
-    public void clearCache() {
-        cache.clear();
-    }
+    public void clearCache() { cache.clear(); }
 
-    // =========================================================================
-    // Descriptor creation
-    // =========================================================================
+    // ── Descriptor creation ───────────────────────────────────────────────────
 
     private Descriptors.Descriptor createDescriptor(SchemaNode schemaNode) {
         try {
-            // 1. Find the YANG module that owns this schema node
             Module module = findModule(schemaNode);
             if (module == null) {
                 System.err.println("[ProtoDescriptorManager] Could not find module for: "
                         + schemaNode.getIdentifier());
                 return null;
             }
-
-            // 2. Generate the FileDescriptorProto
-            ProtoSchemaGenerator gen = new ProtoSchemaGenerator(mode);
+            ProtoSchemaGenerator gen = new ProtoSchemaGenerator(convention);
             DescriptorProtos.FileDescriptorProto fileProto = gen.generateFileDescriptor(module);
             if (fileProto == null) return null;
 
-            // 3. Build with dependency set
-            Descriptors.FileDescriptor[] deps = buildDependencies();
+            Descriptors.FileDescriptor[] deps = convention.getDependencies();
             Descriptors.FileDescriptor fileDesc =
                     Descriptors.FileDescriptor.buildFrom(fileProto, deps);
-
-            // 4. Locate the message for this schema node
             return findMessageInFile(fileDesc, schemaNode);
-
         } catch (Descriptors.DescriptorValidationException e) {
             System.err.println("[ProtoDescriptorManager] Descriptor validation error for "
                     + schemaNode.getIdentifier() + ": " + e.getMessage());
@@ -132,74 +112,37 @@ public class ProtoDescriptorManager {
         }
     }
 
-    /** Builds the dependency array for FileDescriptor.buildFrom(). */
-    private Descriptors.FileDescriptor[] buildDependencies() {
-        if (mode == ProtoCodecMode.YGOT) {
-            return new Descriptors.FileDescriptor[]{
-                    WrapperTypeManager.getInstance().getFileDescriptor()
-            };
-        }
-        return new Descriptors.FileDescriptor[0];
-    }
-
-    /**
-     * Searches the file descriptor for a message matching the schema node.
-     * Handles both top-level messages and nested messages (for RPC input/output).
-     */
     private Descriptors.Descriptor findMessageInFile(
             Descriptors.FileDescriptor fileDesc, SchemaNode schemaNode) {
-
         String name = ProtoSchemaGenerator.messageName(schemaNode);
-
-        // Try top-level first
         Descriptors.Descriptor topLevel = fileDesc.findMessageTypeByName(name);
         if (topLevel != null) return topLevel;
-
-        // Search nested types recursively (e.g. RPC input/output and containers nested beneath them)
         for (Descriptors.Descriptor msg : fileDesc.getMessageTypes()) {
             Descriptors.Descriptor nested = findNestedMessageRecursive(msg, name);
             if (nested != null) return nested;
         }
-
         return null;
     }
 
-    private Descriptors.Descriptor findNestedMessageRecursive(Descriptors.Descriptor parent, String name) {
-        if (parent == null || name == null) {
-            return null;
-        }
-
+    private Descriptors.Descriptor findNestedMessageRecursive(
+            Descriptors.Descriptor parent, String name) {
+        if (parent == null || name == null) return null;
         Descriptors.Descriptor direct = parent.findNestedTypeByName(name);
-        if (direct != null) {
-            return direct;
-        }
-
+        if (direct != null) return direct;
         for (Descriptors.Descriptor nested : parent.getNestedTypes()) {
             Descriptors.Descriptor found = findNestedMessageRecursive(nested, name);
-            if (found != null) {
-                return found;
-            }
+            if (found != null) return found;
         }
-
         return null;
     }
 
-    // =========================================================================
-    // Module resolution
-    // =========================================================================
+    // ── Module resolution ─────────────────────────────────────────────────────
 
-    /**
-     * Finds the root YANG module for a schema node by using the context's
-     * current module reference — the most reliable approach.
-     */
     private static Module findModule(SchemaNode schemaNode) {
-        // Primary: use the context's current module
         try {
             Module m = schemaNode.getContext().getCurModule();
             if (m != null) return m.getMainModule();
         } catch (Exception ignored) {}
-
-        // Fallback: search schema context by module name from namespace
         try {
             String prefix = schemaNode.getIdentifier().getPrefix();
             if (prefix != null) {
@@ -208,51 +151,36 @@ public class ProtoDescriptorManager {
                 if (opt.isPresent()) return opt.get();
             }
         } catch (Exception ignored) {}
-
-        // Last resort: walk the parent chain
         try {
             SchemaNodeContainer parent = schemaNode.getParentSchemaNode();
             while (parent != null) {
                 if (parent instanceof Module) return (Module) parent;
                 if (parent instanceof SchemaNode) {
                     parent = ((SchemaNode) parent).getParentSchemaNode();
-                } else {
-                    break;
-                }
+                } else break;
             }
         } catch (Exception ignored) {}
-
         return null;
     }
 
-    // =========================================================================
-    // Cache key
-    // =========================================================================
+    // ── Cache key ─────────────────────────────────────────────────────────────
 
     private String cacheKey(SchemaNode schemaNode) {
-        return mode.name() + ":" + schemaPathKey(schemaNode);
+        return convention.getName() + ":" + schemaPathKey(schemaNode);
     }
 
     private static String schemaPathKey(SchemaNode schemaNode) {
         if (schemaNode == null) return "null";
-
         StringBuilder builder = new StringBuilder();
         SchemaNode current = schemaNode;
         while (current != null) {
-            if (builder.length() > 0) {
-                builder.insert(0, '/');
-            }
-            builder.insert(0,
-                    current.getClass().getSimpleName() + "(" + current.getIdentifier().toString() + ")");
-
+            if (builder.length() > 0) builder.insert(0, '/');
+            builder.insert(0, current.getClass().getSimpleName()
+                    + "(" + current.getIdentifier().toString() + ")");
             SchemaNodeContainer parent = current.getParentSchemaNode();
-            if (parent instanceof SchemaNode) {
-                current = (SchemaNode) parent;
-            } else {
-                current = null;
-            }
+            if (parent instanceof SchemaNode) current = (SchemaNode) parent;
+            else current = null;
         }
-
         return builder.toString();
     }
 }

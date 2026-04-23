@@ -36,6 +36,8 @@ public class LeafListDataProtoCodec extends YangDataProtoCodec<LeafList, LeafLis
                     .getYangData(getSchemaNode(),
                             yangValue != null ? yangValue.toString() : null);
             data.setQName(getSchemaNode().getIdentifier());
+            // Pre-warm value cache using the default codec
+            data.getStringValue();
             return data;
         } catch (Exception e) {
             System.err.println("[LeafListDataProtoCodec] Failed to build: " + e.getMessage());

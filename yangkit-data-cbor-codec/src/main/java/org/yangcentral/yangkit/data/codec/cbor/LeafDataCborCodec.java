@@ -20,6 +20,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.LeafData;
+import org.yangcentral.yangkit.data.codec.json.JsonStringValueCodecFactory;
+import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
+import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Binary;
 import org.yangcentral.yangkit.model.api.restriction.Empty;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
@@ -63,7 +66,17 @@ public class LeafDataCborCodec extends YangDataCborCodec<Leaf, LeafData<?>> {
             throw new YangDataCborCodecException("Null value in leaf: " + getSchemaNode().getArgStr());
         }
 
-        return CborCodecUtil.convertToJson(yangData.getValue());
+        // For types whose string representation is format-dependent (identityref, union
+        // containing identityref, leafref pointing to identityref), use the JSON codec
+        // to produce the correct CBOR text format (module-name:local-name per RFC 9254).
+        try {
+            StringValueCodec codec = JsonStringValueCodecFactory.getInstance()
+                    .getStringValueCodec(getSchemaNode());
+            String strValue = yangData.getStringValue(codec);
+            return CborCodecUtil.stringToJsonNode(strValue, restriction);
+        } catch (YangCodecException e) {
+            throw new YangDataCborCodecException("Failed to serialize leaf value", e);
+        }
     }
 
     @Override
@@ -80,8 +93,14 @@ public class LeafDataCborCodec extends YangDataCborCodec<Leaf, LeafData<?>> {
             }
 
             String yangText = toYangText(jsonNode, restriction);
-            return (LeafData<?>) YangDataBuilderFactory.getBuilder()
+            LeafData<?> leafData = (LeafData<?>) YangDataBuilderFactory.getBuilder()
                     .getYangData(getSchemaNode(), yangText);
+            // Pre-warm the value cache using the JSON-aware codec so that subsequent
+            // calls to getValue()/getStringValue() work correctly for identityref etc.
+            StringValueCodec codec = JsonStringValueCodecFactory.getInstance()
+                    .getStringValueCodec(getSchemaNode());
+            leafData.getStringValue(codec);
+            return leafData;
         } catch (YangDataCborCodecException e) {
             throw e;
         } catch (Exception e) {

@@ -20,6 +20,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.LeafListData;
+import org.yangcentral.yangkit.data.codec.json.JsonStringValueCodecFactory;
+import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
+import org.yangcentral.yangkit.model.api.codec.YangCodecException;
+import org.yangcentral.yangkit.model.api.restriction.Restriction;
 import org.yangcentral.yangkit.model.api.stmt.LeafList;
 
 /**
@@ -47,7 +51,15 @@ public class LeafListDataCborCodec extends YangDataCborCodec<LeafList, LeafListD
         if (yangData.getValue() == null) {
             return JSON_MAPPER.nullNode();
         }
-        return CborCodecUtil.convertToJson(yangData.getValue());
+        try {
+            Restriction<?> restriction = getSchemaNode().getType().getRestriction();
+            StringValueCodec codec = JsonStringValueCodecFactory.getInstance()
+                    .getStringValueCodec(getSchemaNode());
+            String strValue = yangData.getStringValue(codec);
+            return CborCodecUtil.stringToJsonNode(strValue, restriction);
+        } catch (YangCodecException e) {
+            throw new YangDataCborCodecException("Failed to serialize leaf-list value", e);
+        }
     }
 
     /**
@@ -63,6 +75,10 @@ public class LeafListDataCborCodec extends YangDataCborCodec<LeafList, LeafListD
             String yangText = CborCodecUtil.toYangText(jsonNode);
             LeafListData<?> leafListData = (LeafListData<?>) YangDataBuilderFactory.getBuilder()
                     .getYangData(getSchemaNode(), yangText);
+            // Pre-warm the value cache using the JSON-aware codec
+            StringValueCodec codec = JsonStringValueCodecFactory.getInstance()
+                    .getStringValueCodec(getSchemaNode());
+            leafListData.getStringValue(codec);
             return leafListData;
         } catch (Exception e) {
             throw new YangDataCborCodecException("Failed to deserialize leaf-list entry", e);

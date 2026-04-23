@@ -3,7 +3,6 @@ package org.yangcentral.yangkit.data.codec.proto;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
-import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.LeafData;
@@ -36,6 +35,9 @@ public class LeafDataProtoCodec extends YangDataProtoCodec<Leaf, LeafData<?>> {
             LeafData<?> leafData = (LeafData<?>) YangDataBuilderFactory.getBuilder()
                     .getYangData(getSchemaNode(), yangValue != null ? yangValue.toString() : null);
             leafData.setQName(getSchemaNode().getIdentifier());
+            // Pre-warm value cache using the default (XML/prefix) codec so that
+            // subsequent getStringValue() calls work correctly without re-parsing.
+            leafData.getStringValue();
             return leafData;
         } catch (Exception e) {
             System.err.println("[LeafDataProtoCodec] Failed to build leaf data: " + e.getMessage());

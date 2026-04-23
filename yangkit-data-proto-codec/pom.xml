@@ -43,6 +43,12 @@
             <artifactId>protobuf-java-util</artifactId>
             <version>${com.google.protobuf.version}</version>
         </dependency>
+        <!-- SnakeYAML for loading convention YAML files -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
+        </dependency>
         <!-- JUnit 4 kept for backward compatibility -->
         <dependency>
             <groupId>junit</groupId>

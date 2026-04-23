@@ -7,6 +7,7 @@ import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
+import org.yangcentral.yangkit.model.api.restriction.Union;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.LeafList;
@@ -90,40 +91,62 @@ abstract class TypedDataXmlCodec<S extends TypedDataNode,D extends TypedData<?,S
         
         if(text== null || text.length() == 0){
             if(operationType == null || !(operationType.equals("delete") || operationType.equals("remove"))){
-                // ValidatorRecordBuilder<String,Element> validatorRecordBuilder = new ValidatorRecordBuilder<>();
-                // validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                // validatorRecordBuilder.setErrorPath(element.getUniquePath());
-                // validatorRecordBuilder.setBadElement(element);
-                // validatorRecordBuilder.setErrorMessage(new ErrorMessage("leaf data's value MUST NOT be empty."));
-                // return null;
                 return "";
             }
             text = null;
         } else {
             if(getSchemaNode().getType().getRestriction() instanceof IdentityRef){
                 text = translateStringValueForIdentityRef(element,text);
+            } else if (getSchemaNode().getType().getRestriction() instanceof Union
+                    && containsIdentityRef((Union) getSchemaNode().getType().getRestriction())
+                    && new org.yangcentral.yangkit.common.api.FName(text).getPrefix() != null) {
+                try {
+                    text = translateStringValueForIdentityRef(element, text);
+                } catch (YangDataXmlCodecException ignored) {
+                    // value is from another union sub-type, leave as-is
+                }
             }
         }
         return text;
+    }
+
+    private boolean containsIdentityRef(Union union) {
+        for (org.yangcentral.yangkit.model.api.stmt.Type type : union.getActualTypes()) {
+            if (type.getRestriction() instanceof IdentityRef) {
+                return true;
+            }
+            if (type.getRestriction() instanceof Union
+                    && containsIdentityRef((Union) type.getRestriction())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     protected void buildElement(Element element, YangData<?> yangData) {
         String value = ((TypedData) yangData).getStringValue();
         if(value == null){
-            return ;
+            return;
         }
         TypedData leafData = (TypedData) yangData;
-        if(((TypedDataNode)(leafData.getSchemaNode())).getType().getRestriction() instanceof IdentityRef){
-            try {
-                QName qName = (QName) ((TypedData<?, ?>) yangData).getValue().getValue();
-                element.addNamespace(qName.getPrefix(), qName.getNamespace().toString());
-            } catch (YangCodecException e) {
-                throw new RuntimeException(e);
-            }
-
+        org.yangcentral.yangkit.model.api.restriction.Restriction restriction =
+                ((TypedDataNode)(leafData.getSchemaNode())).getType().getRestriction();
+        if(restriction instanceof IdentityRef){
+            addIdentityRefNamespace(element, yangData);
+        } else if (restriction instanceof Union && containsIdentityRef((Union) restriction)) {
+            addIdentityRefNamespace(element, yangData);
         }
         element.setText(value);
+    }
+
+    private void addIdentityRefNamespace(Element element, YangData<?> yangData) {
+        try {
+            QName qName = (QName) ((TypedData<?, ?>) yangData).getValue().getValue();
+            element.addNamespace(qName.getPrefix(), qName.getNamespace().toString());
+        } catch (YangCodecException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

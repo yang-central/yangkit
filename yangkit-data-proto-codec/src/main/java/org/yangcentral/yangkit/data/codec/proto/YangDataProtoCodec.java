@@ -8,6 +8,8 @@ import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.codec.YangDataCodec;
 import org.yangcentral.yangkit.data.api.model.*;
+import org.yangcentral.yangkit.data.codec.proto.convention.YangProtoConvention;
+import org.yangcentral.yangkit.data.codec.proto.convention.YangProtoConventionRegistry;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
@@ -39,12 +41,21 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
 
     private final S schemaNode;
     protected final ProtoCodecMode mode;
+    protected final YangProtoConvention convention;
     private AnydataValidationContextResolver anydataValidationContextResolver;
     private String sourcePath;
 
     protected YangDataProtoCodec(S schemaNode, ProtoCodecMode mode) {
         this.schemaNode = schemaNode;
         this.mode       = mode;
+        YangProtoConvention c = YangProtoConventionRegistry.get(mode.name().toLowerCase());
+        this.convention = c != null ? c : YangProtoConventionRegistry.getDefault();
+    }
+
+    protected YangDataProtoCodec(S schemaNode, YangProtoConvention convention) {
+        this.schemaNode = schemaNode;
+        this.convention = convention;
+        this.mode = "ygot".equals(convention.getName()) ? ProtoCodecMode.YGOT : ProtoCodecMode.SIMPLE;
     }
 
     @Override
@@ -66,62 +77,89 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
     // Factory
     // =========================================================================
 
-    /**
-     * Returns a codec for {@code schemaNode} using {@link ProtoCodecMode#SIMPLE}.
-     */
+    /** Returns a codec for {@code schemaNode} using the registry default convention. */
     public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode) {
-        return getInstance(schemaNode, ProtoCodecMode.SIMPLE);
+        return getInstance(schemaNode, YangProtoConventionRegistry.getDefault());
     }
 
-    /**
-     * Returns a codec for {@code schemaNode} using the given {@code mode}.
-     *
-     * @throws IllegalArgumentException if the schema node type is not supported
-     */
-    public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode,
-                                                        ProtoCodecMode mode) {
+    /** @deprecated Use {@link #getInstance(SchemaNode, YangProtoConvention)}. */
+    @Deprecated
+    public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode, ProtoCodecMode mode) {
         return getInstance(schemaNode, mode, null, null);
     }
 
+    /** Returns a codec for {@code schemaNode} using the given convention. */
+    public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode,
+                                                        YangProtoConvention convention) {
+        return getInstance(schemaNode, convention, null, null);
+    }
+
+    /** Returns a codec for {@code schemaNode} using the named convention. */
+    public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode,
+                                                        String conventionName) {
+        YangProtoConvention c = YangProtoConventionRegistry.get(conventionName);
+        if (c == null) throw new IllegalArgumentException(
+                "Convention '" + conventionName + "' is not registered.");
+        return getInstance(schemaNode, c);
+    }
+
+    public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode,
+                                                        YangProtoConvention convention,
+                                                        AnydataValidationContextResolver resolver,
+                                                        String sourcePath) {
+        if (schemaNode == null) return null;
+        if (convention == null) convention = YangProtoConventionRegistry.getDefault();
+        YangDataProtoCodec<?, ?> codec = createCodec(schemaNode, convention);
+        codec.setAnydataValidationContextResolver(resolver);
+        codec.setSourcePath(sourcePath);
+        return codec;
+    }
+
+    /** @deprecated Use {@link #getInstance(SchemaNode, YangProtoConvention, AnydataValidationContextResolver, String)}. */
+    @Deprecated
     public static YangDataProtoCodec<?, ?> getInstance(SchemaNode schemaNode,
                                                         ProtoCodecMode mode,
                                                         AnydataValidationContextResolver resolver,
                                                         String sourcePath) {
         if (schemaNode == null) return null;
         if (mode == null) mode = ProtoCodecMode.SIMPLE;
+        YangProtoConvention c = YangProtoConventionRegistry.get(mode.name().toLowerCase());
+        if (c == null) c = YangProtoConventionRegistry.getDefault();
+        return getInstance(schemaNode, c, resolver, sourcePath);
+    }
 
-        YangDataProtoCodec<?, ?> codec;
-        if (schemaNode instanceof Container) {
-            codec = new ContainerDataProtoCodec((Container) schemaNode, mode);
-        } else if (schemaNode instanceof YangList) {
-            codec = new ListDataProtoCodec((YangList) schemaNode, mode);
-        } else if (schemaNode instanceof Leaf) {
-            codec = new LeafDataProtoCodec((Leaf) schemaNode, mode);
-        } else if (schemaNode instanceof LeafList) {
-            codec = new LeafListDataProtoCodec((LeafList) schemaNode, mode);
-        } else if (schemaNode instanceof Anydata) {
-            codec = new AnyDataDataProtoCodec((Anydata) schemaNode, mode);
-        } else if (schemaNode instanceof Anyxml) {
-            codec = new AnyxmlDataProtoCodec((Anyxml) schemaNode, mode);
-        } else if (schemaNode instanceof Notification) {
-            codec = new NotificationDataProtoCodec((Notification) schemaNode, mode);
-        } else if (schemaNode instanceof YangStructure) {
-            codec = new YangStructureDataProtoCodec((YangStructure) schemaNode, mode);
-        } else if (schemaNode instanceof Rpc) {
-            codec = new RpcDataProtoCodec((Rpc) schemaNode, mode);
-        } else if (schemaNode instanceof Input) {
-            codec = new InputDataProtoCodec((Input) schemaNode, mode);
-        } else if (schemaNode instanceof Output) {
-            codec = new OutputDataProtoCodec((Output) schemaNode, mode);
-        } else if (schemaNode instanceof Action) {
-            codec = new ActionDataProtoCodec((Action) schemaNode, mode);
-        } else {
-            throw new IllegalArgumentException(
-                    "Unsupported schema node type: " + schemaNode.getClass().getSimpleName());
-        }
-        codec.setAnydataValidationContextResolver(resolver);
-        codec.setSourcePath(sourcePath);
-        return codec;
+    private static YangDataProtoCodec<?, ?> createCodec(SchemaNode schemaNode,
+                                                          YangProtoConvention convention) {
+        // Envelope mode — wraps with a single-field message (handled at a higher level)
+        ProtoCodecMode legacyMode = "ygot".equals(convention.getName())
+                ? ProtoCodecMode.YGOT : ProtoCodecMode.SIMPLE;
+
+        if (schemaNode instanceof Container)
+            return new ContainerDataProtoCodec((Container) schemaNode, legacyMode);
+        if (schemaNode instanceof YangList)
+            return new ListDataProtoCodec((YangList) schemaNode, legacyMode);
+        if (schemaNode instanceof Leaf)
+            return new LeafDataProtoCodec((Leaf) schemaNode, legacyMode);
+        if (schemaNode instanceof LeafList)
+            return new LeafListDataProtoCodec((LeafList) schemaNode, legacyMode);
+        if (schemaNode instanceof Anydata)
+            return new AnyDataDataProtoCodec((Anydata) schemaNode, legacyMode);
+        if (schemaNode instanceof Anyxml)
+            return new AnyxmlDataProtoCodec((Anyxml) schemaNode, legacyMode);
+        if (schemaNode instanceof Notification)
+            return new NotificationDataProtoCodec((Notification) schemaNode, legacyMode);
+        if (schemaNode instanceof YangStructure)
+            return new YangStructureDataProtoCodec((YangStructure) schemaNode, legacyMode);
+        if (schemaNode instanceof Rpc)
+            return new RpcDataProtoCodec((Rpc) schemaNode, legacyMode);
+        if (schemaNode instanceof Input)
+            return new InputDataProtoCodec((Input) schemaNode, legacyMode);
+        if (schemaNode instanceof Output)
+            return new OutputDataProtoCodec((Output) schemaNode, legacyMode);
+        if (schemaNode instanceof Action)
+            return new ActionDataProtoCodec((Action) schemaNode, legacyMode);
+        throw new IllegalArgumentException(
+                "Unsupported schema node type: " + schemaNode.getClass().getSimpleName());
     }
 
     protected AnydataValidationContextResolver getAnydataValidationContextResolver() {
@@ -191,8 +229,7 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
         }
         if (yangData instanceof YangDataContainer) {
             ProtoCodecUtil.serializeChildren(builder, (YangDataContainer) yangData, mode);
-        }
-        return (DynamicMessage) builder.build();
+        }        return (DynamicMessage) builder.build();
     }
 
     // =========================================================================
@@ -204,6 +241,10 @@ public abstract class YangDataProtoCodec<S extends SchemaNode, T extends YangDat
      * the current codec mode.
      */
     protected Descriptors.Descriptor getDescriptorForNode() {
-        return ProtoDescriptorManager.getInstance(mode).getDescriptor(schemaNode);
+        return ProtoDescriptorManager.getInstance(convention.getName())
+                .getDescriptor(schemaNode);
     }
+
+    /** Returns the convention used by this codec. */
+    public YangProtoConvention getConvention() { return convention; }
 }

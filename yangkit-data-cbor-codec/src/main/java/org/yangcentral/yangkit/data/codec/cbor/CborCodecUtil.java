@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
+import org.yangcentral.yangkit.model.api.restriction.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -39,6 +40,51 @@ public class CborCodecUtil {
 
     static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     static final ObjectMapper CBOR_MAPPER = new ObjectMapper(new com.fasterxml.jackson.dataformat.cbor.CBORFactory());
+
+    /**
+     * Converts a string value (produced by a format-specific codec) to the
+     * appropriate JsonNode type based on the YANG restriction.
+     *
+     * <p>This is needed because CBOR has native types for numbers/booleans/bytes,
+     * while identityref and string-like types are always text nodes.
+     */
+    public static JsonNode stringToJsonNode(String strValue, Restriction<?> restriction) {
+        if (strValue == null) {
+            return JSON_MAPPER.nullNode();
+        }
+        if (restriction instanceof Empty) {
+            return JSON_MAPPER.nullNode();
+        }
+        if (restriction instanceof YangBoolean) {
+            return JSON_MAPPER.getNodeFactory().booleanNode(Boolean.parseBoolean(strValue));
+        }
+        if (restriction instanceof Int8 || restriction instanceof Int16 || restriction instanceof Int32) {
+            try { return JSON_MAPPER.getNodeFactory().numberNode(Integer.parseInt(strValue)); }
+            catch (NumberFormatException e) { return JSON_MAPPER.getNodeFactory().textNode(strValue); }
+        }
+        if (restriction instanceof Int64) {
+            try { return JSON_MAPPER.getNodeFactory().numberNode(Long.parseLong(strValue)); }
+            catch (NumberFormatException e) { return JSON_MAPPER.getNodeFactory().textNode(strValue); }
+        }
+        if (restriction instanceof UInt8 || restriction instanceof UInt16 || restriction instanceof UInt32) {
+            try { return JSON_MAPPER.getNodeFactory().numberNode(Long.parseUnsignedLong(strValue)); }
+            catch (NumberFormatException e) { return JSON_MAPPER.getNodeFactory().textNode(strValue); }
+        }
+        if (restriction instanceof UInt64) {
+            try {
+                java.math.BigInteger bi = new java.math.BigInteger(strValue);
+                return JSON_MAPPER.getNodeFactory().numberNode(bi);
+            } catch (NumberFormatException e) { return JSON_MAPPER.getNodeFactory().textNode(strValue); }
+        }
+        if (restriction instanceof Binary) {
+            try {
+                byte[] bytes = java.util.Base64.getDecoder().decode(strValue);
+                return JSON_MAPPER.getNodeFactory().binaryNode(bytes);
+            } catch (Exception e) { return JSON_MAPPER.getNodeFactory().textNode(strValue); }
+        }
+        // string, identityref, enumeration, bits, union, leafref, decimal64, instance-identifier
+        return JSON_MAPPER.getNodeFactory().textNode(strValue);
+    }
 
     /**
      * Converts a YANG data value to a JSON node suitable for CBOR encoding.

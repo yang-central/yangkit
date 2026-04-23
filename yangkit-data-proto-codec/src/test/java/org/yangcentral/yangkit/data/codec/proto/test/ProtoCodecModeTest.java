@@ -508,7 +508,7 @@ public class ProtoCodecModeTest {
     void testGetInstanceNullModeDefaultsToSimple() {
         Container container = findContainer("mixed-container");
         YangDataProtoCodec<?, ?> codec =
-                YangDataProtoCodec.getInstance(container, null);
+                YangDataProtoCodec.getInstance(container, (ProtoCodecMode) null);
         assertNotNull(codec);
         assertEquals(ProtoCodecMode.SIMPLE, codec.getMode(),
                 "null mode should default to SIMPLE");

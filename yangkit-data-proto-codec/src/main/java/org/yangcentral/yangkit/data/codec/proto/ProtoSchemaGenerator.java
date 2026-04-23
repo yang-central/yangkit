@@ -1,6 +1,8 @@
 package org.yangcentral.yangkit.data.codec.proto;
 
 import com.google.protobuf.DescriptorProtos;
+import org.yangcentral.yangkit.data.codec.proto.convention.YangProtoConvention;
+import org.yangcentral.yangkit.data.codec.proto.convention.YangProtoConventionRegistry;
 import org.yangcentral.yangkit.model.api.restriction.*;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
@@ -49,6 +51,7 @@ public class ProtoSchemaGenerator {
     static final String PACKAGE_PREFIX = "yangkit.proto.";
 
     private final ProtoCodecMode mode;
+    private final YangProtoConvention convention;
 
     // Per-generation-run state (reset on each generateFileDescriptor call)
     /** Tracks generated message names to avoid duplicates within a file. */
@@ -56,11 +59,18 @@ public class ProtoSchemaGenerator {
 
     public ProtoSchemaGenerator(ProtoCodecMode mode) {
         this.mode = mode;
+        this.convention = YangProtoConventionRegistry.get(mode.name().toLowerCase());
     }
 
-    /** Convenience constructor — uses SIMPLE mode. */
+    /** Construct with an explicit convention. */
+    public ProtoSchemaGenerator(YangProtoConvention convention) {
+        this.convention = convention;
+        this.mode = "ygot".equals(convention.getName()) ? ProtoCodecMode.YGOT : ProtoCodecMode.SIMPLE;
+    }
+
+    /** Convenience constructor — uses the registry default convention. */
     public ProtoSchemaGenerator() {
-        this(ProtoCodecMode.SIMPLE);
+        this(YangProtoConventionRegistry.getDefault());
     }
 
     // =========================================================================
@@ -86,9 +96,9 @@ public class ProtoSchemaGenerator {
                         .setPackage(pkg)
                         .setSyntax("proto3");
 
-        // Declare ywrapper dependency for YGOT mode
-        if (mode == ProtoCodecMode.YGOT) {
-            file.addDependency(WrapperTypeManager.YWRAPPER_FILE);
+        // Declare dependencies for conventions that need them (e.g. ywrapper)
+        for (String dep : convention.getDependencyImports()) {
+            file.addDependency(dep);
         }
 
         // Generate messages for all top-level schema nodes in the module,
@@ -297,36 +307,30 @@ public class ProtoSchemaGenerator {
                 break;
             }
             case "bits": {
-                if (mode == ProtoCodecMode.YGOT) {
-                    // Bits → proto enum with bit-position values
+                if (convention.encodeBitsAsEnum()) {
                     String enumName = toPascalCase(fieldName) + "Bits";
                     DescriptorProtos.EnumDescriptorProto bitsProto =
                             buildBitsEnumDescriptor(enumName, (Bits) restriction);
                     msg.addEnumType(bitsProto);
                     msg.addField(enumField(fieldName, fieldNum, repeated, enumName));
                 } else {
-                    // SIMPLE: store as string
                     msg.addField(primitiveField(fieldName, fieldNum, repeated,
                             DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING, null));
                 }
                 break;
             }
             case "union": {
-                if (mode == ProtoCodecMode.YGOT && !repeated) {
-                    // Union → oneof with one field per member type
+                if (convention.encodeUnionAsOneof() && !repeated) {
                     addUnionOneof(msg, fieldName, fieldNum, (Union) restriction, fieldPath, ctx);
                 } else {
-                    // SIMPLE or repeated union: store as string
                     msg.addField(primitiveField(fieldName, fieldNum, repeated,
                             DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING, null));
                 }
                 break;
             }
             case "leafref": {
-                // Resolve to the referenced node's type
                 Type resolvedType = resolveLeafRef(type);
                 if (resolvedType != null && resolvedType != type) {
-                    // Re-enter with the resolved type
                     addTypedField(msg, fieldName, fieldNum, resolvedType, fieldPath, repeated, ctx);
                 } else {
                     msg.addField(primitiveField(fieldName, fieldNum, repeated,
@@ -334,33 +338,15 @@ public class ProtoSchemaGenerator {
                 }
                 break;
             }
-            case "identityref": {
-                if (mode == ProtoCodecMode.YGOT) {
-                    // YGOT: string wrapper (identities are referenced by their module-prefixed name)
-                    msg.addField(primitiveField(fieldName, fieldNum, repeated,
-                            DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE,
-                            YangProtoTypeMapper.getYwrapperTypeName(type)));
-                } else {
-                    msg.addField(primitiveField(fieldName, fieldNum, repeated,
-                            DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING, null));
-                }
-                break;
-            }
+            case "identityref":
             default: {
-                // Scalar types
-                if (mode == ProtoCodecMode.YGOT) {
-                    String wrapperTypeName = YangProtoTypeMapper.getYwrapperTypeName(type);
-                    if (wrapperTypeName != null) {
-                        msg.addField(primitiveField(fieldName, fieldNum, repeated,
-                                DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE,
-                                wrapperTypeName));
-                    } else {
-                        msg.addField(primitiveField(fieldName, fieldNum, repeated,
-                                DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING, null));
-                    }
+                String wrapperTypeName = convention.getWrapperTypeName(type);
+                if (wrapperTypeName != null) {
+                    msg.addField(primitiveField(fieldName, fieldNum, repeated,
+                            DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE, wrapperTypeName));
                 } else {
                     msg.addField(primitiveField(fieldName, fieldNum, repeated,
-                            YangProtoTypeMapper.getProtoFieldType(type, mode), null));
+                            convention.getProtoFieldType(type), null));
                 }
             }
         }
@@ -556,7 +542,7 @@ public class ProtoSchemaGenerator {
                     String memberFieldPath = fieldPath + "_" + memberTypeName + "_" + memberIdx;
                     int memberFieldNum = ctx.nextFieldNumber(memberFieldPath);
 
-                    String wrapperTypeName = YangProtoTypeMapper.getYwrapperTypeName(memberType);
+                    String wrapperTypeName = convention.getWrapperTypeName(memberType);
                     DescriptorProtos.FieldDescriptorProto.Builder memberField;
                     if (wrapperTypeName != null) {
                         memberField = DescriptorProtos.FieldDescriptorProto.newBuilder()
@@ -723,40 +709,13 @@ public class ProtoSchemaGenerator {
      */
     private class FieldContext {
         final String path;
-        private int seq = 1;
         private final Set<Integer> usedNumbers = new HashSet<>();
 
         FieldContext(String path) { this.path = path; }
 
         int nextFieldNumber(String fieldPath) {
-            if (mode == ProtoCodecMode.YGOT) {
-                return fnvFieldNumber(fieldPath, usedNumbers);
-            } else {
-                int n = seq++;
-                usedNumbers.add(n);
-                return n;
-            }
+            return convention.nextFieldNumber(fieldPath, usedNumbers);
         }
-    }
-
-    /**
-     * Computes a stable field number using FNV-1a hash of the schema path,
-     * as used by ygot's proto generator.  Handles collisions by incrementing.
-     */
-    private static int fnvFieldNumber(String path, Set<Integer> usedNumbers) {
-        // FNV-1a 32-bit
-        long hash = 2166136261L;
-        for (byte b : path.getBytes(StandardCharsets.UTF_8)) {
-            hash ^= (b & 0xFF);
-            hash  = (hash * 16777619L) & 0xFFFFFFFFL;
-        }
-        int num = (int) (hash % 536870911L) + 1; // 1 … 536870911
-        // Avoid proto reserved range 19000-19999
-        if (num >= 19000 && num <= 19999) num = 20000;
-        // Collision resolution
-        while (usedNumbers.contains(num)) num++;
-        usedNumbers.add(num);
-        return num;
     }
 
     // =========================================================================

@@ -8,8 +8,8 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.LeafData;
 import org.yangcentral.yangkit.data.api.model.TypedData;
+import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
-import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 
@@ -24,11 +24,8 @@ public class LeafDataJsonCodec extends TypedDataJsonCodec<Leaf, LeafData<?>> {
             String yangText = getYangText(element);
             LeafData leafData = (LeafData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), yangText);
             TypedDataNode typedData = (TypedDataNode) leafData.getSchemaNode();
-            if (typedData.getType().getRestriction() instanceof IdentityRef){
-                leafData.getStringValue(new IdentityRefJsonCodec(typedData));
-            } else {
-                leafData.getStringValue();
-            }
+            StringValueCodec codec = JsonStringValueCodecFactory.getInstance().getStringValueCodec(typedData);
+            leafData.getStringValue(codec);
             return leafData;
         } catch (YangDataJsonCodecException e) {
             ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();

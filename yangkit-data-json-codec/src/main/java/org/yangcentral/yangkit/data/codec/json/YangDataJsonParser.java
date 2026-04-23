@@ -12,6 +12,8 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.*;
+import org.yangcentral.yangkit.model.api.codec.YangCodecException;
+import org.yangcentral.yangkit.model.api.restriction.IdentityRef;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 
@@ -74,7 +76,26 @@ public class YangDataJsonParser {
                         break;
                     }
                 }
-                if(keyData == null || !keyData.getStringValue().equals(keyPathValue)){
+                if(keyData == null){
+                    ValidatorRecordBuilder validatorRecordBuilder = new ValidatorRecordBuilder();
+                    validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+                    validatorRecordBuilder.setBadElement(data);
+                    validatorRecordBuilder.setSeverity(Severity.ERROR);
+                    validatorRecordBuilder.setErrorMessage(new ErrorMessage("path:"+path + " and value:"+data + " are mismatch"));
+                    validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                    return null;
+                }
+                String keyActualValue;
+                try {
+                    if (key.getType().getRestriction() instanceof IdentityRef) {
+                        keyActualValue = keyData.getStringValue(new IdentityRefJsonCodec(key));
+                    } else {
+                        keyActualValue = keyData.getStringValue();
+                    }
+                } catch (YangCodecException e) {
+                    keyActualValue = null;
+                }
+                if(!keyPathValue.equals(keyActualValue)){
                     ValidatorRecordBuilder validatorRecordBuilder = new ValidatorRecordBuilder();
                     validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
                     validatorRecordBuilder.setBadElement(data);
@@ -89,7 +110,18 @@ public class YangDataJsonParser {
         } else if (yangData instanceof LeafListData){
             String pathValue = lastStep.getPredict(yangData.getQName()).getValue();
             LeafListData leafListData = (LeafListData) yangData;
-            if(!pathValue.equals(leafListData.getStringValue())){
+            LeafList leafListSchema = (LeafList) leafListData.getSchemaNode();
+            String actualValue;
+            try {
+                if (leafListSchema.getType().getRestriction() instanceof IdentityRef) {
+                    actualValue = leafListData.getStringValue(new IdentityRefJsonCodec(leafListSchema));
+                } else {
+                    actualValue = leafListData.getStringValue();
+                }
+            } catch (YangCodecException e) {
+                actualValue = null;
+            }
+            if(!pathValue.equals(actualValue)){
                 ValidatorRecordBuilder validatorRecordBuilder = new ValidatorRecordBuilder();
                 validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
                 validatorRecordBuilder.setBadElement(data);

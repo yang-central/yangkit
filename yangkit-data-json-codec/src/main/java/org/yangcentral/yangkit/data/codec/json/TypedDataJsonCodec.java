@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.data.api.model.TypedData;
 import org.yangcentral.yangkit.data.api.model.YangData;
+import org.yangcentral.yangkit.model.api.codec.StringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.*;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
@@ -74,17 +75,14 @@ abstract class TypedDataJsonCodec<S extends TypedDataNode, D extends TypedData<?
 
     @Override
     protected JsonNode buildElement(YangData<?> yangData) {
-
         TypedData typedData = (TypedData) yangData;
         TypedDataNode typedDataNode = (TypedDataNode) typedData.getSchemaNode();
-        if(typedDataNode.getType().getRestriction() instanceof IdentityRef){
-            try {
-                return TextNode.valueOf(typedData.getStringValue(new IdentityRefJsonCodec(typedDataNode)));
-            } catch (YangCodecException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            StringValueCodec codec = JsonStringValueCodecFactory.getInstance().getStringValueCodec(typedDataNode);
+            return TextNode.valueOf(typedData.getStringValue(codec));
+        } catch (YangCodecException e) {
+            throw new RuntimeException(e);
         }
-        return TextNode.valueOf(typedData.getStringValue());
     }
 
 }

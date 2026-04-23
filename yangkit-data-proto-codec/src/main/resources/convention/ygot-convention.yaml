@@ -1,0 +1,8 @@
+convention:
+  name: "ygot"
+  description: "YGOT-compatible YANG to Protobuf mapping"
+  encoding-mode: "structured"
+field-numbering: "fnv1a"
+scalar-wrapping: "ywrapper"
+bits-as: "enum"
+union-as: "oneof"

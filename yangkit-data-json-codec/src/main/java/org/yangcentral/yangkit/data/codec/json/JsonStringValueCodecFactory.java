@@ -25,13 +25,15 @@ public class JsonStringValueCodecFactory extends StringValueCodecFactory{
 
     public StringValueCodec<?> getStringValueCodec(TypedDataNode dataNode, Restriction restriction) {
         if (restriction instanceof LeafRef) {
-            return new LeafRefStringValueCodecImpl(dataNode);
+            return new LeafRefJsonStringValueCodecImpl(dataNode);
         } else if (restriction instanceof IdentityRef) {
             return new IdentityRefJsonCodec(dataNode);
         } else if (restriction instanceof InstanceIdentifier) {
             return new InstanceIdentifierStringValueCodecImpl(dataNode);
+        } else if (restriction instanceof Union) {
+            return new UnionJsonStringValueCodecImpl(dataNode);
         } else {
-            return (StringValueCodec)(restriction instanceof Union ? new UnionStringValueCodecImpl(dataNode) : this.getStringValueCodec(restriction));
+            return this.getStringValueCodec(restriction);
         }
     }
 

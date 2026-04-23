@@ -273,10 +273,10 @@ Treat the snapshot above as historical evidence for this document, not as a guar
 The current proto-module test snapshot observed in this workspace is:
 
 ```
-Tests run: 53, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 71, Failures: 0, Errors: 0, Skipped: 0
 ```
 
-That broader current snapshot includes active regression tests for `ProtoCodecDataTest`, `ProtoCodecStructureTest`, `RpcProtoCodecTest`, and `AnydataValidationOptionsProtoCodecTest`.
+That broader current snapshot includes active regression tests for `ProtoCodecDataTest`, `ProtoCodecModeTest`, `ProtoCodecStructureTest`, `RpcProtoCodecTest`, and `AnydataValidationOptionsProtoCodecTest`.
 
 ## Dependencies
 
