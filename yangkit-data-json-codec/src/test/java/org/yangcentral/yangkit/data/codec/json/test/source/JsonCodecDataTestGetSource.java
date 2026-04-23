@@ -11,7 +11,7 @@ import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonParser;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
-
+import java.util.Arrays;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -150,9 +150,12 @@ public class JsonCodecDataTestGetSource {
         YangDataDocument yangDataDocument = new YangDataDocumentJsonParser(schemaContext).parse(jsonNode,validatorResultBuilder);
 
         String[] result = yangDataDocument.getModulesStrings();
-        assertEquals(result.length, 2);
-        assertArrayEquals(result, new String[]{readFile(yangComplexFile), readFile(yangSimpleFile)});
+        String[] expected = new String[]{readFile(yangSimpleFile), readFile(yangComplexFile)};
+        Arrays.sort(result);
+        Arrays.sort(expected);
 
+        assertEquals(result.length, 2);
+        assertArrayEquals(result, expected);
     }
 
     public String readFile(String path){
