@@ -47,7 +47,6 @@
             <groupId>io.github.yang-central.yangkit</groupId>
             <artifactId>yangkit-model-impl</artifactId>
             <version>${io.github.yang-central.yangkit.yangkit-model-impl.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.yang-central.yangkit</groupId>
