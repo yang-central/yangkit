@@ -110,7 +110,7 @@ public class TypeImpl extends YangBuiltInStatementImpl implements Type {
                    ErrorCode.UNEXPECTED_IDENTIFIER.getFieldName() + " Derived bits can not be restricted."));
                continue;
             }
-            Bits base = (Bits) this.getBaseType();
+            Bits base = (Bits) this.getBaseType().getRestriction();
             Map<String, Bit> baseBitMap = base.getBits().stream().collect(Collectors.toMap(YangStatement::getArgStr, YangStatement::getSelf));
             if (!baseBitMap.containsKey(bit.getArgStr())) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(bit,
