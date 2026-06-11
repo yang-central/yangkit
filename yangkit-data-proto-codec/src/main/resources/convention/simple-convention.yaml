@@ -1,0 +1,8 @@
+convention:
+  name: "simple"
+  description: "Simple YANG to Protobuf mapping with primitive types and sequential field numbers"
+  encoding-mode: "structured"
+field-numbering: "sequential"
+scalar-wrapping: "none"
+bits-as: "string"
+union-as: "string"

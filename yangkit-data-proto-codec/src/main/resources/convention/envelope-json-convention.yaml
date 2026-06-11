@@ -1,0 +1,8 @@
+convention:
+  name: "envelope"
+  description: "Envelope YANG to Protobuf mapping with JSON inner format"
+  encoding-mode: "envelope"
+envelope:
+  field-name: "data"
+  field-type: "bytes"
+  inner-format: "json"
