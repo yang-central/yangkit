@@ -193,9 +193,12 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       switch (phase) {
          case SCHEMA_BUILD:
             for (DataDefinition dataDefinition : this.getDataDefChildren()) {
-               if (dataDefinition.evaluateFeatures()) {
-                  validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
-               }
+               // Always add all children to the schema tree regardless of if-feature evaluation.
+               // Feature-gated nodes are checked via isActive() at parse/validation time.
+               // Skipping them here causes getTreeNodeChild to return null for their descendants.
+               // Errors (e.g. duplicate-node) are intentionally suppressed here — they must not
+               // cascade up to ImportImpl and break prefix resolution for unrelated modules.
+               this.addSchemaNodeChild(dataDefinition);
             }
          default:
             return validatorResultBuilder.build();

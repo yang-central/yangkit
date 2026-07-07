@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
+import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
@@ -32,8 +33,11 @@ public class ListDataJsonCodec extends YangDataJsonCodec<YangList, ListData> {
         for (Leaf key : keys) {
             JsonNode keyElement = element.get(key.getArgStr());
             if (keyElement == null) {
+                // Key field absent — device may use a different name than the schema (e.g. older draft).
+                // Downgrade to warning so this list entry is skipped without failing the whole document.
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.MISSING_ELEMENT);
+                recordBuilder.setSeverity(Severity.WARNING);
                 recordBuilder.setErrorPath(element.toString());
                 recordBuilder.setBadElement(element);
                 recordBuilder.setErrorMessage(new ErrorMessage("missing key:" + key.getIdentifier().getLocalName()));

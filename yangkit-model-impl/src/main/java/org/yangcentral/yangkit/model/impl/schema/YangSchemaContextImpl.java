@@ -331,6 +331,36 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          ValidatorResult result = module.build();
          validatorResultBuilder.merge(result);
       }
+      // Second-pass global augment resolution: handles cross-module augments that failed
+      // due to sequential per-module build ordering — the augmenting module's SCHEMA_EXPAND
+      // ran before the target module's SCHEMA_BUILD added its notifications/containers to
+      // the schema context. After all modules have built, retry those unresolved augments.
+      int retryResolved = 0;
+      int retrySkippedAlreadyResolved = 0;
+      int retrySkippedNoPath = 0;
+      int retrySkippedTargetNull = 0;
+      for(Module module:modules){
+         for(Augment augment : module.getAugments()){
+            if(augment.getTarget() != null){
+               retrySkippedAlreadyResolved++;
+               continue; // already resolved in the first pass
+            }
+            SchemaPath targetPath = augment.getTargetPath();
+            if(targetPath == null){
+               retrySkippedNoPath++;
+               continue; // schema path itself failed to parse; cannot retry
+            }
+            SchemaNode target = targetPath.getSchemaNode(this);
+            if(target == null || !(target instanceof Augmentable)){
+               retrySkippedTargetNull++;
+               continue;
+            }
+            augment.setTarget(target);
+            SchemaNodeContainer targetContainer = (SchemaNodeContainer) target;
+            targetContainer.addSchemaNodeChild(augment);
+            retryResolved++;
+         }
+      }
       //validate
       for(Module module:modules){
          validatorResultBuilder.merge(module.validate());

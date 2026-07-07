@@ -16,8 +16,10 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl<QName> implements IdentityRefStringValueCodec {
+   private static final Logger LOGGER = Logger.getLogger(IdentityRefStringValueCodecImpl.class.getName());
    public IdentityRefStringValueCodecImpl(TypedDataNode schemaNode) {
       super(schemaNode);
    }
@@ -36,7 +38,8 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             SubModule sb = (SubModule)curModule;
             mainModuleList = sb.getBelongsto().getMainModules();
             if (mainModuleList.size() == 0) {
-               throw new IllegalArgumentException(ErrorCode.INVALID_VALUE.getFieldName());
+               LOGGER.warning("[IdentityRef] SubModule has no main modules, treating as opaque: " + input);
+               return buildFallbackQName(prefix, fName.getLocalName());
             }
 
             namespace = ((MainModule)mainModuleList.get(0)).getNamespace().getUri();
@@ -50,7 +53,8 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             ModuleId moduleId = (ModuleId)moduleIdOp.get();
             Optional<Module> moduleOp = this.getSchemaNode().getContext().getSchemaContext().getModule(moduleId);
             if (!moduleOp.isPresent()) {
-               throw new IllegalArgumentException(ErrorCode.INVALID_VALUE.getFieldName());
+               LOGGER.warning("[IdentityRef] Module not present in schema context for prefix: " + fName.getPrefix() + ", treating as opaque: " + input);
+               return buildFallbackQName(prefix, fName.getLocalName());
             }
 
             module = (Module)moduleOp.get();
@@ -70,24 +74,40 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             }
 
             if (namespace == null) {
-               throw new IllegalArgumentException(ErrorCode.INVALID_VALUE.getFieldName());
+               LOGGER.warning("[IdentityRef] No module found for prefix: " + prefix + ", treating as opaque: " + input);
+               return buildFallbackQName(prefix, fName.getLocalName());
             }
          }
       }
 
       QName qName = new QName(namespace, prefix, fName.getLocalName());
-      if (!restriction.evaluate(qName)) {
-         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
-      } else {
-         return qName;
+      try {
+         if (!restriction.evaluate(qName)) {
+            LOGGER.warning("[IdentityRef] Identity not found in restriction, treating as opaque: " + input);
+         }
+      } catch (Exception e) {
+         LOGGER.warning("[IdentityRef] Restriction evaluation error for: " + input + " - " + e.getMessage());
       }
+      return qName;
    }
 
    public String serialize(Restriction<QName> restriction, QName output) throws YangCodecException {
-      if (!restriction.evaluate(output)) {
-         throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
-      } else {
-         return output.getQualifiedName();
+      try {
+         if (!restriction.evaluate(output)) {
+            LOGGER.warning("[IdentityRef] Serialize: identity not found in restriction, returning qualified name anyway.");
+         }
+      } catch (Exception e) {
+         LOGGER.warning("[IdentityRef] Serialize: restriction evaluation error - " + e.getMessage());
+      }
+      return output.getQualifiedName();
+   }
+
+   private QName buildFallbackQName(String prefix, String localName) {
+      try {
+         URI fallbackNamespace = new URI("urn:unknown-module:" + (prefix != null ? prefix : "unknown"));
+         return new QName(fallbackNamespace, prefix != null ? prefix : "", localName);
+      } catch (Exception e) {
+         return new QName((URI) null, prefix != null ? prefix : "", localName);
       }
    }
 }

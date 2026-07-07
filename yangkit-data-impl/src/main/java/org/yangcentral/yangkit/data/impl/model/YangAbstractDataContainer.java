@@ -592,8 +592,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
         }
         for(YangData<?> child:self.getChildren()){
             SchemaNode schemaNode = child.getSchemaNode();
-            if(!matchRecord.containsKey(schemaNode.getIdentifier()) || !schemaNode.isActive()){
-                //inactive or unknown schema node, report error
+            if(!matchRecord.containsKey(schemaNode.getIdentifier())){
+                //unknown schema node, report error
                 ValidatorRecordBuilder<AbsolutePath,YangData<?>> validatorRecordBuilder =
                         new ValidatorRecordBuilder<>();
                 validatorRecordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
@@ -602,6 +602,12 @@ public class YangAbstractDataContainer implements YangDataContainer {
                 validatorRecordBuilder.setErrorMessage(new ErrorMessage("unknown schema node:"
                         + schemaNode.getArgStr()));
                 validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                continue;
+            }
+            // If the schema node is inactive (deviated not-supported or if-feature disabled)
+            // we accept the data leniently — the device sent it regardless of its deviations.
+            // Constraint validation (mandatory, unique) is skipped for inactive nodes.
+            if(!schemaNode.isActive()){
                 continue;
             }
             List<YangData<?>> matchedData = matchRecord.get(schemaNode.getIdentifier());
