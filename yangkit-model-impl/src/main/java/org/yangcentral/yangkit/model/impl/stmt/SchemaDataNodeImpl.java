@@ -9,6 +9,7 @@ import org.yangcentral.yangkit.model.api.stmt.Config;
 import org.yangcentral.yangkit.model.api.stmt.SchemaDataNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
+import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
 
@@ -56,7 +57,11 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
          this.config = (Config)matched.get(0);
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult processedResult = validatorResultBuilder.build();
+      if (this instanceof YangBuiltinStatement) {
+         return ((YangBuiltinStatement) this).validateSubStatements(processedResult);
+      }
+      return processedResult;
    }
 
    protected ValidatorResult validateSelf() {

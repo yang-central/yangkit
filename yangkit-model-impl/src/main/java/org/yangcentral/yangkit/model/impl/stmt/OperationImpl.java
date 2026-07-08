@@ -232,7 +232,11 @@ public abstract class OperationImpl extends SchemaNodeImpl implements Operation 
             this.output = (Output)matched.get(0);
         }
 
-        return validatorResultBuilder.build();
+        ValidatorResult processedResult = validatorResultBuilder.build();
+        if (this instanceof YangBuiltinStatement) {
+            return ((YangBuiltinStatement) this).validateSubStatements(processedResult);
+        }
+        return processedResult;
     }
 
 

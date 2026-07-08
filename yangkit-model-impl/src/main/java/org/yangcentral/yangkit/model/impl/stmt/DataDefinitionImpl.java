@@ -9,6 +9,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilderFactory
 import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
 import org.yangcentral.yangkit.model.api.stmt.IfFeature;
 import org.yangcentral.yangkit.model.api.stmt.When;
+import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
 import org.yangcentral.yangkit.xpath.YangXPath;
@@ -133,7 +134,11 @@ public abstract class DataDefinitionImpl extends SchemaNodeImpl implements DataD
          validatorResultBuilder.merge(this.ifFeatureSupport.addIfFeature(ifFeature));
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult processedResult = validatorResultBuilder.build();
+      if (this instanceof YangBuiltinStatement) {
+         return ((YangBuiltinStatement) this).validateSubStatements(processedResult);
+      }
+      return processedResult;
    }
 
    protected ValidatorResult validateSelf() {

@@ -256,7 +256,8 @@ public class NotificationImpl extends SchemaNodeImpl implements Notification {
          }
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult processedResult = validatorResultBuilder.build();
+      return this.validateSubStatements(processedResult);
    }
 
    public Must getMust(int index) {

@@ -197,7 +197,11 @@ public abstract class ContainerDataNodeImpl extends DataNodeImpl implements Cont
          }
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult processedResult = validatorResultBuilder.build();
+      if (this instanceof YangBuiltinStatement) {
+         return ((YangBuiltinStatement) this).validateSubStatements(processedResult);
+      }
+      return processedResult;
    }
 
    public List<SchemaNode> getSchemaNodeChildren() {

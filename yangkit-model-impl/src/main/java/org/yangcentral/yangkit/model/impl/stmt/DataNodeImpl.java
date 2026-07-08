@@ -7,6 +7,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.DataNode;
 import org.yangcentral.yangkit.model.api.stmt.Must;
+import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 
 import java.util.ArrayList;
@@ -96,7 +97,11 @@ public abstract class DataNodeImpl extends SchemaDataNodeImpl implements DataNod
          }
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult processedResult = validatorResultBuilder.build();
+      if (this instanceof YangBuiltinStatement) {
+         return ((YangBuiltinStatement) this).validateSubStatements(processedResult);
+      }
+      return processedResult;
    }
 
    protected ValidatorResult validateSelf() {

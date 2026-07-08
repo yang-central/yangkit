@@ -16,6 +16,7 @@ import org.yangcentral.yangkit.model.api.stmt.Type;
 import org.yangcentral.yangkit.model.api.stmt.TypedDataNode;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
 import org.yangcentral.yangkit.model.api.stmt.Units;
+import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.type.Path;
 import org.yangcentral.yangkit.model.impl.codec.StringValueCodecFactory;
@@ -96,7 +97,11 @@ public abstract class TypedDataNodeImpl extends DataNodeImpl implements TypedDat
          this.units = (Units)matched.get(0);
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult processedResult = validatorResultBuilder.build();
+      if (this instanceof YangBuiltinStatement) {
+         return ((YangBuiltinStatement) this).validateSubStatements(processedResult);
+      }
+      return processedResult;
    }
 
    protected ValidatorResult validateSelf() {

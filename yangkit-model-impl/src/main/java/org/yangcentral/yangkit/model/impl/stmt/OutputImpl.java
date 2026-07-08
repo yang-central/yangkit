@@ -238,7 +238,8 @@ public class OutputImpl extends SchemaNodeImpl implements Output {
          }
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult processedResult = validatorResultBuilder.build();
+      return this.validateSubStatements(processedResult);
    }
 
    protected ValidatorResult validateSelf() {
