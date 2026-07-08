@@ -4,14 +4,13 @@ import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.Feature;
-import org.yangcentral.yangkit.model.api.stmt.IfFeature;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FeatureImpl extends EntityImpl implements Feature {
+public class FeatureImpl extends YangBuiltInStatementImpl implements Feature {
+   private final EntitySupport entitySupport = new EntitySupport();
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();
 
    public FeatureImpl(String argStr) {
@@ -48,6 +47,30 @@ public class FeatureImpl extends EntityImpl implements Feature {
       return YangBuiltinKeyword.FEATURE.getQName();
    }
 
+   public StatusStmt getStatus() {
+      return this.entitySupport.getStatus();
+   }
+
+   public Status getEffectiveStatus() {
+      return this.entitySupport.getEffectiveStatus();
+   }
+
+   public Description getDescription() {
+      return this.entitySupport.getDescription();
+   }
+
+   public void setDescription(Description description) {
+      this.entitySupport.setDescription(description);
+   }
+
+   public Reference getReference() {
+      return this.entitySupport.getReference();
+   }
+
+   public void setReference(Reference reference) {
+      this.entitySupport.setReference(reference);
+   }
+
    @Override
    public boolean checkChild(YangStatement subStatement) {
       boolean result = super.checkChild(subStatement);
@@ -70,13 +93,14 @@ public class FeatureImpl extends EntityImpl implements Feature {
 
    @Override
    protected void clearSelf() {
+      this.entitySupport.clear();
       this.ifFeatureSupport.removeIfFeatures();
       super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      validatorResultBuilder.merge(super.initSelf());
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      validatorResultBuilder.merge(this.entitySupport.init(this));
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.IFFEATURE.getQName());
 
@@ -91,6 +115,7 @@ public class FeatureImpl extends EntityImpl implements Feature {
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.ifFeatureSupport.getIfFeatures());
+      statements.addAll(this.entitySupport.getEffectiveSubStatements(this));
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

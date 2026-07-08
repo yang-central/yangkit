@@ -6,19 +6,20 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.restriction.Bits;
-import org.yangcentral.yangkit.model.api.stmt.IfFeature;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Type;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.type.Bit;
 import org.yangcentral.yangkit.model.api.stmt.type.Position;
-import org.yangcentral.yangkit.model.impl.stmt.EntityImpl;
+import org.yangcentral.yangkit.model.impl.stmt.EntitySupport;
 import org.yangcentral.yangkit.model.impl.stmt.IfFeatureSupportImpl;
+import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.register.YangStatementRegister;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BitImpl extends EntityImpl implements Bit {
+public class BitImpl extends YangBuiltInStatementImpl implements Bit {
+   private final EntitySupport entitySupport = new EntitySupport();
    private Position position;
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();
 
@@ -34,8 +35,39 @@ public class BitImpl extends EntityImpl implements Bit {
       return this.position;
    }
 
+   public StatusStmt getStatus() {
+      return this.entitySupport.getStatus();
+   }
+
+   public Status getEffectiveStatus() {
+      return this.entitySupport.getEffectiveStatus();
+   }
+
+   public Description getDescription() {
+      return this.entitySupport.getDescription();
+   }
+
+   public void setDescription(Description description) {
+      this.entitySupport.setDescription(description);
+   }
+
+   public Reference getReference() {
+      return this.entitySupport.getReference();
+   }
+
+   public void setReference(Reference reference) {
+      this.entitySupport.setReference(reference);
+   }
+
+   public void setContext(YangContext context) {
+      super.setContext(context);
+      this.ifFeatureSupport.setYangContext(context);
+   }
+
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      validatorResultBuilder.merge(this.entitySupport.init(this));
+
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.POSITION.getQName());
       if (matched.size() != 0) {
          this.position = (Position)matched.get(0);
@@ -48,11 +80,6 @@ public class BitImpl extends EntityImpl implements Bit {
       }
 
       return validatorResultBuilder.build();
-   }
-
-   public void setContext(YangContext context) {
-      super.setContext(context);
-      this.ifFeatureSupport.setYangContext(context);
    }
 
    public List<IfFeature> getIfFeatures() {
@@ -83,6 +110,7 @@ public class BitImpl extends EntityImpl implements Bit {
 
    @Override
    protected void clearSelf() {
+      this.entitySupport.clear();
       position = null;
       ifFeatureSupport.removeIfFeatures();
       super.clearSelf();
@@ -105,6 +133,7 @@ public class BitImpl extends EntityImpl implements Bit {
       }
 
       statements.addAll(this.ifFeatureSupport.getIfFeatures());
+      statements.addAll(this.entitySupport.getEffectiveSubStatements(this));
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

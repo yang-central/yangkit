@@ -4,10 +4,7 @@ import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.Base;
-import org.yangcentral.yangkit.model.api.stmt.Identity;
-import org.yangcentral.yangkit.model.api.stmt.IfFeature;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
@@ -15,7 +12,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class IdentityImpl extends EntityImpl implements Identity {
+public class IdentityImpl extends YangBuiltInStatementImpl implements Identity {
+   private final EntitySupport entitySupport = new EntitySupport();
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();
    private List<Base> bases = new ArrayList<>();
 
@@ -112,6 +110,30 @@ public class IdentityImpl extends EntityImpl implements Identity {
       return YangBuiltinKeyword.IDENTITY.getQName();
    }
 
+   public StatusStmt getStatus() {
+      return this.entitySupport.getStatus();
+   }
+
+   public Status getEffectiveStatus() {
+      return this.entitySupport.getEffectiveStatus();
+   }
+
+   public Description getDescription() {
+      return this.entitySupport.getDescription();
+   }
+
+   public void setDescription(Description description) {
+      this.entitySupport.setDescription(description);
+   }
+
+   public Reference getReference() {
+      return this.entitySupport.getReference();
+   }
+
+   public void setReference(Reference reference) {
+      this.entitySupport.setReference(reference);
+   }
+
    @Override
    public boolean checkChild(YangStatement subStatement) {
       boolean result = super.checkChild(subStatement);
@@ -140,6 +162,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
 
    @Override
    protected void clearSelf() {
+      this.entitySupport.clear();
       this.bases.clear();
       this.ifFeatureSupport.removeIfFeatures();
       super.clearSelf();
@@ -147,6 +170,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      validatorResultBuilder.merge(this.entitySupport.init(this));
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.BASE.getQName());
       if (matched.size() > 0) {
@@ -185,6 +209,7 @@ public class IdentityImpl extends EntityImpl implements Identity {
       List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.ifFeatureSupport.getIfFeatures());
       statements.addAll(this.bases);
+      statements.addAll(this.entitySupport.getEffectiveSubStatements(this));
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

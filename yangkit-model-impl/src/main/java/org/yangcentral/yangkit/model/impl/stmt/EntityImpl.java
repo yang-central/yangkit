@@ -15,43 +15,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class EntityImpl extends YangStatementImpl implements Entity {
-   private StatusStmt status;
-   private Description description;
-   private Reference reference;
+   private final EntitySupport entitySupport = new EntitySupport();
 
    public EntityImpl(String argStr) {
       super(argStr);
    }
 
    public StatusStmt getStatus() {
-      return this.status;
+      return this.entitySupport.getStatus();
    }
 
    public Status getEffectiveStatus() {
-      return null == this.status ? Status.CURRENT : Status.getStatus(this.status.getArgStr());
+      return this.entitySupport.getEffectiveStatus();
    }
 
    public Description getDescription() {
-      return this.description;
+      return this.entitySupport.getDescription();
    }
 
    public void setDescription(Description description) {
-      this.description = description;
+      this.entitySupport.setDescription(description);
    }
 
    public Reference getReference() {
-      return this.reference;
+      return this.entitySupport.getReference();
    }
 
    public void setReference(Reference reference) {
-      this.reference = reference;
+      this.entitySupport.setReference(reference);
    }
 
    @Override
    protected void clearSelf() {
-      this.description = null;
-      this.reference = null;
-      this.status = null;
+      this.entitySupport.clear();
       super.clearSelf();
    }
 
@@ -61,17 +57,17 @@ public abstract class EntityImpl extends YangStatementImpl implements Entity {
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.DESCRIPTION.getQName());
       if (matched.size() != 0) {
-         this.description = (Description)matched.get(0);
+         this.entitySupport.setDescription((Description)matched.get(0));
       }
 
       matched = this.getSubStatement(YangBuiltinKeyword.REFERENCE.getQName());
       if (matched.size() != 0) {
-         this.reference = (Reference)matched.get(0);
+         this.entitySupport.setReference((Reference)matched.get(0));
       }
 
       matched = this.getSubStatement(YangBuiltinKeyword.STATUS.getQName());
       if (matched.size() != 0) {
-         this.status = (StatusStmt)matched.get(0);
+         this.entitySupport.setStatus((StatusStmt)matched.get(0));
       }
 
       return validatorResultBuilder.build();
@@ -79,25 +75,7 @@ public abstract class EntityImpl extends YangStatementImpl implements Entity {
 
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList<>();
-      if (this.description != null) {
-         statements.add(this.description);
-      }
-
-      if (this.reference != null) {
-         statements.add(this.reference);
-      }
-
-      if (this.status != null) {
-         statements.add(this.status);
-      } else {
-         StatusStmt newStatus = new StatusImpl("current");
-         newStatus.setContext(new YangContext(this.getContext()));
-         newStatus.setElementPosition(this.getElementPosition());
-         newStatus.setParentStatement(this);
-         newStatus.init();
-         statements.add(newStatus);
-      }
-
+      statements.addAll(this.entitySupport.getEffectiveSubStatements(this));
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

@@ -4,14 +4,13 @@ import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.Argument;
-import org.yangcentral.yangkit.model.api.stmt.Extension;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExtensionImpl extends EntityImpl implements Extension {
+public class ExtensionImpl extends YangBuiltInStatementImpl implements Extension {
+   private final EntitySupport entitySupport = new EntitySupport();
    private Argument argument;
 
    public ExtensionImpl(String argStr) {
@@ -26,14 +25,40 @@ public class ExtensionImpl extends EntityImpl implements Extension {
       return YangBuiltinKeyword.EXTENSION.getQName();
    }
 
+   public StatusStmt getStatus() {
+      return this.entitySupport.getStatus();
+   }
+
+   public Status getEffectiveStatus() {
+      return this.entitySupport.getEffectiveStatus();
+   }
+
+   public Description getDescription() {
+      return this.entitySupport.getDescription();
+   }
+
+   public void setDescription(Description description) {
+      this.entitySupport.setDescription(description);
+   }
+
+   public Reference getReference() {
+      return this.entitySupport.getReference();
+   }
+
+   public void setReference(Reference reference) {
+      this.entitySupport.setReference(reference);
+   }
+
    @Override
    protected void clearSelf() {
+      this.entitySupport.clear();
       this.argument = null;
       super.clearSelf();
    }
 
    protected ValidatorResult initSelf() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      validatorResultBuilder.merge(this.entitySupport.init(this));
 
       List<YangStatement> matched = this.getSubStatement(YangBuiltinKeyword.ARGUMENT.getQName());
       if (matched.size() > 0) {
@@ -49,6 +74,7 @@ public class ExtensionImpl extends EntityImpl implements Extension {
          statements.add(this.argument);
       }
 
+      statements.addAll(this.entitySupport.getEffectiveSubStatements(this));
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

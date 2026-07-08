@@ -8,20 +8,15 @@ import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.stmt.Action;
-import org.yangcentral.yangkit.model.api.stmt.DataDefinition;
-import org.yangcentral.yangkit.model.api.stmt.Grouping;
-import org.yangcentral.yangkit.model.api.stmt.Notification;
-import org.yangcentral.yangkit.model.api.stmt.Typedef;
-import org.yangcentral.yangkit.model.api.stmt.YangBuiltinStatement;
-import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class GroupingImpl extends EntityImpl implements Grouping {
+public class GroupingImpl extends YangBuiltInStatementImpl implements Grouping {
+   private final EntitySupport entitySupport = new EntitySupport();
    private ActionContainerImpl actionContainer = new ActionContainerImpl();
    private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
    private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
@@ -98,6 +93,30 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       return this.typedefContainer.getTypedef(defName);
    }
 
+   public StatusStmt getStatus() {
+      return this.entitySupport.getStatus();
+   }
+
+   public Status getEffectiveStatus() {
+      return this.entitySupport.getEffectiveStatus();
+   }
+
+   public Description getDescription() {
+      return this.entitySupport.getDescription();
+   }
+
+   public void setDescription(Description description) {
+      this.entitySupport.setDescription(description);
+   }
+
+   public Reference getReference() {
+      return this.entitySupport.getReference();
+   }
+
+   public void setReference(Reference reference) {
+      this.entitySupport.setReference(reference);
+   }
+
    @Override
    public boolean checkChild(YangStatement subStatement) {
       boolean result = super.checkChild(subStatement);
@@ -140,6 +159,7 @@ public class GroupingImpl extends EntityImpl implements Grouping {
 
    @Override
    protected void clearSelf() {
+      this.entitySupport.clear();
       this.typedefContainer.removeTypedefs();
       this.groupingDefContainer.removeGroupings();
       this.dataDefContainer.removeDataDefs();
@@ -149,8 +169,9 @@ public class GroupingImpl extends EntityImpl implements Grouping {
    }
 
    protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      validatorResultBuilder.merge(super.initSelf());
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      validatorResultBuilder.merge(this.entitySupport.init(this));
+
       List<YangElement> subElements = this.getSubElements();
       Iterator elementIterator = subElements.iterator();
 
@@ -216,7 +237,6 @@ public class GroupingImpl extends EntityImpl implements Grouping {
 
    public ValidatorResult validate() {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      //this.isValidated = true;
       return validatorResultBuilder.build();
    }
 
@@ -224,15 +244,13 @@ public class GroupingImpl extends EntityImpl implements Grouping {
       return this.referencedBys;
    }
 
-
-
-
    public List<YangStatement> getEffectiveSubStatements() {
       List<YangStatement> statements = new ArrayList<>();
       statements.addAll(this.actionContainer.getActions());
       statements.addAll(this.dataDefContainer.getDataDefChildren());
       statements.addAll(this.groupingDefContainer.getGroupings());
       statements.addAll(this.notificationContainer.getNotifications());
+      statements.addAll(this.entitySupport.getEffectiveSubStatements(this));
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }

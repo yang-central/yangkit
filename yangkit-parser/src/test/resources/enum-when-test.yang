@@ -1,0 +1,16 @@
+module enum-when-test {
+    namespace "urn:test:enum-when";
+    prefix "ewt";
+    yang-version "1.1";
+    organization "test";
+    contact "test@test.com";
+    description "test";
+
+    leaf test-leaf {
+        type enumeration {
+            enum alpha {
+                when "true()";
+            }
+        }
+    }
+}

@@ -11,12 +11,14 @@ import org.yangcentral.yangkit.model.api.stmt.Type;
 import org.yangcentral.yangkit.model.api.stmt.Typedef;
 import org.yangcentral.yangkit.model.api.stmt.Units;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
+import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TypedefImpl extends EntityImpl implements Typedef {
+public class TypedefImpl extends YangBuiltInStatementImpl implements Typedef {
+   private final EntitySupport entitySupport = new EntitySupport();
    private Type type;
    private Units units;
    private Default aDefault;
@@ -50,8 +52,33 @@ public class TypedefImpl extends EntityImpl implements Typedef {
       return YangBuiltinKeyword.TYPEDEF.getQName();
    }
 
+   public StatusStmt getStatus() {
+      return this.entitySupport.getStatus();
+   }
+
+   public Status getEffectiveStatus() {
+      return this.entitySupport.getEffectiveStatus();
+   }
+
+   public Description getDescription() {
+      return this.entitySupport.getDescription();
+   }
+
+   public void setDescription(Description description) {
+      this.entitySupport.setDescription(description);
+   }
+
+   public Reference getReference() {
+      return this.entitySupport.getReference();
+   }
+
+   public void setReference(Reference reference) {
+      this.entitySupport.setReference(reference);
+   }
+
    @Override
    protected void clearSelf() {
+      this.entitySupport.clear();
       this.type = null;
       this.units = null;
       this.aDefault = null;
@@ -59,8 +86,9 @@ public class TypedefImpl extends EntityImpl implements Typedef {
    }
 
    protected ValidatorResult initSelf() {
-      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-      validatorResultBuilder.merge(super.initSelf());
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.initSelf());
+      validatorResultBuilder.merge(this.entitySupport.init(this));
+
       if (BuiltinType.isBuiltinType(this.getArgStr())) {
          validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                  ErrorCode.INVALID_TYPEDEF_NAME.getFieldName()));
@@ -105,6 +133,7 @@ public class TypedefImpl extends EntityImpl implements Typedef {
          statements.add(this.aDefault);
       }
 
+      statements.addAll(this.entitySupport.getEffectiveSubStatements(this));
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }
