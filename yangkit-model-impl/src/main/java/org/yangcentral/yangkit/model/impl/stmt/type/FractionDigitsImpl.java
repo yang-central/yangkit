@@ -10,11 +10,11 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.type.FractionDigits;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.Objects;
 
-public class FractionDigitsImpl extends YangBuiltInStatementImpl implements FractionDigits {
+public class FractionDigitsImpl extends YangStatementImpl implements FractionDigits {
    private Integer value;
 
    public FractionDigitsImpl(String argStr) {

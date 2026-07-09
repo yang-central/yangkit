@@ -50,13 +50,14 @@ import org.yangcentral.yangkit.model.impl.restriction.YangBooleanImpl;
 import org.yangcentral.yangkit.model.impl.restriction.YangIntegerImpl;
 import org.yangcentral.yangkit.model.impl.restriction.YangStringImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TypeImpl extends YangBuiltInStatementImpl implements Type {
+public class TypeImpl extends YangStatementImpl implements Type {
    private Restriction restriction;
    private Typedef derived;
 

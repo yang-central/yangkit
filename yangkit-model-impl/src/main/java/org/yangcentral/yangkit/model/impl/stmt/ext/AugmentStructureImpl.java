@@ -19,7 +19,8 @@ import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.*;
 
-public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStructure {
+public class AugmentStructureImpl extends EntityImpl implements AugmentStructure {
+    protected final SchemaNodeSupport schemaNodeSupport = new SchemaNodeSupport(this);
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
     private SchemaPath targetPath;
@@ -406,4 +407,6 @@ public class AugmentStructureImpl extends SchemaNodeImpl implements AugmentStruc
         return schemaNodeContainer.getEffectiveSchemaNodeChildren(ignoreNamespace);
     }
 
+
 }
+

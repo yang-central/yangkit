@@ -13,11 +13,12 @@ import org.yangcentral.yangkit.model.api.stmt.Units;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TypedefImpl extends YangBuiltInStatementImpl implements Typedef {
+public class TypedefImpl extends YangStatementImpl implements Typedef {
    private final EntitySupport entitySupport = new EntitySupport();
    private Type type;
    private Units units;

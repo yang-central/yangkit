@@ -9,13 +9,13 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.type.Modifier;
 import org.yangcentral.yangkit.model.api.stmt.type.Pattern;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatternImpl extends YangBuiltInStatementImpl implements Pattern {
+public class PatternImpl extends YangStatementImpl implements Pattern {
    private ErrorMessageStmt errorMessage;
    private ErrorAppTagStmt errorAppTag;
    private Description description;

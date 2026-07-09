@@ -9,7 +9,7 @@ import org.yangcentral.yangkit.model.api.stmt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExtensionImpl extends YangBuiltInStatementImpl implements Extension {
+public class ExtensionImpl extends YangStatementImpl implements Extension {
    private final EntitySupport entitySupport = new EntitySupport();
    private Argument argument;
 

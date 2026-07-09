@@ -8,6 +8,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 import org.yangcentral.yangkit.xpath.YangXPath;
 import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 import org.jaxen.JaxenException;
 import org.yangcentral.yangkit.xpath.impl.YangXPathPrefixVisitor;
 
-public class MustImpl extends YangBuiltInStatementImpl implements Must {
+public class MustImpl extends YangStatementImpl implements Must {
    private ErrorMessageStmt errorMessage;
    private ErrorAppTagStmt errorAppTag;
    private Description description;

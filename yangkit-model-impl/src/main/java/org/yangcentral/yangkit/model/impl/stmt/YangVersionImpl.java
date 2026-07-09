@@ -8,8 +8,9 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.YangVersion;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
-public class YangVersionImpl extends YangBuiltInStatementImpl implements YangVersion {
+public class YangVersionImpl extends YangStatementImpl implements YangVersion {
    public YangVersionImpl(String argStr) {
       super(argStr);
    }

@@ -6,10 +6,10 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.type.Value;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
-public class ValueImpl extends YangBuiltInStatementImpl implements Value {
+public class ValueImpl extends YangStatementImpl implements Value {
    private int value;
 
    public ValueImpl(String argStr) {

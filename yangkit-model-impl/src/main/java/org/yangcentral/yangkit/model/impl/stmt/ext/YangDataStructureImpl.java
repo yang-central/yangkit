@@ -16,7 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class YangDataStructureImpl extends SchemaNodeImpl implements YangStructure {
+public class YangDataStructureImpl extends EntityImpl implements YangStructure {
+    protected final SchemaNodeSupport schemaNodeSupport = new SchemaNodeSupport(this);
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
     private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();
@@ -348,4 +349,6 @@ public class YangDataStructureImpl extends SchemaNodeImpl implements YangStructu
     public QName getIdentifier() {
         return new QName(this.getContext().getNamespace(),this.getArgStr());
     }
+
 }
+

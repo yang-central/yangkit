@@ -6,13 +6,14 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class IdentityImpl extends YangBuiltInStatementImpl implements Identity {
+public class IdentityImpl extends YangStatementImpl implements Identity {
    private final EntitySupport entitySupport = new EntitySupport();
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();
    private List<Base> bases = new ArrayList<>();

@@ -19,12 +19,13 @@ import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DeviationImpl extends YangBuiltInStatementImpl implements Deviation {
+public class DeviationImpl extends YangStatementImpl implements Deviation {
    private Description description;
    private Reference reference;
    private SchemaNode target;

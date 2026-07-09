@@ -10,13 +10,14 @@ import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class BelongsToImpl extends YangBuiltInStatementImpl implements BelongsTo {
+public class BelongsToImpl extends YangStatementImpl implements BelongsTo {
    private Prefix prefix;
    private List<MainModule> mainModules = new ArrayList<>();
 

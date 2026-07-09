@@ -783,7 +783,11 @@ public abstract class YangStatementImpl implements YangStatement {
 
       YangStatementDef yangStatementDef = context.getYangSpecification().getStatementDef(this.getYangKeyword());
       if(yangStatementDef == null){
-         return validatorResultBuilder.build();
+         ValidatorResult result = validatorResultBuilder.build();
+         if (this instanceof YangBuiltinStatement) {
+            return ((YangBuiltinStatement) this).validateSubStatements(result);
+         }
+         return result;
       }
       for(YangElement subElement:subElements){
          if(subElement instanceof YangStatement){
@@ -807,7 +811,11 @@ public abstract class YangStatementImpl implements YangStatement {
          }
       }
 
-      return validatorResultBuilder.build();
+      ValidatorResult result = validatorResultBuilder.build();
+      if (this instanceof YangBuiltinStatement) {
+         return ((YangBuiltinStatement) this).validateSubStatements(result);
+      }
+      return result;
    }
 
    public ValidatorResult init() {

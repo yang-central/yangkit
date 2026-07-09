@@ -7,8 +7,9 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.MaxElements;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
-public class MaxElementsImpl extends YangBuiltInStatementImpl implements MaxElements {
+public class MaxElementsImpl extends YangStatementImpl implements MaxElements {
    private boolean unbounded = true;
    private Integer value;
 

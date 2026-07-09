@@ -8,8 +8,8 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.restriction.Section;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.type.SectionExpression;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-abstract class SectionExpressionImpl extends YangBuiltInStatementImpl implements SectionExpression {
+abstract class SectionExpressionImpl extends YangStatementImpl implements SectionExpression {
    private ErrorMessageStmt errorMessage;
    private ErrorAppTagStmt errorAppTag;
    private Description description;
