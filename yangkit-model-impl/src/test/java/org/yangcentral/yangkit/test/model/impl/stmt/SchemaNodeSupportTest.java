@@ -2,18 +2,13 @@ package org.yangcentral.yangkit.test.model.impl.stmt;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.yangcentral.yangkit.base.*;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.SchemaTreeType;
 import org.yangcentral.yangkit.model.api.stmt.*;
-import org.yangcentral.yangkit.model.api.stmt.type.Value;
-import org.yangcentral.yangkit.model.impl.schema.AbsoluteSchemaPath;
 import org.yangcentral.yangkit.model.impl.stmt.*;
-import org.yangcentral.yangkit.util.ModelUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +73,7 @@ public class SchemaNodeSupportTest {
         // Leaf with mandatory=true should be mandatory
         LeafImpl leaf = new LeafImpl("enabled");
         MandatoryImpl mandatory = new MandatoryImpl("true");
-        YangContext ctx = new YangContext();
+        YangContext ctx = new YangContext(null, null);
         mandatory.setContext(ctx);
         leaf.setContext(ctx);
 
@@ -96,8 +91,8 @@ public class SchemaNodeSupportTest {
     @Test
     public void testSetSchemaTreeType() {
         ContainerImpl container = new ContainerImpl("test-container");
-        container.setSchemaTreeType(SchemaTreeType.RPCTREE);
-        assertEquals(SchemaTreeType.RPCTREE, container.getSchemaTreeType(),
+        container.setSchemaTreeType(SchemaTreeType.YANGDATATREE);
+        assertEquals(SchemaTreeType.YANGDATATREE, container.getSchemaTreeType(),
                 "setSchemaTreeType should persist");
     }
 
@@ -146,6 +141,5 @@ public class SchemaNodeSupportTest {
         @Override public SchemaNode getMandatoryDescendant() { return null; }
         @Override public boolean isSchemaTreeRoot() { return false; }
         @Override public List<SchemaNode> getEffectiveSchemaNodeChildren(boolean ignoreNamespace) { return null; }
-        @Override public YangStatement getSelf() { return null; }
     }
 }
