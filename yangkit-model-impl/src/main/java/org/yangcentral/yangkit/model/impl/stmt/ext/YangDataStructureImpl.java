@@ -18,7 +18,6 @@ import java.util.List;
 
 public class YangDataStructureImpl extends EntityImpl implements YangStructure {
     private final SchemaNodeSupport schemaNodeSupport = new SchemaNodeSupport(this);
-    protected final SchemaNodeSupport schemaNodeSupport = new SchemaNodeSupport(this);
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
     private TypedefContainerImpl typedefContainer = new TypedefContainerImpl();

@@ -21,7 +21,6 @@ import java.util.*;
 
 public class AugmentStructureImpl extends EntityImpl implements AugmentStructure {
     private final SchemaNodeSupport schemaNodeSupport = new SchemaNodeSupport(this);
-    protected final SchemaNodeSupport schemaNodeSupport = new SchemaNodeSupport(this);
     private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
     private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
     private SchemaPath targetPath;
@@ -103,20 +102,6 @@ public class AugmentStructureImpl extends EntityImpl implements AugmentStructure
     }
 
 
-    @Override
-    public boolean isMandatory() {
-        return false;
-    }
-
-    @Override
-    public boolean hasDefault() {
-        return false;
-    }
-
-    @Override
-    public SchemaTreeType getSchemaTreeType() {
-        return SchemaTreeType.YANGDATATREE;
-    }
 
     @Override
     public List<SchemaNode> getSchemaNodeChildren() {
@@ -355,10 +340,6 @@ public class AugmentStructureImpl extends EntityImpl implements AugmentStructure
     }
     public QName getIdentifier() {
         return new QName(this.getContext().getNamespace(), this.getArgStr() + this.hashCode());
-    }
-
-    public SchemaPath.Absolute getSchemaPath() {
-        throw new IllegalArgumentException("un-support");
     }
 
     public boolean equals(Object o) {
