@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class UniqueImpl extends YangBuiltInStatementImpl implements Unique {
+public class UniqueImpl extends YangStatementImpl implements Unique {
    private List<Leaf> uniqueNodes = new ArrayList<>();
 
    public UniqueImpl(String argStr) {

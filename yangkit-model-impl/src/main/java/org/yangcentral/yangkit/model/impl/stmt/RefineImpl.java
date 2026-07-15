@@ -7,11 +7,12 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 
 import java.util.*;
 
-public class RefineImpl extends YangBuiltInStatementImpl implements Refine {
+public class RefineImpl extends YangStatementImpl implements Refine {
    private final IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();
    private SchemaPath targetPath;
    private SchemaNode targetNode;

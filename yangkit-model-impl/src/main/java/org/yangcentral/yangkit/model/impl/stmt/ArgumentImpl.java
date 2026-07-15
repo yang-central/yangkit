@@ -12,7 +12,7 @@ import org.yangcentral.yangkit.model.api.stmt.YinElement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArgumentImpl extends YangBuiltInStatementImpl implements Argument {
+public class ArgumentImpl extends YangStatementImpl implements Argument {
    private YinElement yinElement;
 
    public ArgumentImpl(String argStr) {

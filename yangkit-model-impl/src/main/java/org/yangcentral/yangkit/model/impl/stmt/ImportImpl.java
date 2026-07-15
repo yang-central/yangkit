@@ -17,6 +17,7 @@ import org.yangcentral.yangkit.model.api.stmt.Reference;
 import org.yangcentral.yangkit.model.api.stmt.RevisionDate;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.List;

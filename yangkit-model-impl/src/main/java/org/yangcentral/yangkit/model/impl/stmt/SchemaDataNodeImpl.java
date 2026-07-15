@@ -70,7 +70,7 @@ public abstract class SchemaDataNodeImpl extends DataDefinitionImpl implements S
       if (this.config != null && this.config.isConfig() && this.getSchemaTreeType() == SchemaTreeType.DATATREE) {
          SchemaNodeContainer parent = this.getParentSchemaNode();
          if (parent instanceof SchemaNode) {
-            SchemaNode parSchemaNode = this.getRealSchemaNode((SchemaNode)parent);
+            SchemaNode parSchemaNode = this.schemaNodeSupport.getRealSchemaNode((SchemaNode)parent);
             if (parSchemaNode != null && !parSchemaNode.isConfig()) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(config,
                        ErrorCode.CONFIG_CONFILICT.getFieldName()));

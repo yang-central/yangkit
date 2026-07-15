@@ -14,6 +14,7 @@ import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.*;
 

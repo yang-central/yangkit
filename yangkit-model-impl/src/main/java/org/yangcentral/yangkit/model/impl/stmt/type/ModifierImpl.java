@@ -6,10 +6,10 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.type.Modifier;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
-public class ModifierImpl extends YangBuiltInStatementImpl implements Modifier {
+public class ModifierImpl extends YangStatementImpl implements Modifier {
    public ModifierImpl(String argStr) {
       super(argStr);
    }

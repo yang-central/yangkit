@@ -6,10 +6,10 @@ import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.type.RequireInstance;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
-public class RequireInstanceImpl extends YangBuiltInStatementImpl implements RequireInstance {
+public class RequireInstanceImpl extends YangStatementImpl implements RequireInstance {
    private boolean value;
 
    public RequireInstanceImpl(String argStr) {

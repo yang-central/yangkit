@@ -16,6 +16,7 @@ import org.yangcentral.yangkit.model.api.stmt.ext.AugmentStructure;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.model.impl.schema.SchemaPathImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

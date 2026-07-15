@@ -9,7 +9,7 @@ import org.yangcentral.yangkit.model.api.stmt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FeatureImpl extends YangBuiltInStatementImpl implements Feature {
+public class FeatureImpl extends YangStatementImpl implements Feature {
    private final EntitySupport entitySupport = new EntitySupport();
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();
 

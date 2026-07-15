@@ -4,7 +4,7 @@ import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 
-abstract class YangSimpleStatementImpl extends YangBuiltInStatementImpl {
+abstract class YangSimpleStatementImpl extends YangStatementImpl {
    public YangSimpleStatementImpl(String argStr) {
       super(argStr);
    }

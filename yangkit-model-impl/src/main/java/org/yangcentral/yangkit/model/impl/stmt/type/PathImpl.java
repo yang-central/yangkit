@@ -9,8 +9,8 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.Import;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.type.Path;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 import org.yangcentral.yangkit.xpath.YangLocationPath;
 import org.yangcentral.yangkit.xpath.YangXPath;
 import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
@@ -18,7 +18,7 @@ import org.yangcentral.yangkit.xpath.impl.YangXPathPrefixVisitor;
 
 import java.util.List;
 
-public class PathImpl extends YangBuiltInStatementImpl implements Path {
+public class PathImpl extends YangStatementImpl implements Path {
    private YangXPath path;
 
    public PathImpl(String argStr) {

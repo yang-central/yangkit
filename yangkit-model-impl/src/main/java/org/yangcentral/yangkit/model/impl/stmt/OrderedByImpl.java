@@ -8,8 +8,9 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.OrderBy;
 import org.yangcentral.yangkit.model.api.stmt.OrderedBy;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
-public class OrderedByImpl extends YangBuiltInStatementImpl implements OrderedBy {
+public class OrderedByImpl extends YangStatementImpl implements OrderedBy {
    private OrderBy orderBy;
 
    public OrderedByImpl(String argStr) {

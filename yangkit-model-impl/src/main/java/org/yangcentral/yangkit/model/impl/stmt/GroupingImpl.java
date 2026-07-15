@@ -10,12 +10,13 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class GroupingImpl extends YangBuiltInStatementImpl implements Grouping {
+public class GroupingImpl extends YangStatementImpl implements Grouping {
    private final EntitySupport entitySupport = new EntitySupport();
    private ActionContainerImpl actionContainer = new ActionContainerImpl();
    private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();

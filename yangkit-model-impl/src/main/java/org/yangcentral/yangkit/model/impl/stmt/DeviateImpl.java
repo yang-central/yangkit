@@ -29,12 +29,13 @@ import org.yangcentral.yangkit.model.api.stmt.YangList;
 import org.yangcentral.yangkit.model.api.stmt.YangStatement;
 import org.yangcentral.yangkit.model.api.stmt.YangUnknown;
 import org.yangcentral.yangkit.util.ModelUtil;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DeviateImpl extends YangBuiltInStatementImpl implements Deviate {
+public class DeviateImpl extends YangStatementImpl implements Deviate {
    private SchemaNode target;
    private DeviateType deviateType;
    private Config config;

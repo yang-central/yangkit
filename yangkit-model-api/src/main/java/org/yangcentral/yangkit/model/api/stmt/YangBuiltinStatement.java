@@ -20,8 +20,31 @@ import java.util.Map;
  * Marker interface for YANG built-in keyword statements.
  * Provides default substatement validation that all builtin
  * statements must perform regardless of their inheritance chain.
+*/
+/**
+ * Marker interface for YANG built-in keyword statements.
+ * Provides default substatement validation that all builtin
+ * statements must perform regardless of their inheritance chain.
  */
 public interface YangBuiltinStatement extends YangStatement {
+
+    /**
+     * Two built-in statements are equal if they share the same keyword
+     * and argument string.
+     */
+    default boolean builtinEquals(Object obj) {
+        if (!(obj instanceof YangBuiltinStatement)) {
+            return false;
+        }
+        YangBuiltinStatement other = (YangBuiltinStatement) obj;
+        if (!this.getYangKeyword().equals(other.getYangKeyword())) {
+            return false;
+        }
+        if (this.getArgStr() != null && other.getArgStr() != null) {
+            return this.getArgStr().equals(other.getArgStr());
+        }
+        return this.getArgStr() == null && other.getArgStr() == null;
+    }
 
     /**
      * Validate that all child substatements of this statement

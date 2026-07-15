@@ -12,13 +12,13 @@ import org.yangcentral.yangkit.model.api.stmt.type.Bit;
 import org.yangcentral.yangkit.model.api.stmt.type.Position;
 import org.yangcentral.yangkit.model.impl.stmt.EntitySupport;
 import org.yangcentral.yangkit.model.impl.stmt.IfFeatureSupportImpl;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.register.YangStatementRegister;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BitImpl extends YangBuiltInStatementImpl implements Bit {
+public class BitImpl extends YangStatementImpl implements Bit {
    private final EntitySupport entitySupport = new EntitySupport();
    private Position position;
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();

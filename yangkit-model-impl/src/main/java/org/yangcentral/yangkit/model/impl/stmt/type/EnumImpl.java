@@ -12,13 +12,13 @@ import org.yangcentral.yangkit.model.api.stmt.type.Value;
 import org.yangcentral.yangkit.model.api.stmt.type.YangEnum;
 import org.yangcentral.yangkit.model.impl.stmt.EntitySupport;
 import org.yangcentral.yangkit.model.impl.stmt.IfFeatureSupportImpl;
-import org.yangcentral.yangkit.model.impl.stmt.YangBuiltInStatementImpl;
 import org.yangcentral.yangkit.register.YangStatementRegister;
+import org.yangcentral.yangkit.model.impl.stmt.YangStatementImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnumImpl extends YangBuiltInStatementImpl implements YangEnum {
+public class EnumImpl extends YangStatementImpl implements YangEnum {
    private final EntitySupport entitySupport = new EntitySupport();
    private Value value;
    private IfFeatureSupportImpl ifFeatureSupport = new IfFeatureSupportImpl();

@@ -23,7 +23,8 @@ import org.yangcentral.yangkit.xpath.impl.XPathUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InputImpl extends SchemaNodeImpl implements Input {
+public class InputImpl extends EntityImpl implements Input {
+    private final SchemaNodeSupport schemaNodeSupport = new SchemaNodeSupport(this);
    private DataDefContainerImpl dataDefContainer = new DataDefContainerImpl();
    private GroupingDefContainerImpl groupingDefContainer = new GroupingDefContainerImpl();
    private SchemaNodeContainerImpl schemaNodeContainer = new SchemaNodeContainerImpl(this);
@@ -313,4 +314,35 @@ public class InputImpl extends SchemaNodeImpl implements Input {
       statements.addAll(super.getEffectiveSubStatements());
       return statements;
    }
+
+    // === SchemaNode delegation (role, not ontology) ===
+    @Override
+    public boolean supported() { return schemaNodeSupport.supported(); }
+    @Override
+    public void setSupported(boolean supported) { schemaNodeSupport.setSupported(supported); }
+    @Override
+    public org.yangcentral.yangkit.model.api.schema.SchemaPath.Absolute getSchemaPath() { return schemaNodeSupport.getSchemaPath(); }
+    @Override
+    public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getParentSchemaNode() { return schemaNodeSupport.getParentSchemaNode(); }
+    @Override
+    public void setParentSchemaNode(org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer schemaNodeContainer) { schemaNodeSupport.setParentSchemaNode(schemaNodeContainer); }
+    @Override
+    public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getClosestAncestorNode() { return schemaNodeSupport.getClosestAncestorNode(); }
+    @Override
+    public boolean isMandatory() { return schemaNodeSupport.isMandatory(); }
+    @Override
+    public boolean hasDefault() { return schemaNodeSupport.hasDefault(); }
+    @Override
+    public org.yangcentral.yangkit.model.api.schema.SchemaTreeType getSchemaTreeType() { return schemaNodeSupport.getSchemaTreeType(); }
+    @Override
+    public void setSchemaTreeType(org.yangcentral.yangkit.model.api.schema.SchemaTreeType treeType) { schemaNodeSupport.setSchemaTreeType(treeType); }
+    @Override
+    public boolean isAncestorNode(org.yangcentral.yangkit.model.api.stmt.SchemaNode ancestor) { return schemaNodeSupport.isAncestorNode(ancestor); }
+    @Override
+    public boolean isDeviated() { return schemaNodeSupport.isDeviated(); }
+    @Override
+    public void setDeviated(boolean deviated) { schemaNodeSupport.setDeviated(deviated); }
+    @Override
+    public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
+

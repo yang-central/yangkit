@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class KeyImpl extends YangBuiltInStatementImpl implements Key {
+public class KeyImpl extends YangStatementImpl implements Key {
    private List<Leaf> keyNodes = new ArrayList<>();
 
    public KeyImpl(String argStr) {
