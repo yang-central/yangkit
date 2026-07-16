@@ -1,5 +1,7 @@
 package org.yangcentral.yangkit.model.impl.schema;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.base.YangElement;
@@ -22,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangSchemaContextImpl implements YangSchemaContext {
+   private static final Logger logger = LoggerFactory.getLogger(YangSchemaContextImpl.class);
    private List<Module> modules = new ArrayList<>();
    private List<Module> importOnlyModules = new ArrayList<>();
    private Map<String, List<Module>> moduleMap = new ConcurrentHashMap<>();
@@ -288,7 +291,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       try {
          module.clear();
       } catch (RuntimeException e){
-         System.out.println("clear module:"+ module.getArgStr() + " failed. detail:"+e.getMessage());
+         logger.warn("clear module:{} failed. detail:{}", module.getArgStr(), e.getMessage());
       }
 
 
@@ -335,30 +338,22 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       // due to sequential per-module build ordering — the augmenting module's SCHEMA_EXPAND
       // ran before the target module's SCHEMA_BUILD added its notifications/containers to
       // the schema context. After all modules have built, retry those unresolved augments.
-      int retryResolved = 0;
-      int retrySkippedAlreadyResolved = 0;
-      int retrySkippedNoPath = 0;
-      int retrySkippedTargetNull = 0;
       for(Module module:modules){
          for(Augment augment : module.getAugments()){
             if(augment.getTarget() != null){
-               retrySkippedAlreadyResolved++;
                continue; // already resolved in the first pass
             }
             SchemaPath targetPath = augment.getTargetPath();
             if(targetPath == null){
-               retrySkippedNoPath++;
                continue; // schema path itself failed to parse; cannot retry
             }
             SchemaNode target = targetPath.getSchemaNode(this);
             if(target == null || !(target instanceof Augmentable)){
-               retrySkippedTargetNull++;
                continue;
             }
             augment.setTarget(target);
             SchemaNodeContainer targetContainer = (SchemaNodeContainer) target;
             targetContainer.addSchemaNodeChild(augment);
-            retryResolved++;
          }
       }
       //validate

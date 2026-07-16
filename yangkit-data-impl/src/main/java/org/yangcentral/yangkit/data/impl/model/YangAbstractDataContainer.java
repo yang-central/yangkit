@@ -2,6 +2,8 @@ package org.yangcentral.yangkit.data.impl.model;
 
 import com.google.common.collect.Lists;
 import org.jaxen.JaxenException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorAppTag;
@@ -25,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangAbstractDataContainer implements YangDataContainer {
+    private static final Logger logger = LoggerFactory.getLogger(YangAbstractDataContainer.class);
     private YangDataContainer self;
     private SchemaNodeContainer schemaNodeContainer;
     private Map<DataIdentifier,YangData<?>> children = new ConcurrentHashMap<>();
@@ -534,7 +537,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
                     self.removeChild(dummyNode.getIdentifier());
                 } catch (YangDataException | JaxenException e) {
                     self.removeChild(dummyNode.getIdentifier());
-                    e.printStackTrace();
+                    logger.warn("Failed to check when condition for mandatory node {}: {}", schemaNode.getIdentifier().getQualifiedName(), e.getMessage());
                 }
             }
             else {

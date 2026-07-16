@@ -4,6 +4,8 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.ModuleSet;
 import org.yangcentral.yangkit.model.api.schema.YangModuleDescription;
@@ -43,9 +45,7 @@ import java.util.List;
  */
 public class YangLibraryParser {
 
-    /** IETF YANG Library namespace (RFC 8525). */
-    public static final String YANG_LIB_NS =
-            "urn:ietf:params:xml:ns:yang:ietf-yang-library";
+    private static final Logger logger = LoggerFactory.getLogger(YangLibraryParser.class);
 
     // -------------------------------------------------------------------------
     // Public entry-points
@@ -168,7 +168,6 @@ public class YangLibraryParser {
     private static ParsedModule parseModuleEntry(Element elem) {
         String name      = childText(elem, "name");
         String revision  = childText(elem, "revision");
-        String namespace = childText(elem, "namespace");
 
         List<String> features   = new ArrayList<>();
         List<String> deviations = new ArrayList<>();
@@ -190,7 +189,7 @@ public class YangLibraryParser {
                     break;
             }
         }
-        return new ParsedModule(name, revision, namespace, features, deviations, locations);
+        return new ParsedModule(name, revision, features, deviations, locations);
     }
 
     /** Returns trimmed text of the first matching child element, or {@code null}. */
@@ -248,10 +247,11 @@ public class YangLibraryParser {
             if (location.startsWith("file://")) {
                 File f = new File(location.substring(7));
                 if (f.exists()) {
-                    System.out.println("[Parser] Loading module: " + m.name + " from " + f.getName()); System.out.flush();
-                    YangYinParser.parse(new FileInputStream(f),
-                            f.getAbsolutePath(), true, importOnly, context);
-                    System.out.println("[Parser] Done: " + m.name); System.out.flush();
+                    logger.debug("Loading module '{}' from {}", m.name, f.getName());
+                    try (FileInputStream fis = new FileInputStream(f)) {
+                        YangYinParser.parse(fis, f.getAbsolutePath(), true, importOnly, context);
+                    }
+                    logger.debug("Done loading module '{}'", m.name);
                     return;
                 }
             }
@@ -261,10 +261,11 @@ public class YangLibraryParser {
         if (searchPath != null) {
             File found = findYangFile(m.name, m.revision, searchPath);
             if (found != null) {
-                System.out.println("[Parser] Loading module: " + m.name + " from " + found.getName()); System.out.flush();
-                YangYinParser.parse(new FileInputStream(found),
-                        found.getAbsolutePath(), true, importOnly, context);
-                System.out.println("[Parser] Done: " + m.name); System.out.flush();
+                logger.debug("Loading module '{}' from {}", m.name, found.getName());
+                try (FileInputStream fis = new FileInputStream(found)) {
+                    YangYinParser.parse(fis, found.getAbsolutePath(), true, importOnly, context);
+                }
+                logger.debug("Done loading module '{}'", m.name);
                 return;
             }
         }
@@ -321,17 +322,15 @@ public class YangLibraryParser {
     private static final class ParsedModule {
         final String name;
         final String revision;   // may be null
-        final String namespace;  // may be null for import-only entries
         final List<String> features;
         final List<String> deviations;
         final List<String> locations;
 
-        ParsedModule(String name, String revision, String namespace,
+        ParsedModule(String name, String revision,
                      List<String> features, List<String> deviations,
                      List<String> locations) {
             this.name = name;
             this.revision = revision;
-            this.namespace = namespace;
             this.features = features;
             this.deviations = deviations;
             this.locations = locations;

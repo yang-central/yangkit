@@ -1,6 +1,5 @@
 package org.yangcentral.yangkit.model.impl.codec;
 
-import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.model.api.codec.IdentityRefStringValueCodec;
@@ -16,10 +15,11 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl<QName> implements IdentityRefStringValueCodec {
-   private static final Logger LOGGER = Logger.getLogger(IdentityRefStringValueCodecImpl.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(IdentityRefStringValueCodecImpl.class);
    public IdentityRefStringValueCodecImpl(TypedDataNode schemaNode) {
       super(schemaNode);
    }
@@ -38,7 +38,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             SubModule sb = (SubModule)curModule;
             mainModuleList = sb.getBelongsto().getMainModules();
             if (mainModuleList.size() == 0) {
-               LOGGER.warning("[IdentityRef] SubModule has no main modules, treating as opaque: " + input);
+               LOGGER.warn("[IdentityRef] SubModule has no main modules, treating as opaque: " + input);
                return buildFallbackQName(prefix, fName.getLocalName());
             }
 
@@ -53,7 +53,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             ModuleId moduleId = (ModuleId)moduleIdOp.get();
             Optional<Module> moduleOp = this.getSchemaNode().getContext().getSchemaContext().getModule(moduleId);
             if (!moduleOp.isPresent()) {
-               LOGGER.warning("[IdentityRef] Module not present in schema context for prefix: " + fName.getPrefix() + ", treating as opaque: " + input);
+               LOGGER.warn("[IdentityRef] Module not present in schema context for prefix: " + fName.getPrefix() + ", treating as opaque: " + input);
                return buildFallbackQName(prefix, fName.getLocalName());
             }
 
@@ -74,7 +74,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             }
 
             if (namespace == null) {
-               LOGGER.warning("[IdentityRef] No module found for prefix: " + prefix + ", treating as opaque: " + input);
+               LOGGER.warn("[IdentityRef] No module found for prefix: " + prefix + ", treating as opaque: " + input);
                return buildFallbackQName(prefix, fName.getLocalName());
             }
          }
@@ -83,10 +83,10 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
       QName qName = new QName(namespace, prefix, fName.getLocalName());
       try {
          if (!restriction.evaluate(qName)) {
-            LOGGER.warning("[IdentityRef] Identity not found in restriction, treating as opaque: " + input);
+            LOGGER.warn("[IdentityRef] Identity not found in restriction, treating as opaque: " + input);
          }
       } catch (Exception e) {
-         LOGGER.warning("[IdentityRef] Restriction evaluation error for: " + input + " - " + e.getMessage());
+         LOGGER.warn("[IdentityRef] Restriction evaluation error for: " + input + " - " + e.getMessage());
       }
       return qName;
    }
@@ -94,10 +94,10 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
    public String serialize(Restriction<QName> restriction, QName output) throws YangCodecException {
       try {
          if (!restriction.evaluate(output)) {
-            LOGGER.warning("[IdentityRef] Serialize: identity not found in restriction, returning qualified name anyway.");
+            LOGGER.warn("[IdentityRef] Serialize: identity not found in restriction, returning qualified name anyway.");
          }
       } catch (Exception e) {
-         LOGGER.warning("[IdentityRef] Serialize: restriction evaluation error - " + e.getMessage());
+         LOGGER.warn("[IdentityRef] Serialize: restriction evaluation error - " + e.getMessage());
       }
       return output.getQualifiedName();
    }

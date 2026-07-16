@@ -93,6 +93,5 @@ public class YangStatementImplRegister {
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.POSITION.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.POSITION.getQName(), PositionImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.PATH.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.PATH.getQName(), PathImpl.class));
       YangStatementRegister.getInstance().register(YangBuiltinKeyword.REQUIREINSTANCE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.REQUIREINSTANCE.getQName(), RequireInstanceImpl.class));
-      YangStatementRegister.getInstance().register(YangBuiltinKeyword.BASE.getQName(), new YangStatementParserPolicy(YangBuiltinKeyword.BASE.getQName(), BaseImpl.class, Arrays.asList(BuildPhase.GRAMMAR, BuildPhase.SCHEMA_BUILD)));
    }
 }

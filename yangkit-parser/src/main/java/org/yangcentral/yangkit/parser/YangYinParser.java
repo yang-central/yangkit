@@ -14,21 +14,19 @@ import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.utils.file.FileUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 
 public class YangYinParser {
+   private static final Logger logger = LoggerFactory.getLogger(YangYinParser.class);
+
    static {
       YangStatementImplRegister.registerImpl();
    }
-
-   // Global lock: parsing and validation share static mutable state in yangkit
-   // and are not thread-safe. This lock lives in yangkit's classloader so it is
-   // guaranteed to be a single instance regardless of how many plugin classloaders
-   // load the calling code.
-   public static final Object PARSE_LOCK = new Object();
 
    // -------------------------------------------------------------------------
    // YANG Library (RFC 8525) entry-points
@@ -389,17 +387,17 @@ public class YangYinParser {
 
       String yangString = "";
       if (isYang) {
-         System.out.println("[Parse:readString] start for: " + moduleInfo); System.out.flush();
+         logger.debug("[Parse:readString] start for: {}", moduleInfo);
          yangString = readString(inputStream);
-         System.out.println("[Parse:readString] done, length=" + yangString.length() + " for: " + moduleInfo); System.out.flush();
+         logger.debug("[Parse:readString] done, length={} for: {}", yangString.length(), moduleInfo);
          YangParser yangParser = new YangParser();
          YangParserEnv env = new YangParserEnv();
          env.setYangStr(yangString);
          env.setFilename(moduleInfo);
          env.setCurPos(0);
-         System.out.println("[Parse:parseYang] start for: " + moduleInfo); System.out.flush();
+         logger.debug("[Parse:parseYang] start for: {}", moduleInfo);
          yangElements = yangParser.parseYang(yangString, env);
-         System.out.println("[Parse:parseYang] done, elements=" + (yangElements == null ? 0 : yangElements.size()) + " for: " + moduleInfo); System.out.flush();
+         logger.debug("[Parse:parseYang] done, elements={} for: {}", (yangElements == null ? 0 : yangElements.size()), moduleInfo);
       } else {
          YinParser yinParser = new YinParser(moduleInfo);
          SAXReader reader = SAXReader.createDefault();
@@ -426,13 +424,13 @@ public class YangYinParser {
                   continue;
                }
             }
-            System.out.println("[Parse:addModule] " + (importOnly ? "importOnly" : "main") + " module=" + module.getArgStr() + " for: " + moduleInfo); System.out.flush();
+            logger.debug("[Parse:addModule] {} module={} for: {}", (importOnly ? "importOnly" : "main"), module.getArgStr(), moduleInfo);
             if(importOnly){
                context.addImportOnlyModule(module);
             } else {
                context.addModule(module);
             }
-            System.out.println("[Parse:addModule] done for: " + moduleInfo); System.out.flush();
+            logger.debug("[Parse:addModule] done for: {}", moduleInfo);
 
             break;
          }
