@@ -24,7 +24,9 @@ public abstract class YangDataMessageJsonCodec<M extends YangDataMessage<M>> imp
     @Override
     public M deserialize(JsonNode document, ValidatorResultBuilder builder) {
         M m = parseHeader(document,builder);
-        parseContent(document,m,builder);
+        if (m != null) {
+            parseContent(document, m, builder);
+        }
         return m;
     }
 

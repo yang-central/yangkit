@@ -83,10 +83,9 @@ public class JsonCodecDataTestGetSource {
 
         schemaContext.validate();
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> new YangDataDocumentJsonParser(schemaContext).parse(invalidJsonNode,validatorResultBuilder));
-        assertNotNull(ex.getCause());
-        assertTrue(ex.getCause().getMessage().contains("invalid value"));
+        YangDataDocument yangDataDocument = new YangDataDocumentJsonParser(schemaContext).parse(invalidJsonNode, validatorResultBuilder);
+        assertNotNull(yangDataDocument);
+        assertFalse(validatorResultBuilder.build().isOk());
     }
 
     @Test

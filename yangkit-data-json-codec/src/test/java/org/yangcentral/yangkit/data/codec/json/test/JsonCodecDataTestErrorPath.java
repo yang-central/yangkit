@@ -7,7 +7,6 @@ import org.yangcentral.yangkit.parser.YangParserException;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JsonCodecDataTestErrorPath {
@@ -23,22 +22,16 @@ public class JsonCodecDataTestErrorPath {
     public void test2() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test2.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("errorPath/test2.yang").getFile();
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> JsonCodecDataFunc.expectedBadElementJsonPathError(jsonFile, yangFile,
-                        "/insa-test:insa-container/a/b/c/d/e"));
-        assertNotNull(ex.getCause());
-        assertTrue(ex.getCause().getMessage().contains("invalid value"));
+        JsonCodecDataFunc.expectedBadElementJsonPathError(jsonFile, yangFile,
+                "/insa-test:insa-container/a/b/c/d/e");
     }
 
     @Test
     public void test3() throws DocumentException, IOException, YangParserException {
         String jsonFile = this.getClass().getClassLoader().getResource("errorPath/test3.json").getFile();
         String yangFile = this.getClass().getClassLoader().getResource("errorPath/test3.yang").getFile();
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> JsonCodecDataFunc.expectedBadElementJsonPathError(jsonFile, yangFile,
-                        "/insa-test:network/nodes/0/interfaces/interface/0/interface-type"));
-        assertNotNull(ex.getCause());
-        assertTrue(ex.getCause().getMessage().contains("invalid value"));
+        JsonCodecDataFunc.expectedBadElementJsonPathError(jsonFile, yangFile,
+                "/insa-test:network/nodes/0/interfaces/interface/0/interface-type");
     }
 
 }

@@ -35,7 +35,6 @@ public abstract class YangStructureMessageJsonCodec<T extends YangStructureMessa
     protected T parseHeader(JsonNode document, ValidatorResultBuilder builder) {
         String structureName = structure.getJsonIdentifier();
         Iterator<String> fieldNames = document.fieldNames();
-        boolean hasError = false;
         while (fieldNames.hasNext()){
             String fieldName = fieldNames.next();
             if(!fieldName.equals(structureName)){
@@ -45,17 +44,13 @@ public abstract class YangStructureMessageJsonCodec<T extends YangStructureMessa
                 validatorRecordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(document.get(fieldName)));
                 validatorRecordBuilder.setErrorMessage(new ErrorMessage("unrecognized field:"+ fieldName));
                 builder.addRecord(validatorRecordBuilder.build());
-                hasError = true;
             }
-        }
-        if (hasError) {
-            return null;
         }
         T instance = newStructureInstance();
         JsonNode structureNode = document.get(structureName);
         YangDataDocument structureDoc = new YangDataDocumentImpl(null,getSchemaContext(), document.toString());
         YangStructureData yangStructureData = new YangStructureDataJsonCodec(structure).deserialize(structureNode,builder);
-        if(!builder.build().isOk()) {
+        if(yangStructureData == null) {
             return null;
         }
         try {

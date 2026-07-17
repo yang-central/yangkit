@@ -2,6 +2,7 @@ package org.yangcentral.yangkit.data.codec.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
@@ -42,7 +43,12 @@ public class LeafListDataJsonCodec extends TypedDataJsonCodec<LeafList, LeafList
             recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(element));
             validatorResultBuilder.addRecord(recordBuilder.build());
         } catch (YangCodecException e) {
-            throw new RuntimeException(e);
+            ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
+            recordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+            recordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(element));
+            recordBuilder.setBadElement(element);
+            recordBuilder.setErrorMessage(new ErrorMessage(e.getMessage()));
+            validatorResultBuilder.addRecord(recordBuilder.build());
         }
         return null;
     }
