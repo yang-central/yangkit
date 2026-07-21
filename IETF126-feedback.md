@@ -44,11 +44,21 @@ Yangkit 基于 Jaxen 实现了完整的 XPath 1.0 引擎，并扩展了 YANG 特
 
 **建议:** 提供具体失败的测试用例。如果测试期望的是 schema 树上的 XPath 查询能力，那属于超出 YANG XPath 规范定义的额外功能，不应作为 YANG library 的 XPath 支持评价标准。
 
-## 4. Add New Schema Node — "Not Supported"
+## 4. Add New Schema Node — "Not Supported" 评价不公平
 
 **Slides 结论:** yangkit 不支持动态添加 schema 节点
 
-**反馈:** 这是架构层面的设计选择。Yangkit 将 schema 编译和数据验证严格分层，schema 树一旦编译完成即不可变，保证并发安全性和验证可靠性。这在大多数使用场景下是合理的。
+**反馈:**
+
+首先，yangkit-model **支持动态增删改 schema 节点**，但这是在**设计态**（模型编辑/编译阶段）工作的能力，`SchemaNodeContainer.addSchemaNodeChild()` 等 API 就是为此设计的。
+
+其次，对于 yangkit-data（数据验证）来说，基于确定的 schema 来验证数据正确性是基本前提。在运行时改变 schema 意味着在验证过程中移动标准线，这在数据验证场景下是不可接受的。如果需要使用新的 schema，正确的做法是重新运行一次模型解析，构建新的 schema context，而不是在已有 context 上动态修改。
+
+这个测试实际上混淆了两个不同的职责：
+- **模型编辑/编译**（设计态）：yangkit-model 支持，可以动态增删改节点
+- **数据验证**（运行态）：yangkit-data 基于不可变的 schema 进行验证，这是正确的设计
+
+**建议:** 如果测试的目的是评估"模型编辑能力"，应当在设计态下测试 yangkit-model 的 API，而非在数据验证的上下文中评价。
 
 ## 5. Update Existing Data Node — "Not Supported"
 
