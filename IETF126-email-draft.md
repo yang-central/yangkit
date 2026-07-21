@@ -14,7 +14,7 @@ That said, I'd like to raise a few points about the yangkit evaluation results f
 
 ### 1. Anydata Validation — rated "Partially Supported"
 
-RFC 7950 Section 7.10 draws a clear distinction between `anydata` and `anyxml`: anydata represents "an unknown set of nodes that can be modeled with YANG," while anyxml can contain arbitrary data that need not conform to any YANG model.
+As the original proposer of the `anydata` statement during the YANG 1.1 revision process (the proposal was accepted into RFC 7950), I'd like to clarify its intended semantics. RFC 7950 Section 7.10 draws a clear distinction between `anydata` and `anyxml`: anydata represents "an unknown set of nodes that can be modeled with YANG," while anyxml can contain arbitrary data that need not conform to any YANG model.
 
 Yangkit requires an explicit schema context to be registered (via `AnydataValidationOptions`) before validating anydata payload. This is a deliberate design choice that reflects the semantics of anydata: without a schema, anydata content simply cannot be validated — that's the nature of anydata, not an implementation gap.
 

@@ -12,7 +12,7 @@ Authors: Vivekananda Boudia, Pierre Francois, Maxence Younsi (INSA Lyon)
 
 **反馈:**
 
-RFC 7950 Section 7.10 明确区分了 anydata 和 anyxml：
+作为 anydata 语句在 YANG 1.1 修订过程中的最初提出者（提案被接纳进入 RFC 7950），需要澄清其设计意图。RFC 7950 Section 7.10 明确区分了 anydata 和 anyxml：
 - anydata: "an unknown set of nodes that **can be modeled with YANG**"
 - anyxml: 不需要符合任何 YANG 模型的任意数据
 
