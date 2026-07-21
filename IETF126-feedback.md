@@ -28,17 +28,21 @@ Libyang 在没有 schema 的情况下将 anydata payload 保留为 opaque 数据
 
 此项 Partially Supported 评价是上述 anydata validation 问题在 structure 上下文中的延伸，反馈同上。
 
-## 3. XPath / Data Extraction — "Partially Supported"
+## 3. XPath / Data Extraction — "Partially Supported" 评价有误
 
 **Slides 结论:** yangkit XPath/data extraction 为 Partially Supported
 
-**待确认:** 需要了解具体哪些 XPath 测试用例未通过。Yangkit 基于 Jaxen 实现了完整的 XPath 1.0 引擎，并扩展了 YANG 特有函数（current(), deref(), derived-from(), derived-from-or-self(), enum-value(), re-match(), bit-is-set()）。
+**反馈:**
 
-可能的差距：
-- Schema 树上的 XPath 查询（yangkit 的 XPath navigator 面向数据树，非 schema 树）
-- XPath 结果集的结构化 API
+RFC 7950 中 XPath 的使用场景非常明确：when（条件性存在约束）、must（数据验证约束）、leafref path（叶节点引用）、instance-identifier（实例标识）。这些全部是在**数据树**上求值的。
 
-**建议:** 提供具体失败的测试用例，以便准确定位差距。
+YANG XPath 表达式中的路径是 data node path，跳过 choice/case 等 schema-only 节点，这决定了 XPath 和 schema path 是两套不同的寻址体系。用 XPath 查询 schema 节点（如 libyang 的 `lys_find_xpath()`）是 libyang 提供的额外便利功能，不是 YANG 规范对 XPath 的要求。
+
+Yangkit 基于 Jaxen 实现了完整的 XPath 1.0 引擎，并扩展了 YANG 特有函数（current(), deref(), derived-from(), derived-from-or-self(), enum-value(), re-match(), bit-is-set()），完整覆盖了 RFC 7950 对 XPath 的所有要求。yangkit-xpath 模块的职责就是 RFC 7950 定义的 XPath 数据树求值，它完整实现了这个职责。
+
+至于 `evaluate()` 返回 List/String/Number/Boolean，这正是 XPath 1.0 规范定义的四种结果类型（node-set, string, number, boolean），不存在"结构化结果集"缺失的问题。
+
+**建议:** 提供具体失败的测试用例。如果测试期望的是 schema 树上的 XPath 查询能力，那属于超出 YANG XPath 规范定义的额外功能，不应作为 YANG library 的 XPath 支持评价标准。
 
 ## 4. Add New Schema Node — "Not Supported"
 
