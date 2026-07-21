@@ -8,76 +8,55 @@
 
 Hi Vivekananda, Pierre, and Maxence,
 
-Thank you for the "YANG Libraries Feature Comparison" presentation at IETF 126 NETMOD. As the author and maintainer of yangkit, I appreciate the effort to systematically evaluate YANG libraries — this kind of cross-implementation comparison is valuable for the community.
+Thank you for the "YANG Libraries Feature Comparison" presentation at IETF 126 NETMOD. As the author and maintainer of yangkit, I'm delighted to see this kind of systematic, cross-implementation comparison — it is exactly the type of work that benefits the entire YANG ecosystem.
 
-That said, I'd like to raise a few points about the yangkit evaluation results for discussion. I've reviewed the test cases from the yang_tests repository and believe some of the ratings may need revisiting.
+I'd like to offer some clarifications on a few of the yangkit evaluation results, and more broadly, to suggest that the community could benefit from developing a shared set of test criteria together.
 
 ### 1. Anydata Validation — rated "Partially Supported"
 
-As the original proposer of the `anydata` statement during the YANG 1.1 revision process (the proposal was accepted into RFC 7950), I'd like to clarify its intended semantics. RFC 7950 Section 7.10 draws a clear distinction between `anydata` and `anyxml`: anydata represents "an unknown set of nodes that can be modeled with YANG," while anyxml can contain arbitrary data that need not conform to any YANG model.
+As the original proposer of the `anydata` statement during the YANG 1.1 revision (the proposal was accepted into RFC 7950), I'd like to clarify its intended semantics.
 
-Yangkit requires an explicit schema context to be registered (via `AnydataValidationOptions`) before validating anydata payload. This is a deliberate design choice that reflects the semantics of anydata: without a schema, anydata content simply cannot be validated — that's the nature of anydata, not an implementation gap.
+RFC 7950 Section 7.10 distinguishes `anydata` from `anyxml`: anydata represents "an unknown set of nodes that can be modeled with YANG," meaning its content must conform to some YANG model — we just don't know which one at compile time. Yangkit requires an explicit schema context (via `AnydataValidationOptions`) before validating anydata payload, which directly reflects this semantics.
 
-If a library preserves anydata payload as opaque data without schema-based validation (treating it like anyxml), that is data preservation, not validation.
+There is an important distinction between "preserving anydata payload as opaque data" and "validating anydata payload against a schema." Both are useful capabilities, but they serve different purposes. It would be valuable for the community to discuss and agree on what "anydata validation support" should mean in the context of a feature comparison.
 
-Looking at the test cases, I also note that several have unresolved questions from the testers themselves — for example, `testPrimitiveTypeAnydata()` is annotated with "payload is primitive, invalid - in strict validation of yangkit, why is it succ?" and `testNullAnydata()` has "Heng - is this actually valid?" referencing RFC 7951 Sec.5.5. When the expected behavior is unclear even to the test authors, using these tests to rate a library seems premature.
-
-I'd suggest we discuss what "supported" should mean for anydata validation — the distinction between "retaining unvalidated data" and "actually validating against a schema" seems important.
-
-The same reasoning applies to the "Anydata inside structures" rating.
+The same applies to the "Anydata inside structures" rating.
 
 ### 2. XPath / Data Extraction — rated "Partially Supported"
 
-In RFC 7950, XPath is used exclusively for `when`, `must`, `leafref path`, and `instance-identifier` — all of which evaluate over the **data tree**. YANG XPath paths are data node paths that skip schema-only nodes like `choice` and `case`, which makes XPath and schema path fundamentally different addressing systems.
+Yangkit implements a complete XPath 1.0 engine (based on Jaxen) with all YANG-specific extension functions defined in RFC 7950: `current()`, `deref()`, `derived-from()`, `derived-from-or-self()`, `enum-value()`, `re-match()`, and `bit-is-set()`.
 
-Yangkit implements a complete XPath 1.0 engine (based on Jaxen) with all YANG-specific extension functions: `current()`, `deref()`, `derived-from()`, `derived-from-or-self()`, `enum-value()`, `re-match()`, and `bit-is-set()`. This fully covers what RFC 7950 requires of XPath.
+In RFC 7950, XPath is used for `when`, `must`, `leafref path`, and `instance-identifier` — all of which evaluate over the data tree. YANG XPath paths are data node paths that skip schema-only constructs like `choice` and `case`, making them fundamentally different from schema paths.
 
-Looking at the test cases, the only "failure" appears to be `anydataXpathTest()`, where XPath cannot traverse into anydata payload content (the TODO note says "'value' returns '' instead of 'router1'"). This is expected behavior — RFC 7950 Section 7.10 defines anydata as an opaque, indivisible node in the data tree with no addressable child nodes. XPath path steps simply cannot enter anydata internals, regardless of whether a schema is registered. This is not an implementation limitation — it is a consequence of the RFC 7950 data model. A library that allows XPath to traverse into anydata content would actually be deviating from the specification.
+It's also worth noting that RFC 7950 defines anydata as an opaque, indivisible node in the data tree — it has no addressable child nodes. XPath path steps cannot enter anydata internals regardless of implementation; this is inherent to the data model defined by the specification.
 
-Using XPath to query schema nodes (as libyang's `lys_find_xpath()` does) is an extra convenience beyond the YANG specification. It should not be used as the evaluation criterion for a YANG library's XPath support.
+I'd be interested to understand which specific test scenarios yangkit did not pass, so we can determine whether the gap is in RFC-mandated functionality or in capabilities beyond the specification scope.
 
 ### 3. Add New Schema Node — rated "Not Supported"
 
-yangkit-model does support dynamically adding, removing, and modifying schema nodes — but this is a design-time capability, used during model editing and compilation. The API `SchemaNodeContainer.addSchemaNodeChild()` is designed for this purpose.
+yangkit-model supports dynamically adding, removing, and modifying schema nodes via APIs such as `SchemaNodeContainer.addSchemaNodeChild()` — this is a design-time capability for model editing and compilation.
 
-For data validation (yangkit-data), the schema must be immutable. Mutating the schema at runtime during validation is fundamentally unsound — it moves the goalpost while the game is being played. If a new schema is needed, the correct approach is to re-run model parsing and build a new schema context.
+For data validation (yangkit-data), the schema is treated as immutable, which is a deliberate design choice: data validation requires a stable reference point. If a new schema is needed at runtime, the approach is to re-run model parsing and build a new schema context.
 
-The test appears to conflate two distinct concerns: model editing (design-time, supported by yangkit-model) and data validation (runtime, where schema immutability is a correct design choice). I'd suggest evaluating these capabilities separately.
+These are two distinct capabilities — model editing and data validation — and it may be useful to evaluate them separately.
 
 ### 4. Update Existing Data Node — rated "Not Supported"
 
-This is where reviewing the test cases was most illuminating. In `updateValueTest()`, the test code attempts to update a data node by calling `addChild()` with a new node having the same key — it does **not** use the `LeafData.setValue()` API, which is the correct way to update a value in yangkit.
+Yangkit supports updating data node values through the `LeafData.setValue()` API. After modification, calling `validate()` re-validates the data tree. This decoupled design enables efficient batch updates — multiple nodes can be modified without triggering validation on each intermediate (potentially invalid) state, with a single validation pass after all changes are complete.
 
-The correct approach is:
-
-```java
-leafData.setValue(newValue);
-// Then validate when ready:
-dataDocument.validate();
-```
-
-This decoupled design is intentional — it enables efficient batch updates where intermediate states may be temporarily invalid, with a single validation pass after all modifications are complete.
-
-The slides themselves note "can easily be changed in code source," which acknowledges this is not a missing capability. A "Not Supported" rating based on incorrect API usage seems inconsistent with that annotation.
+I noticed the slides annotate this item with "can easily be changed in code source," which suggests the capability is recognized. I'd be happy to provide more guidance on the intended API usage patterns if that would be helpful.
 
 ### 5. Schema Comparison — rated "Implementable"
 
-yang-comparator (https://github.com/yang-central/yang-comparator) is a mature, production-proven tool built on yangkit that performs semantic-level schema tree comparison — not text-level diffing. It compiles two versions of YANG modules into their respective schema trees and performs structural diff at the schema level (node additions/deletions/modifications, type changes, constraint changes, etc.).
+yang-comparator (https://github.com/yang-central/yang-comparator) is a tool built on yangkit that performs semantic-level schema tree comparison. It compiles two versions of YANG modules into their respective schema trees and performs structural diff at the schema level — node additions/deletions/modifications, type changes, constraint changes, and so on.
 
-Interestingly, the test repository contains `YangkitSchemaComparator.java` — a schema comparator written from scratch by the testers using yangkit's own APIs. This implementation includes node add/delete/modify detection, type change comparison, constraint change evaluation, and backward compatibility assessment. The fact that your team was able to build a working schema comparator using yangkit's APIs demonstrates the capability exists. Yet yangkit was rated "Implementable" (implying not yet implemented), while the testers' own code proves otherwise — and the dedicated yang-comparator tool was not evaluated at all.
-
-This schema comparison capability is the reason yangkit was adopted by Swisscom for YANG model version management, and one of the reasons I joined the IETF YANG Module Versioning Design Team.
+While its output format may not yet fully align with `draft-ietf-netmod-yang-schema-comparison`, the core schema comparison capability is implemented and has been used in production. I'd welcome discussion on what output format or criteria the comparison should use.
 
 ---
 
-I want to emphasize that this feedback is intended to be constructive. The comparison project is a great initiative, and I'd be happy to collaborate — whether that means helping refine the test methodology, providing guidance on yangkit APIs, or discussing what the evaluation criteria should be for each feature category.
+I want to emphasize that this feedback is meant to be constructive, and I think your work points to something the community needs: **a shared, open set of test cases and evaluation criteria for YANG libraries.** Different libraries make different design choices, and having an agreed-upon test specification would make comparisons fairer and more useful for everyone.
 
-I think the most productive next step would be to review the specific test cases together and distinguish between:
-- Actual capability gaps in yangkit
-- Test methodology issues (e.g., incorrect API usage in `updateValueTest`)
-- Philosophical differences in what "supported" means (e.g., anydata validation semantics)
-
-Would you be open to a discussion on this?
+Would you be open to collaborating on this? I'd be happy to contribute — whether that means helping refine test cases, providing guidance on yangkit APIs, or working together on a community-driven test specification that the NETMOD WG could adopt.
 
 Best regards,
 Frank
