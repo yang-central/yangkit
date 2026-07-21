@@ -60,11 +60,17 @@ Yangkit 基于 Jaxen 实现了完整的 XPath 1.0 引擎，并扩展了 YANG 特
 
 **建议:** 如果测试的目的是评估"模型编辑能力"，应当在设计态下测试 yangkit-model 的 API，而非在数据验证的上下文中评价。
 
-## 5. Update Existing Data Node — "Not Supported"
+## 5. Update Existing Data Node — "Not Supported" 评价有误
 
 **Slides 结论:** yangkit 不支持更新现有数据节点（slides 注明 "can easily be changed in code source"）
 
-**反馈:** `LeafData.setValue()` 方法已存在。缺少的是一个高层的 update+re-validate 便捷 API。可以考虑补充。
+**反馈:**
+
+Yangkit 完全支持更新数据节点值。`LeafData.setValue()` 方法可以直接修改节点值，修改后调用 `validate()` 即可重新验证。这是 yangkit 的设计理念：**数据操作和验证是解耦的**，用户可以自由修改数据树，然后在需要时统一触发验证。
+
+这种设计比"每次 setValue 自动触发验证"更灵活——批量修改多个节点时，不需要每改一个就验证一次（中间状态可能本来就不合法），而是在所有修改完成后统一验证一次。
+
+Slides 自己也标注了 "can easily be changed in code source"，说明测试者也认识到这不是能力缺失，评为 "Not Supported" 与自身注释矛盾。
 
 ## 6. Schema Comparison — "Implementable"
 
