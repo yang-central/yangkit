@@ -54,9 +54,11 @@ Yangkit 基于 Jaxen 实现了完整的 XPath 1.0 引擎，并扩展了 YANG 特
   - `minimalXpathTest()` — 正常通过
   - `structureXpathTest()` — 正常通过
   - `nonExistentXpathTest()` — 正确返回空字符串
-  - `anydataXpathTest()` — TODO: "'value' returns '' instead of 'router1'" — 唯一的"失败"是 XPath 无法穿透 anydata payload，这又回到了 anydata 必须有 schema 的问题
+  - `anydataXpathTest()` — TODO: "'value' returns '' instead of 'router1'" — 测试期望 XPath 能穿透 anydata payload 内部寻址，但这违反了 RFC 7950 对 anydata 的定义
 
-**建议:** 如果测试期望的是 schema 树上的 XPath 查询能力，那属于超出 YANG XPath 规范定义的额外功能，不应作为 YANG library 的 XPath 支持评价标准。
+关于 `anydataXpathTest()` 需要特别说明：RFC 7950 Section 7.10 将 anydata 定义为数据树中的一个不可分割的不透明节点，它没有可寻址的子节点。无论是否有 schema，XPath 都无法用路径步（path step）进入 anydata 内部——这不是实现缺陷，而是 RFC 7950 数据模型的本质决定的。任何符合规范的 YANG library 都不应该支持这种寻址方式。如果某个库允许 XPath 穿透 anydata 内部，那反而是对规范的偏离。
+
+**建议:** 如果测试期望的是 schema 树上的 XPath 查询能力或 anydata 内部寻址能力，这些都超出了 RFC 7950 对 YANG XPath 的定义，不应作为 YANG library 的 XPath 支持评价标准。
 
 ## 4. Add New Schema Node — "Not Supported" 评价不公平
 

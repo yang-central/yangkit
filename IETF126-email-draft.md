@@ -32,7 +32,7 @@ In RFC 7950, XPath is used exclusively for `when`, `must`, `leafref path`, and `
 
 Yangkit implements a complete XPath 1.0 engine (based on Jaxen) with all YANG-specific extension functions: `current()`, `deref()`, `derived-from()`, `derived-from-or-self()`, `enum-value()`, `re-match()`, and `bit-is-set()`. This fully covers what RFC 7950 requires of XPath.
 
-Looking at the test cases, the only "failure" appears to be `anydataXpathTest()`, where XPath cannot traverse into anydata payload content (the TODO note says "'value' returns '' instead of 'router1'"). This is expected behavior — anydata content without a registered schema is not part of the XPath-navigable data tree. This is again the same anydata schema issue, not an XPath engine limitation.
+Looking at the test cases, the only "failure" appears to be `anydataXpathTest()`, where XPath cannot traverse into anydata payload content (the TODO note says "'value' returns '' instead of 'router1'"). This is expected behavior — RFC 7950 Section 7.10 defines anydata as an opaque, indivisible node in the data tree with no addressable child nodes. XPath path steps simply cannot enter anydata internals, regardless of whether a schema is registered. This is not an implementation limitation — it is a consequence of the RFC 7950 data model. A library that allows XPath to traverse into anydata content would actually be deviating from the specification.
 
 Using XPath to query schema nodes (as libyang's `lys_find_xpath()` does) is an extra convenience beyond the YANG specification. It should not be used as the evaluation criterion for a YANG library's XPath support.
 
