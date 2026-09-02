@@ -1,0 +1,23 @@
+module 01-auger {
+  yang-version 1.1;
+  namespace "urn:test:auger";
+  prefix aug;
+
+  organization "UAA QA";
+  description "Augmenting module (parsed first, target module not built yet).";
+
+  revision 2025-01-01 {
+    description "initial";
+  }
+
+  import 02-target {
+    prefix tgt;
+  }
+
+  augment /tgt:target-c {
+    description "cross-module augment";
+    leaf aux {
+      type string;
+    }
+  }
+}

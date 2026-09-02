@@ -338,6 +338,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       // due to sequential per-module build ordering — the augmenting module's SCHEMA_EXPAND
       // ran before the target module's SCHEMA_BUILD added its notifications/containers to
       // the schema context. After all modules have built, retry those unresolved augments.
+      List<Augment> secondPassResolved = new ArrayList<>();
       for(Module module:modules){
          for(Augment augment : module.getAugments()){
             if(augment.getTarget() != null){
@@ -354,7 +355,18 @@ public class YangSchemaContextImpl implements YangSchemaContext {
             augment.setTarget(target);
             SchemaNodeContainer targetContainer = (SchemaNodeContainer) target;
             targetContainer.addSchemaNodeChild(augment);
+            secondPassResolved.add(augment);
          }
+      }
+      // The first-pass build already merged MISSING_TARGET errors for the augments resolved
+      // above; drop those now-stale records so the final result reflects the resolved state.
+      if(!secondPassResolved.isEmpty() && validatorResultBuilder.getRecords() != null){
+         validatorResultBuilder.getRecords().removeIf(record ->
+                 secondPassResolved.contains(record.getBadElement())
+                 && record.getErrorTag() == org.yangcentral.yangkit.common.api.exception.ErrorTag.BAD_ELEMENT
+                 && record.getErrorMsg() != null
+                 && record.getErrorMsg().getMessage()
+                     .equals(org.yangcentral.yangkit.base.ErrorCode.MISSING_TARGET.getFieldName()));
       }
       //validate
       for(Module module:modules){

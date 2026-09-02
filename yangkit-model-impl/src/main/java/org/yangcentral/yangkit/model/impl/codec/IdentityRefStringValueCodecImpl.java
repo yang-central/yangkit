@@ -1,7 +1,9 @@
 package org.yangcentral.yangkit.model.impl.codec;
 
+import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.codec.IdentityRefStringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
@@ -38,8 +40,11 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             SubModule sb = (SubModule)curModule;
             mainModuleList = sb.getBelongsto().getMainModules();
             if (mainModuleList.size() == 0) {
-               LOGGER.warn("[IdentityRef] SubModule has no main modules, treating as opaque: " + input);
-               return buildFallbackQName(prefix, fName.getLocalName());
+               if (LenientValidationOptions.isEnabled()) {
+                  LOGGER.warn("[IdentityRef] SubModule has no main modules: " + input);
+                  return buildFallbackQName(prefix, fName.getLocalName());
+               }
+               throw new IllegalArgumentException(ErrorCode.INVALID_VALUE.getFieldName());
             }
 
             namespace = ((MainModule)mainModuleList.get(0)).getNamespace().getUri();
@@ -53,8 +58,11 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             ModuleId moduleId = (ModuleId)moduleIdOp.get();
             Optional<Module> moduleOp = this.getSchemaNode().getContext().getSchemaContext().getModule(moduleId);
             if (!moduleOp.isPresent()) {
-               LOGGER.warn("[IdentityRef] Module not present in schema context for prefix: " + fName.getPrefix() + ", treating as opaque: " + input);
-               return buildFallbackQName(prefix, fName.getLocalName());
+                if (LenientValidationOptions.isEnabled()) {
+                   LOGGER.warn("[IdentityRef] Module not present in schema context for prefix: " + fName.getPrefix() + ": " + input);
+                   return buildFallbackQName(prefix, fName.getLocalName());
+                }
+                throw new IllegalArgumentException(ErrorCode.INVALID_VALUE.getFieldName());
             }
 
             module = (Module)moduleOp.get();
@@ -74,33 +82,31 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             }
 
             if (namespace == null) {
-               LOGGER.warn("[IdentityRef] No module found for prefix: " + prefix + ", treating as opaque: " + input);
-               return buildFallbackQName(prefix, fName.getLocalName());
+                if (LenientValidationOptions.isEnabled()) {
+                   LOGGER.warn("[IdentityRef] No module found for prefix: " + prefix + ": " + input);
+                   return buildFallbackQName(prefix, fName.getLocalName());
+                }
+                throw new IllegalArgumentException(ErrorCode.INVALID_VALUE.getFieldName());
             }
          }
       }
 
-      QName qName = new QName(namespace, prefix, fName.getLocalName());
-      try {
-         if (!restriction.evaluate(qName)) {
-            LOGGER.warn("[IdentityRef] Identity not found in restriction, treating as opaque: " + input);
-         }
-      } catch (Exception e) {
-         LOGGER.warn("[IdentityRef] Restriction evaluation error for: " + input + " - " + e.getMessage());
-      }
-      return qName;
-   }
+       QName qName = new QName(namespace, prefix, fName.getLocalName());
+       // An identityref value that is not a valid identity of the declared base is an
+       // error, regardless of lenient mode. Lenient handling is limited to genuinely
+       // missing modules (see above) so an invalid value is never accepted.
+       if (!restriction.evaluate(qName)) {
+          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+       }
+       return qName;
+    }
 
-   public String serialize(Restriction<QName> restriction, QName output) throws YangCodecException {
-      try {
-         if (!restriction.evaluate(output)) {
-            LOGGER.warn("[IdentityRef] Serialize: identity not found in restriction, returning qualified name anyway.");
-         }
-      } catch (Exception e) {
-         LOGGER.warn("[IdentityRef] Serialize: restriction evaluation error - " + e.getMessage());
-      }
-      return output.getQualifiedName();
-   }
+    public String serialize(Restriction<QName> restriction, QName output) throws YangCodecException {
+       if (!restriction.evaluate(output)) {
+          throw new YangCodecException(ErrorCode.INVALID_VALUE.getFieldName());
+       }
+       return output.getQualifiedName();
+    }
 
    private QName buildFallbackQName(String prefix, String localName) {
       try {

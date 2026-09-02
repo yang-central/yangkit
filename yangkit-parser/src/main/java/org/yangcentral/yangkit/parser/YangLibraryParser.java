@@ -6,6 +6,7 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.ModuleSet;
 import org.yangcentral.yangkit.model.api.schema.YangModuleDescription;
@@ -20,6 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Parser that loads a {@link YangSchemaContext} from a YANG Library XML document
@@ -107,18 +111,33 @@ public class YangLibraryParser {
         YangSchemaContext context =
                 YangStatementRegister.getInstance().getSchemeContextInstance();
 
-        // 1. Load import-only modules first so they are available as dependencies
-        //    when the main modules are parsed and their imports are resolved.
-        for (ParsedModuleSet ms : moduleSets) {
-            for (ParsedModule m : ms.importOnlyModules) {
-                loadModule(m, true, yangSearchPath, context);
+        // A YANG Library describes a device's active schema subset (features, deviations,
+        // possibly a partial module set). Load the modules with lenient behavior so genuinely
+        // missing dependencies degrade to warnings instead of hard errors. The caller keeps
+        // strict defaults by enabling/disabling LenientValidationOptions around its own
+        // parse/validate calls.
+        boolean lenientWasEnabled = LenientValidationOptions.isEnabled();
+        LenientValidationOptions.enable();
+        try {
+            // 1. Load import-only modules first so they are available as dependencies
+            //    when the main modules are parsed and their imports are resolved.
+            for (ParsedModuleSet ms : moduleSets) {
+                for (ParsedModule m : ms.importOnlyModules) {
+                    loadModule(m, true, yangSearchPath, context);
+                }
             }
-        }
 
-        // 2. Load main (non-import-only) modules.
-        for (ParsedModuleSet ms : moduleSets) {
-            for (ParsedModule m : ms.modules) {
-                loadModule(m, false, yangSearchPath, context);
+            // 2. Load main (non-import-only) modules.
+            for (ParsedModuleSet ms : moduleSets) {
+                for (ParsedModule m : ms.modules) {
+                    loadModule(m, false, yangSearchPath, context);
+                }
+            }
+        } finally {
+            if (lenientWasEnabled) {
+                LenientValidationOptions.enable();
+            } else {
+                LenientValidationOptions.disable();
             }
         }
 
@@ -247,6 +266,7 @@ public class YangLibraryParser {
             if (location.startsWith("file://")) {
                 File f = new File(location.substring(7));
                 if (f.exists()) {
+                    checkRevisionMatch(f, m.revision);
                     logger.debug("Loading module '{}' from {}", m.name, f.getName());
                     try (FileInputStream fis = new FileInputStream(f)) {
                         YangYinParser.parse(fis, f.getAbsolutePath(), true, importOnly, context);
@@ -261,6 +281,7 @@ public class YangLibraryParser {
         if (searchPath != null) {
             File found = findYangFile(m.name, m.revision, searchPath);
             if (found != null) {
+                checkRevisionMatch(found, m.revision);
                 logger.debug("Loading module '{}' from {}", m.name, found.getName());
                 try (FileInputStream fis = new FileInputStream(found)) {
                     YangYinParser.parse(fis, found.getAbsolutePath(), true, importOnly, context);
@@ -278,16 +299,16 @@ public class YangLibraryParser {
     }
 
     /**
-     * Searches {@code searchPath} for a file named {@code name@revision.yang},
-     * then {@code name.yang}, then {@code name@revision.yin}, then {@code name.yin}.
+     * Searches {@code searchPath} for the module file. When a {@code revision} is known,
+     * only {@code name@revision.yang} / {@code name@revision.yin} are accepted — falling back
+     * to an unversioned name would load the wrong revision. When no revision is known,
+     * {@code name.yang} then {@code name.yin} is used.
      */
-    private static File findYangFile(String name, String revision, File searchPath) {
+    private static File findYangFile(String name, String revision, File searchPath) throws IOException {
         String[] candidates = (revision != null && !revision.isEmpty())
                 ? new String[]{
                         name + "@" + revision + ".yang",
-                        name + ".yang",
-                        name + "@" + revision + ".yin",
-                        name + ".yin"}
+                        name + "@" + revision + ".yin"}
                 : new String[]{
                         name + ".yang",
                         name + ".yin"};
@@ -299,6 +320,33 @@ public class YangLibraryParser {
             }
         }
         return null;
+    }
+
+    private static final Pattern REVISION_PATTERN =
+            Pattern.compile("\\brevision\\s+\"?(\\d{4}-\\d{2}-\\d{2})\"?");
+    private static final Pattern YIN_REVISION_PATTERN =
+            Pattern.compile("<revision>\\s*(\\d{4}-\\d{2}-\\d{2})\\s*</revision>");
+
+    /**
+     * Verifies that the loaded file declares the revision requested in the YANG Library.
+     * A file without the requested revision (or with a different one) is rejected so the
+     * parser never silently substitutes a different revision of the module.
+     */
+    private static void checkRevisionMatch(File file, String expectedRevision) throws IOException {
+        if (expectedRevision == null || expectedRevision.isEmpty()) {
+            return;
+        }
+        byte[] content = java.nio.file.Files.readAllBytes(file.toPath());
+        String text = new String(content, StandardCharsets.UTF_8);
+        Pattern pattern = file.getName().toLowerCase().endsWith(".yin")
+                ? YIN_REVISION_PATTERN : REVISION_PATTERN;
+        Matcher m = pattern.matcher(text);
+        String actual = m.find() ? m.group(1) : null;
+        if (!expectedRevision.equals(actual)) {
+            throw new IOException("Revision mismatch for module file " + file.getName()
+                    + ": YANG Library requests revision " + expectedRevision
+                    + (actual != null ? " but file declares " + actual : " but file declares no revision"));
+        }
     }
 
     // -------------------------------------------------------------------------

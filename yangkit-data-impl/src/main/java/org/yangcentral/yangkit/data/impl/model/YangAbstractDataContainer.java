@@ -19,6 +19,7 @@ import org.yangcentral.yangkit.data.impl.builder.YangDataBuilder;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.model.impl.schema.DescendantSchemaPath;
@@ -595,8 +596,12 @@ public class YangAbstractDataContainer implements YangDataContainer {
         }
         for(YangData<?> child:self.getChildren()){
             SchemaNode schemaNode = child.getSchemaNode();
-            if(!matchRecord.containsKey(schemaNode.getIdentifier())){
-                //unknown schema node, report error
+            // Strict by default: unknown schema nodes and inactive nodes (if-feature disabled or
+            // deviated not-supported) are errors. In lenient mode (partial YANG Library schemas)
+            // inactive nodes are accepted as-is; constraint checks are still skipped for them.
+            if(!matchRecord.containsKey(schemaNode.getIdentifier())
+                    || (!schemaNode.isActive() && !LenientValidationOptions.isEnabled())){
+                //inactive or unknown schema node, report error
                 ValidatorRecordBuilder<AbsolutePath,YangData<?>> validatorRecordBuilder =
                         new ValidatorRecordBuilder<>();
                 validatorRecordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
@@ -607,10 +612,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
                 validatorResultBuilder.addRecord(validatorRecordBuilder.build());
                 continue;
             }
-            // If the schema node is inactive (deviated not-supported or if-feature disabled)
-            // we accept the data leniently — the device sent it regardless of its deviations.
-            // Constraint validation (mandatory, unique) is skipped for inactive nodes.
             if(!schemaNode.isActive()){
+                // inactive node accepted (lenient mode) — skip constraint validation below
                 continue;
             }
             List<YangData<?>> matchedData = matchRecord.get(schemaNode.getIdentifier());

@@ -65,14 +65,9 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
                   return true;
                }
 
-               Base base = (Base)baseIterator.next();
-               baseIdentity = base.getIdentity();
-               // If the base identity couldn't be resolved (module missing from schema context),
-               // we cannot validate the constraint — accept the value rather than rejecting it.
-               if (null == baseIdentity) {
-                  return true;
-               }
-            } while(identity.isDerivedOrSelf(baseIdentity));
+                Base base = (Base)baseIterator.next();
+                baseIdentity = base.getIdentity();
+             } while(null == baseIdentity || identity.isDerivedOrSelf(baseIdentity));
 
             return false;
          }

@@ -1,0 +1,19 @@
+module 02-target {
+  yang-version 1.1;
+  namespace "urn:test:target";
+  prefix tgt;
+
+  organization "UAA QA";
+  description "Target module for the cross-module augment fixture.";
+
+  revision 2025-01-01 {
+    description "initial";
+  }
+
+  container target-c {
+    description "augment target container";
+    leaf base-leaf {
+      type string;
+    }
+  }
+}
