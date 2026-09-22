@@ -68,7 +68,7 @@
         <com.google.protobuf.version>3.25.1</com.google.protobuf.version>
         <jaxen.jaxen.version>2.0.0</jaxen.jaxen.version>
 
-        <io.github.yang-central.yangkit.yangkit-common.version>1.1.5</io.github.yang-central.yangkit.yangkit-common.version>
+        <io.github.yang-central.yangkit.yangkit-common.version>1.1.6-SNAPSHOT</io.github.yang-central.yangkit.yangkit-common.version>
         <io.github.yang-central.yangkit.yangkit-common-utils.version>1.0.3</io.github.yang-central.yangkit.yangkit-common-utils.version>
 
         <io.github.yang-central.yangkit.yangkit-model-api.version>${project.version}</io.github.yang-central.yangkit.yangkit-model-api.version>

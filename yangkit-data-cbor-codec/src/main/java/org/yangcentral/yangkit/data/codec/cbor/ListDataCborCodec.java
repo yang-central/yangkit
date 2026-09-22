@@ -76,7 +76,9 @@ public class ListDataCborCodec extends YangDataCborCodec<YangList, ListData> {
 
         // --- Step 1: extract key leaf data ---
         List<LeafData> keyDataList = new ArrayList<>();
-        List<Leaf> keyNodes = getSchemaNode().getKey().getkeyNodes();
+        List<Leaf> keyNodes = getSchemaNode().getKey() == null
+                ? java.util.Collections.<Leaf>emptyList()
+                : getSchemaNode().getKey().getkeyNodes();
         for (Leaf keyLeaf : keyNodes) {
             String keyName = keyLeaf.getArgStr();
             JsonNode keyElement = jsonNode.get(keyName);

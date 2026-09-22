@@ -81,6 +81,12 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
 
     private  XPathStep translate2Step(YangData<? extends DataNode> yangData) {
         XPathStep step = new XPathStep(yangData.getQName());
+        if (yangData.getIdentifier() instanceof PositionalListIdentifier) {
+            PositionalListIdentifier identifier =
+                    (PositionalListIdentifier) yangData.getIdentifier();
+            step.setPosition(identifier.getPosition());
+            return step;
+        }
         if (yangData.getIdentifier() instanceof ListIdentifier) {
             ListIdentifier listIdentifier = (ListIdentifier) yangData.getIdentifier();
             List<LeafData> keys = listIdentifier.getKeys();
@@ -129,6 +135,10 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
     @Override
     public void setPath(AbsolutePath path) {
         this.path = path;
+    }
+
+    void setIdentifier(DataIdentifier identifier) {
+        this.identifier = identifier;
     }
 
     @Override

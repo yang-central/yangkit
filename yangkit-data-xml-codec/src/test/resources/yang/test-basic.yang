@@ -25,4 +25,14 @@ module test-basic {
             }
         }
     }
+
+    container state {
+        config false;
+
+        list alarm {
+            leaf message {
+                type string;
+            }
+        }
+    }
 }

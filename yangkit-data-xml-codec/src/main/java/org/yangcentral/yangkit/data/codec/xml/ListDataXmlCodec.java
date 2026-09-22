@@ -10,6 +10,7 @@ import org.yangcentral.yangkit.data.api.model.ListData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
+import org.yangcentral.yangkit.model.api.stmt.Key;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.YangList;
 import org.dom4j.Element;
@@ -28,7 +29,9 @@ public class ListDataXmlCodec extends YangDataXmlCodec<YangList, ListData> {
     protected ListData buildData(Element element, ValidatorResultBuilder validatorResultBuilder) {
         //key
         List<LeafData> keyDataList = new ArrayList<>();
-        List<Leaf> keys = getSchemaNode().getKey().getkeyNodes();
+        Key keyStatement = getSchemaNode().getKey();
+        List<Leaf> keys = keyStatement == null
+                ? java.util.Collections.<Leaf>emptyList() : keyStatement.getkeyNodes();
         for(Leaf key:keys){
             Element keyElement = element.element(QName.get(key.getIdentifier().getLocalName(),
                     Namespace.get(key.getIdentifier().getNamespace().toString())));
@@ -85,4 +88,3 @@ public class ListDataXmlCodec extends YangDataXmlCodec<YangList, ListData> {
         }
     }
 }
-

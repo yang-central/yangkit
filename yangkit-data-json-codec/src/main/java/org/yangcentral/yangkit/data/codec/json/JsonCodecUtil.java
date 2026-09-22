@@ -423,12 +423,16 @@ public class JsonCodecUtil {
             return validatorResultBuilder.build();
         }
         try {
-            YangData<?> oldData = yangDataContainer.getDataChild(sonData.getIdentifier());
-            if (oldData != null) {
-                YangDataOperator dataOperator = new YangDataOperatorImpl(yangDataContainer);
-                dataOperator.merge((YangData<? extends DataNode>) sonData, false);
-            } else {
+            if (sonData.getIdentifier() instanceof PositionalListIdentifier) {
                 yangDataContainer.addDataChild(sonData, false);
+            } else {
+                YangData<?> oldData = yangDataContainer.getDataChild(sonData.getIdentifier());
+                if (oldData != null) {
+                    YangDataOperator dataOperator = new YangDataOperatorImpl(yangDataContainer);
+                    dataOperator.merge((YangData<? extends DataNode>) sonData, false);
+                } else {
+                    yangDataContainer.addDataChild(sonData, false);
+                }
             }
 
         } catch (YangDataException e) {

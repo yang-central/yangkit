@@ -10,6 +10,7 @@ import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.model.*;
 import org.yangcentral.yangkit.model.api.stmt.Leaf;
+import org.yangcentral.yangkit.model.api.stmt.Key;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.YangList;
 
@@ -25,7 +26,9 @@ public class ListDataJsonCodec extends YangDataJsonCodec<YangList, ListData> {
     protected ListData buildData(JsonNode element, ValidatorResultBuilder validatorResultBuilder) {
         //key
         List<LeafData> keyDataList = new ArrayList<>();
-        List<Leaf> keys = getSchemaNode().getKey().getkeyNodes();
+        Key keyStatement = getSchemaNode().getKey();
+        List<Leaf> keys = keyStatement == null
+                ? java.util.Collections.<Leaf>emptyList() : keyStatement.getkeyNodes();
         for (Leaf key : keys) {
             JsonNode keyElement = element.get(key.getArgStr());
             if (keyElement == null) {

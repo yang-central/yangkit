@@ -4,6 +4,7 @@ import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.junit.jupiter.api.Test;
+import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
@@ -11,11 +12,14 @@ import org.yangcentral.yangkit.data.api.model.LeafData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
+import org.yangcentral.yangkit.data.api.model.PositionalListIdentifier;
 import org.yangcentral.yangkit.data.codec.xml.YangDataDocumentXmlCodec;
 import org.yangcentral.yangkit.data.impl.model.YangDataDocumentImpl;
+import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.parser.YangYinParser;
 
+import java.net.URI;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,6 +33,47 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Config true/false filtering (Section 7.21.1)
  */
 public class XmlCodecBasicTest {
+
+    @Test
+    public void testKeylessListUsesOrderedPositionalIdentifiers() throws Exception {
+        URL yangUrl = this.getClass().getClassLoader().getResource("yang/test-basic.yang");
+        assertNotNull(yangUrl);
+
+        YangSchemaContext schemaContext = YangYinParser.parse(yangUrl.getFile());
+        assertTrue(schemaContext.validate().isOk());
+        String namespace = "urn:test:basic";
+        Document xmlDoc = DocumentHelper.parseText(
+                "<data><state xmlns=\"" + namespace + "\">"
+                        + "<alarm><message>first</message></alarm>"
+                        + "<alarm><message>second</message></alarm>"
+                        + "</state></data>");
+
+        ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentXmlCodec(schemaContext)
+                .deserialize(xmlDoc, validatorBuilder);
+
+        assertTrue(validatorBuilder.build().isOk());
+        YangDataContainer state = onlyContainerChild(document, "state", namespace);
+        java.util.List<YangData<?>> alarms = state.getDataChildren("alarm", namespace);
+        assertEquals(2, alarms.size());
+        assertEquals(1, ((PositionalListIdentifier) alarms.get(0).getIdentifier()).getPosition());
+        assertEquals(2, ((PositionalListIdentifier) alarms.get(1).getIdentifier()).getPosition());
+        assertTrue(alarms.get(0).getPath().toString().endsWith("alarm[1]"));
+        assertTrue(alarms.get(1).getPath().toString().endsWith("alarm[2]"));
+        assertSame(alarms.get(1), YangDataUtil.search(document, alarms.get(1).getPath()));
+        AbsolutePath parsedPath = AbsolutePath.parse("/tb:state/tb:alarm[2]",
+                prefix -> "tb".equals(prefix) ? namespace : null, URI.create(namespace));
+        assertSame(alarms.get(1), YangDataUtil.search(document, parsedPath));
+
+        state.removeDataChild(alarms.get(0).getIdentifier());
+        java.util.List<YangData<?>> remaining = state.getDataChildren("alarm", namespace);
+        assertEquals(1, remaining.size());
+        assertEquals("second", onlyLeafValue((YangDataContainer) remaining.get(0),
+                "message", namespace));
+        assertEquals(1,
+                ((PositionalListIdentifier) remaining.get(0).getIdentifier()).getPosition());
+        assertTrue(remaining.get(0).getPath().toString().endsWith("alarm[1]"));
+    }
 
     @Test
     public void testDeserializationRecursivelyBuildsContainerAndListChildren() throws Exception {

@@ -11,8 +11,13 @@ public class ListDataImpl extends YangDataContainerImpl<YangList> implements Lis
     private List<LeafData> keys;
     public ListDataImpl(YangList schemaNode,List<LeafData> keys) {
         super(schemaNode);
-        this.keys = keys;
-        identifier = new ListIdentifierImpl(schemaNode.getIdentifier(),keys);
+        if (schemaNode.getKey() == null || schemaNode.getKey().getkeyNodes().isEmpty()) {
+            this.keys = java.util.Collections.emptyList();
+            identifier = new PositionalListIdentifierImpl(schemaNode.getIdentifier(), 1);
+        } else {
+            this.keys = keys;
+            identifier = new ListIdentifierImpl(schemaNode.getIdentifier(),keys);
+        }
     }
 
     @Override

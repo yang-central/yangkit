@@ -57,20 +57,21 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public YangData<?> getChild(DataIdentifier identifier) {
+        if (identifier instanceof PositionalListIdentifier) {
+            return getDirectChildByPosition((PositionalListIdentifier) identifier);
+        }
         return children.get(identifier);
     }
 
     @Override
     public List<YangData<?>> getChildren(QName qName) {
-        List<YangData<?>> childrenList = new ArrayList<>();
-        Iterator<Map.Entry<DataIdentifier,YangData<?>>> entries = children.entrySet().iterator();
-        while(entries.hasNext()){
-            Map.Entry<DataIdentifier,YangData<?>> entry = entries.next();
-            if(entry.getKey().getQName().equals(qName)){
-                childrenList.add(entry.getValue());
+        List<YangData<?>> matched = new ArrayList<>();
+        for (YangData<?> child : childrenList) {
+            if (child.getIdentifier().getQName().equals(qName)) {
+                matched.add(child);
             }
         }
-        return childrenList;
+        return matched;
     }
 
     @Override
@@ -90,6 +91,9 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public YangData<?> getDataChild(DataIdentifier identifier) {
+        if (identifier instanceof PositionalListIdentifier) {
+            return getDataChildByPosition((PositionalListIdentifier) identifier);
+        }
         YangData<?> value = children.get(identifier);
         if(value != null && !value.isVirtual()){
             return value;
@@ -150,18 +154,31 @@ public class YangAbstractDataContainer implements YangDataContainer {
 
     @Override
     public YangData<?> removeChild(DataIdentifier identifier) {
-        YangData<?> child = children.remove(identifier);
+        YangData<?> child;
+        if (identifier instanceof PositionalListIdentifier) {
+            child = getDirectChildByPosition((PositionalListIdentifier) identifier);
+        } else {
+            child = children.remove(identifier);
+        }
+        if (child == null) {
+            return null;
+        }
         childrenList.remove(child);
+        if (isKeylessList(child)) {
+            refreshKeylessListIdentifiers(child.getQName());
+        }
         return child;
     }
 
     @Override
     public void addDataChild(YangData child, boolean autoDelete) throws YangDataException {
-        YangData<?> original = getDataChild(child.getIdentifier());
-        if(original != null){
-            if(!original.isDummyNode()){
-                throw new YangDataException(ErrorTag.DATA_EXISTS,original.getPath(),
-                        new ErrorMessage("the child:"+child.getIdentifier() + " is exists."));
+        if (!isKeylessList(child)) {
+            YangData<?> original = getDataChild(child.getIdentifier());
+            if(original != null){
+                if(!original.isDummyNode()){
+                    throw new YangDataException(ErrorTag.DATA_EXISTS,original.getPath(),
+                            new ErrorMessage("the child:"+child.getIdentifier() + " is exists."));
+                }
             }
         }
 
@@ -226,7 +243,8 @@ public class YangAbstractDataContainer implements YangDataContainer {
                             + ((schemaNodeContainer instanceof YangSchemaContext)?"root":schemaNodeContainer.toString())));
         }
 
-        YangData<?> oldChild = getChild(child.getIdentifier());
+        boolean keylessList = isKeylessList(child);
+        YangData<?> oldChild = keylessList ? null : getChild(child.getIdentifier());
         if(oldChild != null) {
 //            if(oldChild.isDummyNode()){
 //                self.removeChild(child.getIdentifier());
@@ -237,13 +255,70 @@ public class YangAbstractDataContainer implements YangDataContainer {
                     new ErrorMessage("the child:"+child.getIdentifier() + " is exists."));
         }
         addChildToChildrenList(child);
-        children.put(child.getIdentifier(),child);
         child.getContext().setParent(self);
         if(self instanceof YangDataDocument){
             child.getContext().setDocument((YangDataDocument) self);
         } else {
             YangData<?> yangData = (YangData<?>) self;
             child.getContext().setDocument(yangData.getContext().getDocument());
+        }
+        if (keylessList) {
+            refreshKeylessListIdentifiers(child.getQName());
+        } else {
+            children.put(child.getIdentifier(),child);
+        }
+    }
+
+    private boolean isKeylessList(YangData<?> child) {
+        if (!(child instanceof ListData) || !(child.getSchemaNode() instanceof YangList)) {
+            return false;
+        }
+        YangList list = (YangList) child.getSchemaNode();
+        return list.getKey() == null || list.getKey().getkeyNodes().isEmpty();
+    }
+
+    private YangData<?> getDirectChildByPosition(PositionalListIdentifier identifier) {
+        int currentPosition = 0;
+        for (YangData<?> child : childrenList) {
+            if (isKeylessList(child) && child.getQName().equals(identifier.getQName())) {
+                currentPosition++;
+                if (currentPosition == identifier.getPosition()) {
+                    return child;
+                }
+            }
+        }
+        return null;
+    }
+
+    private YangData<?> getDataChildByPosition(PositionalListIdentifier identifier) {
+        List<YangData<?>> matched = getDataChildren(identifier.getQName());
+        int index = identifier.getPosition() - 1;
+        if (index < 0 || index >= matched.size()) {
+            return null;
+        }
+        YangData<?> child = matched.get(index);
+        return isKeylessList(child) ? child : null;
+    }
+
+    private void refreshKeylessListIdentifiers(QName qName) {
+        int position = 0;
+        for (YangData<?> child : childrenList) {
+            if (!isKeylessList(child) || !child.getQName().equals(qName)) {
+                continue;
+            }
+            position++;
+            ((YangDataImpl<?>) child).setIdentifier(
+                    new PositionalListIdentifierImpl(qName, position));
+            clearPathRecursively(child);
+        }
+    }
+
+    private void clearPathRecursively(YangData<?> data) {
+        data.setPath(null);
+        if (data instanceof YangDataContainer) {
+            for (YangData<?> child : ((YangDataContainer) data).getChildren()) {
+                clearPathRecursively(child);
+            }
         }
     }
 

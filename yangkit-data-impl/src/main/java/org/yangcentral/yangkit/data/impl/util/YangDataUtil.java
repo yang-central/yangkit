@@ -150,6 +150,12 @@ public class YangDataUtil {
 
     public static XPathStep translate2Step(YangData<?> yangData){
         XPathStep step = new XPathStep(yangData.getQName());
+        if (yangData.getIdentifier() instanceof PositionalListIdentifier) {
+            PositionalListIdentifier identifier =
+                    (PositionalListIdentifier) yangData.getIdentifier();
+            step.setPosition(identifier.getPosition());
+            return step;
+        }
         if(yangData.getIdentifier()  instanceof ListIdentifier){
             ListIdentifier listIdentifier = (ListIdentifier) yangData.getIdentifier();
             List<LeafData> keys = listIdentifier.getKeys();
@@ -183,10 +189,18 @@ public class YangDataUtil {
                 return null;
             }
             matched = null;
-            for(YangData<?> child:children){
-                if(translate2Step(child).equals(step)){
-                    matched = child;
-                    break;
+            if (step.getPosition() != null) {
+                int index = step.getPosition() - 1;
+                if (index >= 0 && index < children.size()
+                        && children.get(index).getIdentifier() instanceof PositionalListIdentifier) {
+                    matched = children.get(index);
+                }
+            } else {
+                for(YangData<?> child:children){
+                    if(translate2Step(child).equals(step)){
+                        matched = child;
+                        break;
+                    }
                 }
             }
             if(null == matched){

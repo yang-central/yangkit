@@ -65,7 +65,9 @@ public class YangDataJsonParser {
         if(yangData instanceof ListData){
             ListData listData = (ListData) yangData;
             YangList yangList = (YangList) schemaNode;
-            List<Leaf> keys = yangList.getKey().getkeyNodes();
+            List<Leaf> keys = yangList.getKey() == null
+                    ? java.util.Collections.<Leaf>emptyList()
+                    : yangList.getKey().getkeyNodes();
             for(Leaf key:keys){
                 String keyPathValue = lastStep.getPredict(key.getIdentifier()).getValue();
                 List<LeafData> leafDataList = listData.getKeys();

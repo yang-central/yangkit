@@ -2,6 +2,7 @@ package org.yangcentral.yangkit.data.codec.xml;
 
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.codec.YangDataDocumentCodec;
@@ -80,8 +81,13 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
                                     buildChildrenData((YangDataContainer) addedChild, child));
                         }
                     } catch (YangDataException e) {
-                        // Log error but continue processing
-                        System.err.println("Warning: Failed to add child data: " + e.getMessage());
+                        ValidatorRecordBuilder<String, Element> recordBuilder =
+                                new ValidatorRecordBuilder<>();
+                        recordBuilder.setErrorTag(e.getErrorTag());
+                        recordBuilder.setErrorPath(child.getUniquePath());
+                        recordBuilder.setBadElement(child);
+                        recordBuilder.setErrorMessage(e.getErrorMsg());
+                        validatorResultBuilder.addRecord(recordBuilder.build());
                     }
                 }
             }
