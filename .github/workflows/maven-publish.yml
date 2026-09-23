@@ -16,14 +16,23 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Check out yangkit-common
+      uses: actions/checkout@v4
+      with:
+        repository: yang-central/yangkit-common
+        ref: 0846d1faf6852037fe99c4114e6a95ce2e05e2d3
+        path: yangkit-common
     - name: Set up JDK 11
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '11'
         distribution: 'temurin'
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+    - name: Install yangkit-common
+      run: mvn -B -DskipTests install --file yangkit-common/pom.xml
 
     - name: Build with Maven
       run: mvn -B package --file pom.xml
