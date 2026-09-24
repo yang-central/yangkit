@@ -1,7 +1,10 @@
 package org.yangcentral.yangkit.data.codec.json;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.codec.IdentityRefStringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class IdentityRefJsonCodec extends ComplexStringValueCodecImpl<QName> implements IdentityRefStringValueCodec {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityRefJsonCodec.class);
     public IdentityRefJsonCodec(TypedDataNode schemaNode) {
         super(schemaNode);
     }
@@ -31,12 +35,19 @@ public class IdentityRefJsonCodec extends ComplexStringValueCodecImpl<QName> imp
         Optional<Module> moduleOptional = getSchemaNode().getContext().getSchemaContext()
                 .getLatestModule(moduleName);
         if(!moduleOptional.isPresent()) {
+            if (LenientValidationOptions.isEnabled()) {
+                LOGGER.warn("[IdentityRefJson] Module not present in schema context: " + moduleName + " (input=" + input + ")");
+                return new QName((URI) null, moduleName, localName);
+            }
             throw new YangCodecException("the module name:" + moduleName + " is not found.");
         }
         MainModule mm = moduleOptional.get().getMainModule();
         URI ns = mm.getNamespace().getUri();
         String prefix = mm.getSelfPrefix();
         QName qName = new QName(ns,prefix,localName);
+        // An identityref value that is not a valid identity of the declared base is an
+        // error, regardless of lenient mode. Lenient handling is limited to genuinely
+        // missing modules (see above) so an invalid value is never accepted.
         if(!restriction.evaluate(qName)){
             throw new YangCodecException("invalid value:" + input);
         }

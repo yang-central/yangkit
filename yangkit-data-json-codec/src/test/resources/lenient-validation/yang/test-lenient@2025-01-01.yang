@@ -1,0 +1,55 @@
+module test-lenient {
+  yang-version 1.1;
+  namespace "urn:test:lenient";
+  prefix tl;
+
+  organization "UAA QA";
+  description "Fixture for lenient validation behavior tests.";
+
+  revision 2025-01-01 {
+    description "initial";
+  }
+
+  feature f-extra {
+    description "optional content";
+  }
+
+  identity mode-base {
+    description "mode";
+  }
+
+  identity running {
+    base mode-base;
+  }
+
+  identity stopped {
+    base mode-base;
+  }
+
+  container root {
+    description "root";
+
+    leaf id {
+      type string;
+    }
+
+    leaf mode {
+      type identityref {
+        base mode-base;
+      }
+    }
+
+    list things {
+      key "name";
+
+      leaf name {
+        type string;
+      }
+
+      leaf value {
+        type int32;
+        if-feature f-extra;
+      }
+    }
+  }
+}

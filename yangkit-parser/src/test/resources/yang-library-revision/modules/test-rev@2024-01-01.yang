@@ -1,0 +1,18 @@
+module test-rev {
+  yang-version 1.1;
+  namespace "urn:test:rev";
+  prefix tr;
+
+  organization "UAA QA";
+  description "Revision-mismatch fixture. File declares 2024-01-01.";
+
+  revision 2024-01-01 {
+    description "actual revision";
+  }
+
+  container c {
+    leaf x {
+      type string;
+    }
+  }
+}

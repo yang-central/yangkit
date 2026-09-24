@@ -34,7 +34,15 @@ public class ValidatorResultBuilder implements Builder<ValidatorResult> {
       }
    }
 
-   public void merge(ValidatorResult validatorResult) {
+    /**
+     * @return the live list of records collected so far, or null when no record has been added.
+     * Callers may remove records before {@link #build()}.
+     */
+    public List<ValidatorRecord<?, ?>> getRecords() {
+        return this.validatorRecords;
+    }
+
+    public void merge(ValidatorResult validatorResult) {
       if (validatorResult == null) {
          return;
       }

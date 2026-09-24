@@ -14,15 +14,71 @@ import org.yangcentral.yangkit.register.YangStatementImplRegister;
 import org.yangcentral.yangkit.register.YangStatementRegister;
 import org.yangcentral.yangkit.utils.file.FileUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 
 public class YangYinParser {
+   private static final Logger logger = LoggerFactory.getLogger(YangYinParser.class);
+
    static {
       YangStatementImplRegister.registerImpl();
    }
+
+   // -------------------------------------------------------------------------
+   // YANG Library (RFC 8525) entry-points
+   // -------------------------------------------------------------------------
+
+   /**
+    * Load a {@link YangSchemaContext} from a YANG Library XML file (RFC 8525)
+    * and a directory of YANG/YIN module files.
+    *
+    * <p>Module files are resolved first from {@code <location>} entries in the
+    * yang-library XML (only {@code file://} URIs are supported), and then by
+    * searching {@code yangSearchPath} for files named
+    * {@code module-name@revision.yang} or {@code module-name.yang}.
+    *
+    * @param xmlFile        RFC 8525 yang-library XML file
+    * @param yangSearchPath directory containing the .yang/.yin module files
+    * @return populated, unvalidated {@link YangSchemaContext}
+    * @throws DocumentException   if the XML cannot be parsed
+    * @throws IOException         if a module file cannot be read
+    * @throws YangParserException if a YANG module is syntactically invalid
+    */
+   public static YangSchemaContext parseFromYangLibrary(File xmlFile, File yangSearchPath)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlFile, yangSearchPath);
+   }
+
+   /**
+    * Load a {@link YangSchemaContext} from a YANG Library XML stream (RFC 8525)
+    * and a directory of YANG/YIN module files.
+    *
+    * @param xmlStream      RFC 8525 yang-library XML as a stream
+    * @param yangSearchPath directory containing the .yang/.yin module files
+    * @return populated, unvalidated {@link YangSchemaContext}
+    */
+   public static YangSchemaContext parseFromYangLibrary(InputStream xmlStream, File yangSearchPath)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlStream, yangSearchPath);
+   }
+
+   /**
+    * Convenience overload accepting path strings.
+    *
+    * @param xmlFilePath    path to the RFC 8525 yang-library XML file
+    * @param yangSearchPath path to the directory containing .yang/.yin files
+    * @return populated, unvalidated {@link YangSchemaContext}
+    */
+   public static YangSchemaContext parseFromYangLibrary(String xmlFilePath, String yangSearchPath)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlFilePath, yangSearchPath);
+   }
+
+   // -------------------------------------------------------------------------
 
    /**
     * parse yang modules from a list of yang file
@@ -331,13 +387,17 @@ public class YangYinParser {
 
       String yangString = "";
       if (isYang) {
+         logger.debug("[Parse:readString] start for: {}", moduleInfo);
          yangString = readString(inputStream);
+         logger.debug("[Parse:readString] done, length={} for: {}", yangString.length(), moduleInfo);
          YangParser yangParser = new YangParser();
          YangParserEnv env = new YangParserEnv();
          env.setYangStr(yangString);
          env.setFilename(moduleInfo);
          env.setCurPos(0);
+         logger.debug("[Parse:parseYang] start for: {}", moduleInfo);
          yangElements = yangParser.parseYang(yangString, env);
+         logger.debug("[Parse:parseYang] done, elements={} for: {}", (yangElements == null ? 0 : yangElements.size()), moduleInfo);
       } else {
          YinParser yinParser = new YinParser(moduleInfo);
          SAXReader reader = SAXReader.createDefault();
@@ -364,11 +424,13 @@ public class YangYinParser {
                   continue;
                }
             }
+            logger.debug("[Parse:addModule] {} module={} for: {}", (importOnly ? "importOnly" : "main"), module.getArgStr(), moduleInfo);
             if(importOnly){
                context.addImportOnlyModule(module);
             } else {
                context.addModule(module);
             }
+            logger.debug("[Parse:addModule] done for: {}", moduleInfo);
 
             break;
          }

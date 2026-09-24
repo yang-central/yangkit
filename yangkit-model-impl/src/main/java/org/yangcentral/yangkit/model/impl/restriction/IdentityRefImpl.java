@@ -65,9 +65,9 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
                   return true;
                }
 
-               Base base = (Base)baseIterator.next();
-               baseIdentity = base.getIdentity();
-            } while(null == baseIdentity || identity.isDerivedOrSelf(baseIdentity));
+                Base base = (Base)baseIterator.next();
+                baseIdentity = base.getIdentity();
+             } while(null == baseIdentity || identity.isDerivedOrSelf(baseIdentity));
 
             return false;
          }

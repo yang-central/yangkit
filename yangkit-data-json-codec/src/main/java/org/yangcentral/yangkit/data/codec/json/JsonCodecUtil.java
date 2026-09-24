@@ -21,6 +21,7 @@ import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
@@ -552,11 +553,16 @@ public class JsonCodecUtil {
             recordBuilder.setErrorTag(record.getErrorTag());
             if(record.getErrorPath() != null && !record.getErrorPath().toString().isEmpty()) {
                 recordBuilder.setErrorPath(record.getErrorPath().toString());
-            }else {
+            }else{
                 recordBuilder.setErrorPath(extraValidationData.getJsonPath(tempJsonNode));
             }
             recordBuilder.setBadElement(tempJsonNode);
             recordBuilder.setErrorMessage(record.getErrorMsg());
+            // Preserve the severity (and app tag) recorded by the codec — e.g. a
+            // missing list key downgraded to a WARNING in lenient mode must not be
+            // silently promoted back to an ERROR when the record is re-wrapped.
+            recordBuilder.setSeverity(record.getSeverity());
+            recordBuilder.setErrorAppTag(record.getErrorAppTag());
             validatorResultBuilderWithErrorPath.addRecord(recordBuilder.build());
         }
         return validatorResultBuilderWithErrorPath.build();
@@ -591,7 +597,11 @@ public class JsonCodecUtil {
             }
             QName qName = JsonCodecUtil.getQNameFromJsonField(fieldName,yangDataContainer);
             SchemaNode sonSchemaNode = schemaNodeContainer.getTreeNodeChild(qName);
-            if (sonSchemaNode == null || !sonSchemaNode.isActive()) {
+            // Strict by default: unknown and inactive (if-feature / deviation) elements are
+            // errors. In lenient mode inactive elements are accepted as-is (partial device
+            // data), unknown elements still error.
+            boolean sonInactive = sonSchemaNode != null && !sonSchemaNode.isActive();
+            if (sonSchemaNode == null || (sonInactive && !LenientValidationOptions.isEnabled())) {
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
                 recordBuilder.setErrorPath(extraValidationData.getJsonPath(child));
@@ -599,6 +609,9 @@ public class JsonCodecUtil {
                 recordBuilder.setErrorMessage(new ErrorMessage(
                         "unrecognized element:" + fieldName));
                 validatorResultBuilder.addRecord(recordBuilder.build());
+                continue;
+            }
+            if (sonInactive) {
                 continue;
             }
 
