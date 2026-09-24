@@ -3,9 +3,9 @@ package org.yangcentral.yangkit.data.codec.proto;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationContext;
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationRequest;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationSupport;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
@@ -44,21 +44,31 @@ public class AnyDataDataProtoCodec extends YangDataProtoCodec<Anydata, AnyDataDa
         }
 
         try {
-            YangSchemaContext payloadSchemaContext = getSchemaContext();
-            if (getAnydataValidationContextResolver() != null) {
-                AnydataValidationContext context = getAnydataValidationContextResolver().resolve(
-                        new AnydataValidationRequest(getSchemaNode(), getSourcePath(), getSchemaContext()));
-                if (context != null && context.getSchemaContext() != null) {
-                    payloadSchemaContext = context.getSchemaContext();
-                }
-            }
             com.fasterxml.jackson.databind.JsonNode jsonNode =
                     new com.fasterxml.jackson.databind.ObjectMapper().readTree((String) payloadValue);
+            if (!jsonNode.isObject()) {
+                AnydataValidationSupport.recordInvalidContent(
+                        getSchemaNode(), getSourcePath(), payloadValue,
+                        "JSON content must be an object.", validatorResultBuilder);
+                return data;
+            }
+            if (jsonNode.isEmpty()) {
+                return data;
+            }
+            YangSchemaContext payloadSchemaContext = AnydataValidationSupport.resolveSchemaContext(
+                    getSchemaNode(), getSourcePath(), getSchemaContext(),
+                    getAnydataValidationContextResolver(), payloadValue, validatorResultBuilder);
+            if (payloadSchemaContext == null) {
+                return data;
+            }
             YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(payloadSchemaContext);
             YangDataDocument dataDocument = documentJsonCodec.deserialize(jsonNode, validatorResultBuilder,
                     getAnydataValidationContextResolver());
             data.setValue(dataDocument);
-        } catch (Exception ignored) {
+        } catch (JsonProcessingException exception) {
+            AnydataValidationSupport.recordInvalidContent(
+                    getSchemaNode(), getSourcePath(), payloadValue,
+                    "invalid JSON: " + exception.getOriginalMessage(), validatorResultBuilder);
         }
         return data;
     }
@@ -75,7 +85,8 @@ public class AnyDataDataProtoCodec extends YangDataProtoCodec<Anydata, AnyDataDa
         if (document != null) {
             Descriptors.FieldDescriptor valueField = desc.findFieldByName("value");
             if (valueField != null) {
-                YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(getSchemaContext());
+                YangDataDocumentJsonCodec documentJsonCodec =
+                        new YangDataDocumentJsonCodec(document.getSchemaContext());
                 builder.setField(valueField, documentJsonCodec.serialize(document).toString());
             }
         }

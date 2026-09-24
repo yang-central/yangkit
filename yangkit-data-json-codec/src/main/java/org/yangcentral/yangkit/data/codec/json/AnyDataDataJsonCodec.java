@@ -1,10 +1,9 @@
 package org.yangcentral.yangkit.data.codec.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationContext;
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationRequest;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationSupport;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
@@ -19,13 +18,20 @@ public class AnyDataDataJsonCodec extends YangDataJsonCodec<Anydata, AnyDataData
 
     @Override
     protected AnyDataData buildData(JsonNode element, ValidatorResultBuilder validatorResultBuilder) {
-        YangSchemaContext payloadSchemaContext = getSchemaContext();
-        if (getAnydataValidationContextResolver() != null) {
-            AnydataValidationContext context = getAnydataValidationContextResolver().resolve(
-                    new AnydataValidationRequest(getSchemaNode(), getSourcePath(), getSchemaContext()));
-            if (context != null && context.getSchemaContext() != null) {
-                payloadSchemaContext = context.getSchemaContext();
-            }
+        if (!element.isObject()) {
+            AnydataValidationSupport.recordInvalidContent(
+                    getSchemaNode(), getSourcePath(), element,
+                    "JSON content must be an object.", validatorResultBuilder);
+            return (AnyDataData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), null);
+        }
+        if (element.isEmpty()) {
+            return (AnyDataData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), null);
+        }
+        YangSchemaContext payloadSchemaContext = AnydataValidationSupport.resolveSchemaContext(
+                getSchemaNode(), getSourcePath(), getSchemaContext(),
+                getAnydataValidationContextResolver(), element, validatorResultBuilder);
+        if (payloadSchemaContext == null) {
+            return (AnyDataData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), null);
         }
         YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(payloadSchemaContext);
         YangDataDocument dataDocument = documentJsonCodec.deserialize(element, validatorResultBuilder,
@@ -37,7 +43,10 @@ public class AnyDataDataJsonCodec extends YangDataJsonCodec<Anydata, AnyDataData
     protected JsonNode buildElement(YangData<?> yangData) {
         AnyDataData anyDataData = (AnyDataData) yangData;
         YangDataDocument document = anyDataData.getEffectiveValue();
-        YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(getSchemaContext());
+        if (document == null) {
+            return com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+        }
+        YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(document.getSchemaContext());
         JsonNode root = documentJsonCodec.serialize(document);
         return root;
     }

@@ -115,14 +115,18 @@ AnydataValidationOptions options = new AnydataValidationOptions()
 If no matching payload schema context is found:
 
 - the `anydata` node itself is still created
-- the payload document is still created
-- payload children that are not described by the outer schema may remain unrecognized
+- no payload document is attached
+- an `operation-failed` record is added to the parse result
+- payload content is not interpreted using the enclosing document schema
 
 ## Notes
 
 - `YangDataDocumentXmlCodec.deserialize(Document, ..., options)` is the most convenient entry for whole-document parsing
 - `YangDataDocumentXmlCodec.deserialize(Element, ..., options)` is useful when the XML root element has already been extracted
 - `AnydataValidationOptions` matching order is: rule > schema-node registration > default context
+- calling `validate()` on the enclosing document recursively validates the parsed `anydata` payload
+- XML `anydata` content must contain structured child elements
+- non-whitespace text-only content produces `BAD_ELEMENT`; an empty element is accepted
 
 ## Complete Minimal Runnable Example
 
@@ -203,5 +207,3 @@ module payload-anydata {
   }
 }
 ```
-
-

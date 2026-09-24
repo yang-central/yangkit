@@ -2,10 +2,14 @@ package org.yangcentral.yangkit.data.codec.cbor.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.exception.ErrorTag;
+import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
@@ -20,7 +24,9 @@ import org.yangcentral.yangkit.parser.YangYinParser;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AnydataValidationOptionsCborCodecTest {
@@ -47,11 +53,14 @@ public class AnydataValidationOptionsCborCodecTest {
         assertNotNull(wrapperContainer);
     }
 
-    private byte[] buildCbor() throws Exception {
+    private byte[] buildCbor(boolean valid) throws Exception {
+        String payload = valid
+                ? "\"value\":\"abc\",\"item\":[{\"id\":\"one\",\"name\":\"first\"}]"
+                : "\"value\":\"wrong\",\"selected-target\":\"missing\"";
         String json = "{"
                 + "\"payload-holder\":{"
                 + "\"payload-anydata:payload-root\":{"
-                + "\"value\":\"abc\""
+                + payload
                 + "}"
                 + "}"
                 + "}";
@@ -59,16 +68,22 @@ public class AnydataValidationOptionsCborCodecTest {
         return new ObjectMapper(new CBORFactory()).writeValueAsBytes(jsonNode);
     }
 
+    private byte[] buildPrimitiveCbor(JsonNode primitiveValue) throws Exception {
+        ObjectNode wrapper = new ObjectMapper().createObjectNode();
+        wrapper.set("payload-holder", primitiveValue);
+        return new ObjectMapper(new CBORFactory()).writeValueAsBytes(wrapper);
+    }
+
     @Test
-    public void deserializeWithoutOptionsKeepsUnknownAnydataPayloadEmpty() throws Exception {
+    public void deserializeWithoutOptionsReportsMissingPayloadSchema() throws Exception {
         ContainerDataCborCodec codec = new ContainerDataCborCodec(wrapperContainer);
         ValidatorResultBuilder validator = new ValidatorResultBuilder();
 
-        ContainerData containerData = codec.deserialize(buildCbor(), validator);
+        ContainerData containerData = codec.deserialize(buildCbor(true), validator);
         assertNotNull(containerData);
         AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
-        assertNotNull(anyDataData.getValue());
-        assertEquals(0, anyDataData.getValue().getDataChildren().size());
+        assertNull(anyDataData.getValue());
+        assertFalse(validator.build().isOk());
     }
 
     @Test
@@ -78,14 +93,71 @@ public class AnydataValidationOptionsCborCodecTest {
         AnydataValidationOptions options = new AnydataValidationOptions()
                 .registerSchemaContext(PAYLOAD_HOLDER_QNAME, payloadSchemaContext);
 
-        ContainerData containerData = codec.deserialize(buildCbor(), validator, options);
+        ContainerData containerData = codec.deserialize(buildCbor(true), validator, options);
         assertNotNull(containerData);
         AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
         assertNotNull(anyDataData.getValue());
-        assertEquals(1, anyDataData.getValue().getDataChildren().size());
+        assertEquals(2, anyDataData.getValue().getDataChildren().size());
         assertEquals("value", anyDataData.getValue().getDataChildren().get(0).getQName().getLocalName());
+        assertTrue(validator.build().isOk());
+        assertTrue(containerData.validate().isOk());
+    }
+
+    @Test
+    public void validateWithSchemaMappedOptionsReportsNestedConstraintFailures() throws Exception {
+        ContainerDataCborCodec codec = new ContainerDataCborCodec(wrapperContainer);
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        AnydataValidationOptions options = new AnydataValidationOptions()
+                .registerSchemaContext(PAYLOAD_HOLDER_QNAME, payloadSchemaContext);
+
+        ContainerData containerData = codec.deserialize(buildCbor(false), validator, options);
+
+        assertNotNull(containerData);
+        assertTrue(validator.build().isOk());
+        ValidatorResult validationResult = containerData.validate();
+        assertFalse(validationResult.isOk());
+        assertTrue(validationResult.getRecords().size() >= 3);
+    }
+
+    @Test
+    public void deserializePrimitiveValuesReportsBadElement() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode[] primitiveValues = {
+                mapper.getNodeFactory().textNode("text"),
+                mapper.getNodeFactory().numberNode(42),
+                mapper.getNodeFactory().booleanNode(true),
+                mapper.getNodeFactory().nullNode()
+        };
+        for (JsonNode primitiveValue : primitiveValues) {
+            ContainerDataCborCodec codec = new ContainerDataCborCodec(wrapperContainer);
+            ValidatorResultBuilder validator = new ValidatorResultBuilder();
+
+            ContainerData containerData = codec.deserialize(buildPrimitiveCbor(primitiveValue), validator);
+
+            assertNotNull(containerData);
+            ValidatorResult parseResult = validator.build();
+            assertFalse(parseResult.isOk());
+            ValidatorRecord<?, ?> record = parseResult.getRecords().get(0);
+            assertEquals(ErrorTag.BAD_ELEMENT, record.getErrorTag());
+            assertNotNull(record.getErrorPath());
+            assertFalse(record.getErrorPath().toString().isEmpty());
+            assertNotNull(record.getBadElement());
+            assertTrue(record.getErrorMsg().getMessage().contains("decode to a map"));
+        }
+    }
+
+    @Test
+    public void deserializeEmptyMapAcceptsEmptyAnydata() throws Exception {
+        ContainerDataCborCodec codec = new ContainerDataCborCodec(wrapperContainer);
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+
+        ContainerData containerData = codec.deserialize(
+                buildPrimitiveCbor(new ObjectMapper().createObjectNode()), validator);
+
+        assertNotNull(containerData);
+        assertTrue(validator.build().isOk());
+        AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
+        assertNull(anyDataData.getValue());
     }
 }
-
-
 

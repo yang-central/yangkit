@@ -145,8 +145,27 @@ module payload-anydata {
 
 ### Expected Behavior Without a Matching Context
 
-If no matching payload schema context is found for an `anydata` node, the codecs still create the `anydata` node itself.
-The payload document may deserialize with zero recognized data children when the outer schema cannot describe the embedded payload.
+Non-empty `anydata` content requires a matching payload schema context. If resolution fails, the codec creates the
+outer `anydata` node without a payload value and adds an `operation-failed` record to the parse result. Content is
+never silently discarded or interpreted with the enclosing document schema.
+
+After successful schema-aware deserialization, validating the enclosing document also validates the nested payload
+document. Standard Yangkit validation records for `mandatory`, `must`, cardinality, `unique`, type, and `leafref`
+constraints are returned with paths rooted beneath the enclosing `anydata` node.
+
+Opaque libyang-style preservation and `anyxml` validation are not provided by this API.
+
+### Anydata Content Shapes
+
+| Format | Accepted empty/structured form | Rejected primitive forms |
+|---|---|---|
+| JSON | object, including `{}` | string, number, boolean, `null`, array |
+| XML | child elements or an empty element | non-whitespace text-only content |
+| CBOR | map, including an empty map | text string, integer/number, boolean, null, array |
+| Protocol Buffers | wrapper `value` containing a JSON object or an empty string | wrapper `value` containing JSON string, number, boolean, null, or array |
+
+Primitive `anydata` values produce `ErrorTag.BAD_ELEMENT` records. This follows libyang's structured-input rule for
+`anydata` while retaining Yangkit's validation result format and messages.
 
 ## Related Codec Modules
 

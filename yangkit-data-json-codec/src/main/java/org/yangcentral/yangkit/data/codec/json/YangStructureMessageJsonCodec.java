@@ -82,7 +82,12 @@ public abstract class YangStructureMessageJsonCodec<T extends YangStructureMessa
             }
             SchemaNode dataNode = structure.getTreeNodeChild(qName);
             if(dataNode != null) {
-                JsonCodecUtil.buildChildData(yangStructureData,fieldNode,dataNode);
+                builder.merge(JsonCodecUtil.buildChildData(
+                        yangStructureData,
+                        fieldNode,
+                        dataNode,
+                        new ExtraValidationDataJsonCodec(),
+                        getAnydataValidationContextResolver()));
             }
         }
         return instance;

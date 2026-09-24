@@ -5,6 +5,9 @@ import com.google.protobuf.DynamicMessage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.exception.ErrorTag;
+import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
@@ -20,7 +23,9 @@ import org.yangcentral.yangkit.parser.YangYinParser;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AnydataValidationOptionsProtoCodecTest {
@@ -48,7 +53,7 @@ public class AnydataValidationOptionsProtoCodecTest {
         ProtoDescriptorManager.getInstance().clearCache();
     }
 
-    private DynamicMessage buildWrapperMessage() {
+    private DynamicMessage buildWrapperMessage(boolean valid) {
         Descriptors.Descriptor wrapperDescriptor = ProtoDescriptorManager.getInstance().getDescriptor(wrapperContainer);
         assertNotNull(wrapperDescriptor);
         Descriptors.FieldDescriptor payloadHolderField = wrapperDescriptor.findFieldByName("payload_holder");
@@ -57,17 +62,35 @@ public class AnydataValidationOptionsProtoCodecTest {
         DynamicMessage.Builder anydataBuilder = DynamicMessage.newBuilder(payloadHolderField.getMessageType());
         Descriptors.FieldDescriptor valueField = payloadHolderField.getMessageType().findFieldByName("value");
         assertNotNull(valueField);
-        anydataBuilder.setField(valueField, "{\"payload-anydata:payload-root\":{\"value\":\"abc\"}}");
+        String payload = valid
+                ? "{\"payload-anydata:payload-root\":{"
+                        + "\"value\":\"abc\",\"item\":[{\"id\":\"one\",\"name\":\"first\"}]}}"
+                : "{\"payload-anydata:payload-root\":{"
+                        + "\"value\":\"wrong\",\"selected-target\":\"missing\"}}";
+        anydataBuilder.setField(valueField, payload);
 
         DynamicMessage.Builder wrapperBuilder = DynamicMessage.newBuilder(wrapperDescriptor);
         wrapperBuilder.setField(payloadHolderField, anydataBuilder.build());
         return wrapperBuilder.build();
     }
 
+    private DynamicMessage buildWrapperMessage(String payload) {
+        Descriptors.Descriptor wrapperDescriptor = ProtoDescriptorManager.getInstance().getDescriptor(wrapperContainer);
+        Descriptors.FieldDescriptor payloadHolderField = wrapperDescriptor.findFieldByName("payload_holder");
+        DynamicMessage.Builder anydataBuilder = DynamicMessage.newBuilder(payloadHolderField.getMessageType());
+        Descriptors.FieldDescriptor valueField = payloadHolderField.getMessageType().findFieldByName("value");
+        anydataBuilder.setField(valueField, payload);
+        return DynamicMessage.newBuilder(wrapperDescriptor)
+                .setField(payloadHolderField, anydataBuilder.build())
+                .build();
+    }
+
     @SuppressWarnings("unchecked")
-    private ContainerData deserialize(DynamicMessage message, AnydataValidationOptions options) {
+    private ContainerData deserialize(
+            DynamicMessage message,
+            AnydataValidationOptions options,
+            ValidatorResultBuilder validator) {
         YangDataProtoCodec<?, ?> codec = YangDataProtoCodec.getInstance(wrapperContainer);
-        ValidatorResultBuilder validator = new ValidatorResultBuilder();
         if (options == null) {
             return (ContainerData) ((YangDataProtoCodec<Container, ContainerData>) codec).deserialize(message, validator);
         }
@@ -75,12 +98,13 @@ public class AnydataValidationOptionsProtoCodecTest {
     }
 
     @Test
-    public void deserializeWithoutOptionsKeepsUnknownAnydataPayloadEmpty() {
-        ContainerData containerData = deserialize(buildWrapperMessage(), null);
+    public void deserializeWithoutOptionsReportsMissingPayloadSchema() {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        ContainerData containerData = deserialize(buildWrapperMessage(true), null, validator);
         assertNotNull(containerData);
         AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
-        assertNotNull(anyDataData.getValue());
-        assertEquals(0, anyDataData.getValue().getDataChildren().size());
+        assertNull(anyDataData.getValue());
+        assertFalse(validator.build().isOk());
     }
 
     @Test
@@ -88,14 +112,64 @@ public class AnydataValidationOptionsProtoCodecTest {
         AnydataValidationOptions options = new AnydataValidationOptions()
                 .registerSchemaContext(PAYLOAD_HOLDER_QNAME, payloadSchemaContext);
 
-        ContainerData containerData = deserialize(buildWrapperMessage(), options);
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        ContainerData containerData = deserialize(buildWrapperMessage(true), options, validator);
         assertNotNull(containerData);
         AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
         assertNotNull(anyDataData.getValue());
-        assertEquals(1, anyDataData.getValue().getDataChildren().size());
+        assertEquals(2, anyDataData.getValue().getDataChildren().size());
         assertEquals("value", anyDataData.getValue().getDataChildren().get(0).getQName().getLocalName());
+        assertTrue(validator.build().isOk());
+        assertTrue(containerData.validate().isOk());
+    }
+
+    @Test
+    public void validateWithSchemaMappedOptionsReportsNestedConstraintFailures() {
+        AnydataValidationOptions options = new AnydataValidationOptions()
+                .registerSchemaContext(PAYLOAD_HOLDER_QNAME, payloadSchemaContext);
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+
+        ContainerData containerData = deserialize(buildWrapperMessage(false), options, validator);
+
+        assertNotNull(containerData);
+        assertTrue(validator.build().isOk());
+        ValidatorResult validationResult = containerData.validate();
+        assertFalse(validationResult.isOk());
+        assertTrue(validationResult.getRecords().size() >= 3);
+    }
+
+    @Test
+    public void deserializePrimitiveValuesReportsBadElement() {
+        String[] primitiveValues = {"\"text\"", "42", "true", "null"};
+        AnydataValidationOptions options = new AnydataValidationOptions()
+                .registerSchemaContext(PAYLOAD_HOLDER_QNAME, payloadSchemaContext);
+        for (String primitiveValue : primitiveValues) {
+            ValidatorResultBuilder validator = new ValidatorResultBuilder();
+
+            ContainerData containerData = deserialize(buildWrapperMessage(primitiveValue), options, validator);
+
+            assertNotNull(containerData);
+            ValidatorResult parseResult = validator.build();
+            assertFalse(parseResult.isOk());
+            ValidatorRecord<?, ?> record = parseResult.getRecords().get(0);
+            assertEquals(ErrorTag.BAD_ELEMENT, record.getErrorTag());
+            assertNotNull(record.getErrorPath());
+            assertFalse(record.getErrorPath().toString().isEmpty());
+            assertEquals(primitiveValue, record.getBadElement());
+            assertTrue(record.getErrorMsg().getMessage().contains("must be an object"));
+        }
+    }
+
+    @Test
+    public void deserializeEmptyObjectAcceptsEmptyAnydata() {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+
+        ContainerData containerData = deserialize(buildWrapperMessage("{}"), null, validator);
+
+        assertNotNull(containerData);
+        assertTrue(validator.build().isOk());
+        AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
+        assertNull(anyDataData.getValue());
     }
 }
-
-
 

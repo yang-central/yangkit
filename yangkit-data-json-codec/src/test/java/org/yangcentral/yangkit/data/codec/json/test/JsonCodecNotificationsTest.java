@@ -8,6 +8,7 @@ import org.yangcentral.yangkit.common.api.exception.Severity;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.model.NotificationMessage;
 import org.yangcentral.yangkit.data.codec.json.NotificationMessageJsonCodec;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
@@ -31,7 +32,10 @@ public class JsonCodecNotificationsTest {
 
     ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
     NotificationMessageJsonCodec notificationMessageJsonCodec = new NotificationMessageJsonCodec(schemaContext);
-    NotificationMessage message = notificationMessageJsonCodec.deserialize(jsonElement, validatorResultBuilder);
+    NotificationMessage message = notificationMessageJsonCodec.deserialize(
+            jsonElement,
+            validatorResultBuilder,
+            new AnydataValidationOptions().defaultSchemaContext(schemaContext));
     ValidatorResult validationResult = validatorResultBuilder.build();
     assertNotNull(message, "Valid push-update notification should deserialize");
     assertNotNull(message.getStructureData(), "Valid push-update should include notification structure data");
@@ -52,7 +56,10 @@ public class JsonCodecNotificationsTest {
 
     ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
     NotificationMessageJsonCodec notificationMessageJsonCodec = new NotificationMessageJsonCodec(schemaContext);
-    NotificationMessage message = notificationMessageJsonCodec.deserialize(jsonElement, validatorResultBuilder);
+    NotificationMessage message = notificationMessageJsonCodec.deserialize(
+            jsonElement,
+            validatorResultBuilder,
+            new AnydataValidationOptions().defaultSchemaContext(schemaContext));
     ValidatorResult validationResult = validatorResultBuilder.build();
     assertNotNull(message, "Valid push-change-update notification should deserialize");
     assertNotNull(message.getStructureData(), "Valid push-change-update should include notification structure data");

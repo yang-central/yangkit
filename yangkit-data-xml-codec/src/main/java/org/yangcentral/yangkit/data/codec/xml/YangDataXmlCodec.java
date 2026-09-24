@@ -130,11 +130,11 @@ public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<
         }
         D data = buildData(element,validatorResultBuilder);
         processAttributers(data,element);
-        // if(data instanceof YangDataContainer){
-        //     YangDataContainer yangDataContainer = (YangDataContainer) data;
-        //     ValidatorResult childrenResult = buildChildrenData(yangDataContainer,element);
-        //     validatorResultBuilder.merge(childrenResult);
-        // }
+        if (data instanceof YangDataContainer) {
+            YangDataDocumentXmlCodec documentCodec = new YangDataDocumentXmlCodec(getSchemaContext());
+            validatorResultBuilder.merge(documentCodec.buildChildrenData(
+                    (YangDataContainer) data, element, getAnydataValidationContextResolver()));
+        }
         return data;
     }
     abstract protected void buildElement(Element element,YangData<?> yangData);
@@ -172,4 +172,3 @@ public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<
     }
 
 }
-

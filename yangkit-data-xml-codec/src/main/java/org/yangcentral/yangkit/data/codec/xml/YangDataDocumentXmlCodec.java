@@ -7,12 +7,15 @@ import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.codec.YangDataDocumentCodec;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
+import org.yangcentral.yangkit.data.api.model.LeafData;
+import org.yangcentral.yangkit.data.api.model.ListData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.impl.model.YangDataDocumentImpl;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.utils.xml.Converter;
@@ -43,6 +46,13 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
     }
 
     protected ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, Element element){
+        return buildChildrenData(yangDataContainer, element, anydataValidationContextResolver);
+    }
+
+    protected ValidatorResult buildChildrenData(
+            YangDataContainer yangDataContainer,
+            Element element,
+            AnydataValidationContextResolver resolver) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         SchemaNodeContainer schemaNodeContainer= null;
         if(yangDataContainer instanceof YangDataDocument){
@@ -67,19 +77,17 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
                 continue; // Skip non-config data
             }
 
+            if (addExistingListKey(yangDataContainer, sonSchemaNode)) {
+                continue;
+            }
+
             YangDataXmlCodec xmlCodec = YangDataXmlCodec.getInstance(sonSchemaNode,
-                    anydataValidationContextResolver, child.getUniquePath());
+                    resolver, child.getUniquePath());
             if (xmlCodec != null) {
                 YangData<?> childData = xmlCodec.deserialize(child, validatorResultBuilder);
                 if (childData != null) {
                     try {
                         yangDataContainer.addDataChild(childData);
-
-                        YangData<?> addedChild = yangDataContainer.getDataChild(childData.getIdentifier());
-                        if (addedChild instanceof YangDataContainer) {
-                            validatorResultBuilder.merge(
-                                    buildChildrenData((YangDataContainer) addedChild, child));
-                        }
                     } catch (YangDataException e) {
                         ValidatorRecordBuilder<String, Element> recordBuilder =
                                 new ValidatorRecordBuilder<>();
@@ -93,6 +101,32 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
             }
         }
         return validatorResultBuilder.build();
+    }
+
+    private boolean addExistingListKey(
+            YangDataContainer yangDataContainer,
+            SchemaNode schemaNode) {
+        if (!(yangDataContainer instanceof ListData)
+                || !(schemaNode instanceof Leaf)
+                || !((Leaf) schemaNode).isKey()) {
+            return false;
+        }
+        ListData listData = (ListData) yangDataContainer;
+        for (LeafData key : listData.getKeys()) {
+            if (!key.getQName().equals(schemaNode.getIdentifier())) {
+                continue;
+            }
+            if (listData.getDataChild(key.getIdentifier()) != null) {
+                return true;
+            }
+            try {
+                yangDataContainer.addDataChild(key);
+            } catch (YangDataException exception) {
+                throw new IllegalStateException("Failed to add parsed list key.", exception);
+            }
+            return true;
+        }
+        return false;
     }
     
     @Override
