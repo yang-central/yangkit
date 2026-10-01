@@ -359,10 +359,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
     private boolean matchUnique(Unique unique,List<YangData<?>> uniqueData,ListData listData){
         List<YangData<?>> matchedUniqueData = new ArrayList<>();
         for(Leaf leaf:unique.getUniqueNodes()){
-            SchemaPath.Absolute listSchemaPath = listData.getSchemaNode().getSchemaPath();
-            List<QName> steps = listSchemaPath == null
-                    ? relativeSchemaSteps(listData.getSchemaNode(), leaf)
-                    : listSchemaPath.getRelativeSchemaPath(leaf.getSchemaPath());
+            List<QName> steps = listData.getSchemaNode().getSchemaPath().getRelativeSchemaPath(leaf.getSchemaPath());
             SchemaPath.Descendant descendant = new DescendantSchemaPath(steps,listData.getSchemaNode());
             List<YangData<?>> matched = YangDataUtil.search(listData,descendant);
             if(matched.isEmpty()){
@@ -381,17 +378,6 @@ public class YangAbstractDataContainer implements YangDataContainer {
             }
         }
         return true;
-    }
-
-    private List<QName> relativeSchemaSteps(YangList list, Leaf leaf) {
-        LinkedList<QName> steps = new LinkedList<>();
-        SchemaNode current = leaf;
-        while (current != null && current != list) {
-            steps.addFirst(current.getIdentifier());
-            SchemaNodeContainer parent = current.getParentSchemaNode();
-            current = parent instanceof SchemaNode ? (SchemaNode) parent : null;
-        }
-        return steps;
     }
 
     private ValidatorResult checkUniques(YangList list, List<YangData<?>> matchedData){

@@ -15,7 +15,7 @@ public final class AnydataValidationSupport {
     }
 
     /**
-     * Resolves a payload schema and records a validation error when none is configured.
+     * Resolves a payload schema, falling back to the enclosing schema unless strict mode is enabled.
      *
      * @param schemaNode enclosing anydata schema node
      * @param sourcePath source path of the payload
@@ -37,6 +37,10 @@ public final class AnydataValidationSupport {
         AnydataValidationContext context = resolver == null ? null : resolver.resolve(request);
         if (context != null && context.getSchemaContext() != null) {
             return context.getSchemaContext();
+        }
+        if (!(resolver instanceof AnydataValidationOptions)
+                || !((AnydataValidationOptions) resolver).isRequirePayloadSchema()) {
+            return documentSchemaContext;
         }
 
         ValidatorRecordBuilder<String, Object> recordBuilder = new ValidatorRecordBuilder<>();

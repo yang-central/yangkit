@@ -98,13 +98,26 @@ public class AnydataValidationOptionsProtoCodecTest {
     }
 
     @Test
-    public void deserializeWithoutOptionsReportsMissingPayloadSchema() {
+    public void deserializeWithoutOptionsFallsBackToDocumentSchema() {
         ValidatorResultBuilder validator = new ValidatorResultBuilder();
         ContainerData containerData = deserialize(buildWrapperMessage(true), null, validator);
         assertNotNull(containerData);
         AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
-        assertNull(anyDataData.getValue());
-        assertFalse(validator.build().isOk());
+        assertNotNull(anyDataData.getValue());
+        assertTrue(anyDataData.getValue().getDataChildren().isEmpty());
+        assertTrue(validator.build().getRecords().stream().noneMatch(
+                record -> record.getErrorMsg() != null
+                        && record.getErrorMsg().getMessage().contains("No payload schema")));
+    }
+
+    @Test
+    public void deserializeWithStrictOptionsReportsMissingPayloadSchema() {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        ContainerData containerData = deserialize(buildWrapperMessage(true),
+                new AnydataValidationOptions().requirePayloadSchema(true), validator);
+
+        assertNull(((AnyDataData) containerData.getDataChildren().get(0)).getValue());
+        assertEquals(ErrorTag.OPERATION_FAILED, validator.build().getRecords().get(0).getErrorTag());
     }
 
     @Test
@@ -172,4 +185,3 @@ public class AnydataValidationOptionsProtoCodecTest {
         assertNull(anyDataData.getValue());
     }
 }
-

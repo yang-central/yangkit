@@ -1,6 +1,7 @@
 package org.yangcentral.yangkit.data.codec.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationSupport;
@@ -44,7 +45,7 @@ public class AnyDataDataJsonCodec extends YangDataJsonCodec<Anydata, AnyDataData
         AnyDataData anyDataData = (AnyDataData) yangData;
         YangDataDocument document = anyDataData.getEffectiveValue();
         if (document == null) {
-            return com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+            return JsonNodeFactory.instance.objectNode();
         }
         YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(document.getSchemaContext());
         JsonNode root = documentJsonCodec.serialize(document);

@@ -132,8 +132,9 @@ AnydataValidationOptions options = new AnydataValidationOptions()
                 payloadSchemaContext);
 ```
 
-If no matching context is found, the `anydata` node is created without a payload value and an `operation-failed`
-record is added to the parse result. The enclosing document schema is not used as a fallback.
+If no context matches, parsing falls back to the enclosing document schema. Nodes unknown to that schema cannot
+be preserved as opaque content. With `new AnydataValidationOptions().requirePayloadSchema(true)`, a missing
+context instead leaves the `anydata` node without a payload and adds an `operation-failed` record.
 
 Calling `validate()` on the enclosing data tree recursively validates a successfully parsed payload. CBOR
 `anydata` content must decode to a map.

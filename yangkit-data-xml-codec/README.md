@@ -112,12 +112,10 @@ AnydataValidationOptions options = new AnydataValidationOptions()
 
 ### Behavior when no context matches
 
-If no matching payload schema context is found:
-
-- the `anydata` node itself is still created
-- no payload document is attached
-- an `operation-failed` record is added to the parse result
-- payload content is not interpreted using the enclosing document schema
+If no payload schema matches, the enclosing document schema is used by default. Nodes unknown to that schema
+cannot be preserved as opaque content. Use `new AnydataValidationOptions().requirePayloadSchema(true)` to
+require an explicit match: in that mode the `anydata` node has no payload and an `operation-failed` record is
+added to the parse result.
 
 ## Notes
 

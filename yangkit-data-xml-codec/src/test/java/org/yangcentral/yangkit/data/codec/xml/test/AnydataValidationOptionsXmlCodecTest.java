@@ -71,15 +71,27 @@ public class AnydataValidationOptionsXmlCodecTest {
     }
 
     @Test
-    public void deserializeWithoutOptionsReportsMissingPayloadSchema() throws Exception {
+    public void deserializeWithoutOptionsFallsBackToDocumentSchema() throws Exception {
         YangDataDocumentXmlCodec codec = new YangDataDocumentXmlCodec(outerSchemaContext);
         ValidatorResultBuilder validator = new ValidatorResultBuilder();
 
         YangDataDocument document = codec.deserialize(buildDocument(true), validator);
 
         assertNotNull(document);
+        assertNotNull(extractAnydata(document).getValue());
+        assertTrue(extractAnydata(document).getValue().getDataChildren().isEmpty());
+        assertTrue(validator.build().isOk());
+    }
+
+    @Test
+    public void deserializeWithStrictOptionsReportsMissingPayloadSchema() throws Exception {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentXmlCodec(outerSchemaContext)
+                .deserialize(buildDocument(true), validator,
+                        new AnydataValidationOptions().requirePayloadSchema(true));
+
         assertNull(extractAnydata(document).getValue());
-        assertFalse(validator.build().isOk());
+        assertEquals(ErrorTag.OPERATION_FAILED, validator.build().getRecords().get(0).getErrorTag());
     }
 
     @Test
@@ -125,6 +137,24 @@ public class AnydataValidationOptionsXmlCodecTest {
                 assertTrue(record.getErrorPath().toString().contains("payload-holder"));
             }
         }
+    }
+
+    @Test
+    public void validateAnydataDirectlyUnderDocumentRootRebasesFullErrorPath() throws Exception {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentXmlCodec(outerSchemaContext)
+                .deserialize(buildDocument(false), validator, new AnydataValidationOptions()
+                        .registerSchemaContext(PAYLOAD_HOLDER_QNAME, payloadSchemaContext));
+
+        assertTrue(validator.build().isOk());
+        ValidatorResult result = document.validate();
+        assertFalse(result.isOk());
+        assertTrue(result.getRecords().stream().anyMatch(record ->
+                "/outer:payload-holder/payload:payload-root/payload:value"
+                        .equals(String.valueOf(record.getErrorPath()))), result.toString());
+        assertTrue(result.getRecords().stream().anyMatch(record ->
+                "/outer:payload-holder/payload:payload-root"
+                        .equals(String.valueOf(record.getErrorPath()))), result.toString());
     }
 
     @Test

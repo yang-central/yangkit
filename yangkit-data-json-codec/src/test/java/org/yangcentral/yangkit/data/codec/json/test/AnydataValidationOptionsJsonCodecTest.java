@@ -75,17 +75,41 @@ public class AnydataValidationOptionsJsonCodecTest {
     }
 
     @Test
-    public void deserializeWithoutOptionsReportsMissingPayloadSchema() throws Exception {
+    public void deserializeWithoutOptionsFallsBackToDocumentSchema() throws Exception {
         YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(outerSchemaContext);
         ValidatorResultBuilder validator = new ValidatorResultBuilder();
 
         YangDataDocument document = codec.deserialize(buildDocumentJson(), validator);
         assertNotNull(document);
         AnyDataData anyDataData = extractAnydata(document);
-        assertNull(anyDataData.getValue());
-        ValidatorResult parseResult = validator.build();
-        assertFalse(parseResult.isOk());
-        assertTrue(parseResult.getRecords().get(0).getErrorMsg().getMessage().contains("No payload schema"));
+        assertNotNull(anyDataData.getValue());
+        assertTrue(anyDataData.getValue().getDataChildren().isEmpty());
+        assertTrue(validator.build().getRecords().stream().noneMatch(
+                record -> record.getErrorMsg() != null
+                        && record.getErrorMsg().getMessage().contains("No payload schema")));
+    }
+
+    @Test
+    public void deserializeWithUnmatchedOptionsFallsBackToDocumentSchema() throws Exception {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext)
+                .deserialize(buildDocumentJson(), validator, new AnydataValidationOptions());
+
+        assertNotNull(extractAnydata(document).getValue());
+        assertTrue(validator.build().getRecords().stream().noneMatch(
+                record -> record.getErrorMsg() != null
+                        && record.getErrorMsg().getMessage().contains("No payload schema")));
+    }
+
+    @Test
+    public void deserializeWithStrictOptionsReportsMissingPayloadSchema() throws Exception {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext)
+                .deserialize(buildDocumentJson(), validator,
+                        new AnydataValidationOptions().requirePayloadSchema(true));
+
+        assertNull(extractAnydata(document).getValue());
+        assertEquals(ErrorTag.OPERATION_FAILED, validator.build().getRecords().get(0).getErrorTag());
     }
 
     @Test
@@ -93,6 +117,7 @@ public class AnydataValidationOptionsJsonCodecTest {
         YangDataDocumentJsonCodec codec = new YangDataDocumentJsonCodec(outerSchemaContext);
         ValidatorResultBuilder validator = new ValidatorResultBuilder();
         AnydataValidationOptions options = new AnydataValidationOptions()
+                .requirePayloadSchema(true)
                 .registerSchemaContext(PAYLOAD_HOLDER_QNAME, payloadSchemaContext);
 
         YangDataDocument document = codec.deserialize(buildDocumentJson(), validator, options);
@@ -138,6 +163,27 @@ public class AnydataValidationOptionsJsonCodecTest {
     }
 
     @Test
+    public void validateAnydataInKeyedListRebasesFullErrorPath() throws Exception {
+        String json = "{\"outer-anydata:anydata-wrapper\":{\"entry\":[{\"name\":\"x\","
+                + "\"payload-holder\":{\"payload-anydata:payload-root\":{\"value\":\"wrong\"}}}]}}";
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext)
+                .deserialize(new ObjectMapper().readTree(json), validator,
+                        new AnydataValidationOptions().registerSchemaContext(
+                                PAYLOAD_HOLDER_QNAME, payloadSchemaContext));
+
+        assertTrue(validator.build().isOk());
+        ValidatorResult validationResult = document.validate();
+        assertFalse(validationResult.isOk());
+        assertTrue(validationResult.getRecords().stream().anyMatch(record ->
+                "/outer:entry[outer:name = 'x']/outer:payload-holder/payload:value"
+                        .equals(String.valueOf(record.getErrorPath()))), validationResult.toString());
+        assertTrue(validationResult.getRecords().stream().anyMatch(record ->
+                "/outer:entry[outer:name = 'x']/outer:payload-holder"
+                        .equals(String.valueOf(record.getErrorPath()))), validationResult.toString());
+    }
+
+    @Test
     public void deserializePrimitiveValuesReportsBadElement() throws Exception {
         String[] primitiveValues = {"\"text\"", "42", "true", "null"};
         for (String primitiveValue : primitiveValues) {
@@ -168,5 +214,15 @@ public class AnydataValidationOptionsJsonCodecTest {
         assertNotNull(document);
         assertTrue(validator.build().isOk());
         assertNull(extractAnydata(document).getValue());
+    }
+
+    @Test
+    public void deserializeNullAnydataReportsBadElement() throws Exception {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext)
+                .deserialize(buildDocumentJson("null"), validator);
+
+        assertNotNull(document);
+        assertEquals(ErrorTag.BAD_ELEMENT, validator.build().getRecords().get(0).getErrorTag());
     }
 }

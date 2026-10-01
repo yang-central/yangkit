@@ -11,8 +11,18 @@ import java.util.function.Predicate;
 
 public class AnydataValidationOptions implements AnydataValidationContextResolver {
    private AnydataValidationContext defaultContext;
+   private boolean requirePayloadSchema;
    private final Map<QName, AnydataValidationContext> schemaNodeContexts = new LinkedHashMap<>();
    private final List<Rule> rules = new ArrayList<>();
+
+   public AnydataValidationOptions requirePayloadSchema(boolean requirePayloadSchema) {
+      this.requirePayloadSchema = requirePayloadSchema;
+      return this;
+   }
+
+   public boolean isRequirePayloadSchema() {
+      return requirePayloadSchema;
+   }
 
    public AnydataValidationOptions defaultSchemaContext(YangSchemaContext schemaContext) {
       this.defaultContext = schemaContext == null ? null : new DefaultAnydataValidationContext(schemaContext);
@@ -76,4 +86,3 @@ public class AnydataValidationOptions implements AnydataValidationContextResolve
       }
    }
 }
-

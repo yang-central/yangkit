@@ -75,15 +75,29 @@ public class AnydataValidationOptionsCborCodecTest {
     }
 
     @Test
-    public void deserializeWithoutOptionsReportsMissingPayloadSchema() throws Exception {
+    public void deserializeWithoutOptionsFallsBackToDocumentSchema() throws Exception {
         ContainerDataCborCodec codec = new ContainerDataCborCodec(wrapperContainer);
         ValidatorResultBuilder validator = new ValidatorResultBuilder();
 
         ContainerData containerData = codec.deserialize(buildCbor(true), validator);
         assertNotNull(containerData);
         AnyDataData anyDataData = (AnyDataData) containerData.getDataChildren().get(0);
-        assertNull(anyDataData.getValue());
-        assertFalse(validator.build().isOk());
+        assertNotNull(anyDataData.getValue());
+        assertTrue(anyDataData.getValue().getDataChildren().isEmpty());
+        assertTrue(validator.build().getRecords().stream().noneMatch(
+                record -> record.getErrorMsg() != null
+                        && record.getErrorMsg().getMessage().contains("No payload schema")));
+    }
+
+    @Test
+    public void deserializeWithStrictOptionsReportsMissingPayloadSchema() throws Exception {
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        ContainerData containerData = new ContainerDataCborCodec(wrapperContainer)
+                .deserialize(buildCbor(true), validator,
+                        new AnydataValidationOptions().requirePayloadSchema(true));
+
+        assertNull(((AnyDataData) containerData.getDataChildren().get(0)).getValue());
+        assertEquals(ErrorTag.OPERATION_FAILED, validator.build().getRecords().get(0).getErrorTag());
     }
 
     @Test
@@ -160,4 +174,3 @@ public class AnydataValidationOptionsCborCodecTest {
         assertNull(anyDataData.getValue());
     }
 }
-
