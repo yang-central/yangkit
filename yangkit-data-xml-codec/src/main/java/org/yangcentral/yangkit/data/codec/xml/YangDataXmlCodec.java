@@ -3,11 +3,15 @@ package org.yangcentral.yangkit.data.codec.xml;
 import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
+import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
+import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
+import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.api.codec.YangDataCodec;
+import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.utils.xml.Converter;
@@ -88,6 +92,59 @@ public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<
 
     protected void setSourcePath(String sourcePath) {
         this.sourcePath = sourcePath;
+    }
+
+    static ValidatorResult buildChildrenData(YangDataContainer parent, Element element,
+                                             boolean onlyConfig, AnydataValidationContextResolver resolver) {
+        ValidatorResultBuilder resultBuilder = new ValidatorResultBuilder();
+        SchemaNodeContainer schema = parent instanceof YangDataDocument
+                ? YangDataUtil.getSchemaNodeContainerForDocument((YangDataDocument) parent)
+                : (SchemaNodeContainer) ((YangData<?>) parent).getSchemaNode();
+
+        for (Element child : element.elements()) {
+            SchemaNode childSchema = schema.getTreeNodeChild(
+                    new org.yangcentral.yangkit.common.api.QName(child.getNamespaceURI(),
+                            child.getNamespacePrefix(), child.getName()));
+            if (childSchema == null || (onlyConfig && !isConfigTrue(childSchema))) {
+                continue;
+            }
+
+            YangDataXmlCodec<?, ?> codec = getInstance(childSchema, resolver, child.getUniquePath());
+            if (codec == null) {
+                continue;
+            }
+            YangData<?> childData = codec.deserialize(child, resultBuilder);
+            if (childData == null) {
+                continue;
+            }
+            try {
+                parent.addDataChild(childData);
+                YangData<?> addedChild = parent.getDataChild(childData.getIdentifier());
+                if (addedChild instanceof YangDataContainer) {
+                    resultBuilder.merge(buildChildrenData((YangDataContainer) addedChild, child,
+                            onlyConfig, resolver));
+                }
+            } catch (YangDataException e) {
+                ValidatorRecordBuilder<String, Element> recordBuilder = new ValidatorRecordBuilder<>();
+                recordBuilder.setErrorTag(e.getErrorTag());
+                recordBuilder.setErrorPath(child.getUniquePath());
+                recordBuilder.setBadElement(child);
+                recordBuilder.setErrorMessage(e.getErrorMsg());
+                resultBuilder.addRecord(recordBuilder.build());
+            }
+        }
+        return resultBuilder.build();
+    }
+
+    static boolean isConfigTrue(SchemaNode schemaNode) {
+        if (schemaNode == null) {
+            return true;
+        }
+        SchemaNodeContainer parentContainer = schemaNode.getParentSchemaNode();
+        if (parentContainer instanceof SchemaNode) {
+            return isConfigTrue((SchemaNode) parentContainer);
+        }
+        return true;
     }
 
     public void processAttributers(YangData yangData, Element element) {
@@ -172,4 +229,3 @@ public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<
     }
 
 }
-

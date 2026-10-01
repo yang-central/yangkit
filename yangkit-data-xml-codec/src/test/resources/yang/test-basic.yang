@@ -33,6 +33,11 @@ module test-basic {
             leaf message {
                 type string;
             }
+            container detail {
+                leaf source {
+                    type string;
+                }
+            }
         }
     }
 }

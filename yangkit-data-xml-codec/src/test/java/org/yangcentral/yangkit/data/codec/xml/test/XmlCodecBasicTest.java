@@ -44,8 +44,8 @@ public class XmlCodecBasicTest {
         String namespace = "urn:test:basic";
         Document xmlDoc = DocumentHelper.parseText(
                 "<data><state xmlns=\"" + namespace + "\">"
-                        + "<alarm><message>first</message></alarm>"
-                        + "<alarm><message>second</message></alarm>"
+                        + "<alarm><message>first</message><detail><source>router-1</source></detail></alarm>"
+                        + "<alarm><message>second</message><detail><source>router-2</source></detail></alarm>"
                         + "</state></data>");
 
         ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
@@ -56,6 +56,10 @@ public class XmlCodecBasicTest {
         YangDataContainer state = onlyContainerChild(document, "state", namespace);
         java.util.List<YangData<?>> alarms = state.getDataChildren("alarm", namespace);
         assertEquals(2, alarms.size());
+        assertEquals("router-1", onlyLeafValue(onlyContainerChild((YangDataContainer) alarms.get(0),
+                "detail", namespace), "source", namespace));
+        assertEquals("router-2", onlyLeafValue(onlyContainerChild((YangDataContainer) alarms.get(1),
+                "detail", namespace), "source", namespace));
         assertEquals(1, ((PositionalListIdentifier) alarms.get(0).getIdentifier()).getPosition());
         assertEquals(2, ((PositionalListIdentifier) alarms.get(1).getIdentifier()).getPosition());
         assertTrue(alarms.get(0).getPath().toString().endsWith("alarm[1]"));
@@ -104,6 +108,37 @@ public class XmlCodecBasicTest {
 
         YangDataContainer settings = onlyContainerChild(server, "settings", namespace);
         assertEquals("active", onlyLeafValue(settings, "mode", namespace));
+    }
+
+    @Test
+    public void testNestedContainersInSeparateKeyedListEntries() throws Exception {
+        URL yangUrl = getClass().getClassLoader().getResource("yang/test-basic.yang");
+        assertNotNull(yangUrl);
+        YangSchemaContext schemaContext = YangYinParser.parse(yangUrl.getFile());
+        assertTrue(schemaContext.validate().isOk());
+        String namespace = "urn:test:basic";
+        Document xmlDoc = DocumentHelper.parseText(
+                "<data><config xmlns=\"" + namespace + "\">"
+                        + "<server><id>one</id><settings><mode>active</mode></settings></server>"
+                        + "<server><id>two</id><settings><mode>standby</mode></settings></server>"
+                        + "</config></data>");
+
+        ValidatorResultBuilder validatorBuilder = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentXmlCodec(schemaContext)
+                .deserialize(xmlDoc, validatorBuilder);
+
+        assertTrue(validatorBuilder.build().isOk());
+        YangDataContainer config = onlyContainerChild(document, "config", namespace);
+        java.util.List<YangData<?>> servers = config.getDataChildren("server", namespace);
+        assertEquals(2, servers.size());
+        assertEquals("one", onlyLeafValue((YangDataContainer) servers.get(0), "id", namespace));
+        assertEquals("active", onlyLeafValue(
+                onlyContainerChild((YangDataContainer) servers.get(0), "settings", namespace),
+                "mode", namespace));
+        assertEquals("two", onlyLeafValue((YangDataContainer) servers.get(1), "id", namespace));
+        assertEquals("standby", onlyLeafValue(
+                onlyContainerChild((YangDataContainer) servers.get(1), "settings", namespace),
+                "mode", namespace));
     }
 
     private static YangDataContainer onlyContainerChild(
