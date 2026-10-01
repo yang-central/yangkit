@@ -34,5 +34,19 @@ module payload-anydata {
         path "../target";
       }
     }
+
+    list item {
+      key "id";
+      unique "details/name";
+
+      leaf id {
+        type string;
+      }
+      container details {
+        leaf name {
+          type string;
+        }
+      }
+    }
   }
 }

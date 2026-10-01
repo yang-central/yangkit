@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.exception.ErrorAppTag;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
@@ -248,5 +249,37 @@ public class AnydataValidationOptionsJsonCodecTest {
 
         assertNotNull(document);
         assertEquals(ErrorTag.BAD_ELEMENT, validator.build().getRecords().get(0).getErrorTag());
+    }
+
+    @Test
+    public void duplicateUniqueValueInPayloadListReportsValidationError() throws Exception {
+        ValidatorResult result = validatePayloadWithItemNames("shared", "shared");
+
+        assertFalse(result.isOk());
+        assertTrue(result.getRecords().stream().anyMatch(record ->
+                ErrorAppTag.DATA_NOT_UNIQUE.getName().equals(record.getErrorAppTag())));
+    }
+
+    @Test
+    public void distinctUniqueValuesInPayloadListValidate() throws Exception {
+        assertTrue(validatePayloadWithItemNames("first", "second").isOk());
+    }
+
+    private ValidatorResult validatePayloadWithItemNames(String firstName, String secondName) throws Exception {
+        String json = "{\"outer-anydata:anydata-wrapper\":{\"payload-holder\":{"
+                + "\"payload-anydata:payload-root\":{\"item\":["
+                + "{\"id\":\"one\",\"details\":{\"name\":\"" + firstName + "\"}},"
+                + "{\"id\":\"two\",\"details\":{\"name\":\"" + secondName + "\"}}]}}}}";
+        ValidatorResultBuilder parseResult = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext).deserialize(
+                new ObjectMapper().readTree(json), parseResult,
+                new AnydataValidationOptions().registerSchemaContext(
+                        PAYLOAD_HOLDER_QNAME, payloadSchemaContext));
+        assertTrue(parseResult.build().isOk());
+        AnyDataData anydata = extractAnydata(document);
+        assertNotNull(anydata.getValue());
+        assertEquals(2, anydata.getValue().getDataChildren("item").size());
+        assertNull(anydata.getValue().getDataChildren("item").get(0).getSchemaNode().getSchemaPath());
+        return anydata.getValue().validate();
     }
 }
