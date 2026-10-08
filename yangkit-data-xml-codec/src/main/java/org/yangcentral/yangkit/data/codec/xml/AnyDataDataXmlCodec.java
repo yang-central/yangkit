@@ -1,9 +1,8 @@
 package org.yangcentral.yangkit.data.codec.xml;
 
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationContext;
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationRequest;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.builder.YangDataBuilderFactory;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationSupport;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
@@ -19,13 +18,19 @@ public class AnyDataDataXmlCodec extends YangDataXmlCodec<Anydata, AnyDataData> 
 
     @Override
     protected AnyDataData buildData(Element element, ValidatorResultBuilder validatorResultBuilder) {
-        YangSchemaContext payloadSchemaContext = getSchemaContext();
-        if (getAnydataValidationContextResolver() != null) {
-            AnydataValidationContext context = getAnydataValidationContextResolver().resolve(
-                    new AnydataValidationRequest(getSchemaNode(), getSourcePath(), getSchemaContext()));
-            if (context != null && context.getSchemaContext() != null) {
-                payloadSchemaContext = context.getSchemaContext();
+        if (element.elements().isEmpty()) {
+            if (element.getTextTrim() != null && !element.getTextTrim().isEmpty()) {
+                AnydataValidationSupport.recordInvalidContent(
+                        getSchemaNode(), getSourcePath(), element,
+                        "XML content must contain child elements.", validatorResultBuilder);
             }
+            return (AnyDataData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), null);
+        }
+        YangSchemaContext payloadSchemaContext = AnydataValidationSupport.resolveSchemaContext(
+                getSchemaNode(), getSourcePath(), getSchemaContext(),
+                getAnydataValidationContextResolver(), element, validatorResultBuilder);
+        if (payloadSchemaContext == null) {
+            return (AnyDataData) YangDataBuilderFactory.getBuilder().getYangData(getSchemaNode(), null);
         }
         YangDataDocumentXmlCodec documentXmlCodec = new YangDataDocumentXmlCodec(payloadSchemaContext);
         YangDataDocument dataDocument = documentXmlCodec.deserialize(element, validatorResultBuilder,
@@ -38,10 +43,13 @@ public class AnyDataDataXmlCodec extends YangDataXmlCodec<Anydata, AnyDataData> 
     protected void buildElement(Element element, YangData<?> yangData) {
         AnyDataData anyDataData = (AnyDataData) yangData;
         YangDataDocument document = anyDataData.getEffectiveValue();
+        if (document == null) {
+            return;
+        }
 
-        YangDataDocumentXmlCodec documentXmlCodec = new YangDataDocumentXmlCodec(getSchemaContext());
+        YangDataDocumentXmlCodec documentXmlCodec = new YangDataDocumentXmlCodec(document.getSchemaContext());
         Element root = documentXmlCodec.serialize(document);
-        for(Element child: root.elements()){
+        for (Element child : root.elements()) {
             child.detach();
             element.add(child);
         }

@@ -118,17 +118,19 @@ AnydataValidationOptions options = new AnydataValidationOptions()
 
 ### Behavior when no context matches
 
-If no matching payload schema context is found:
-
-- the outer `anydata` node is still created
-- the embedded payload document is still created
-- unrecognized payload nodes may not appear as parsed YANG data children
+If no payload schema matches, the enclosing document schema is used by default. Nodes unknown to that schema
+cannot be preserved as opaque content. Use `new AnydataValidationOptions().requirePayloadSchema(true)` to
+require an explicit match: in that mode the `anydata` node has no payload and an `operation-failed` record is
+added to the parse result.
 
 ## Notes
 
 - `YangDataDocumentJsonCodec.deserialize(..., options)` is the main entry when you already have a `JsonNode`
 - `YangDataDocumentJsonParser.parse(..., options)` is the main entry when you prefer the parser facade
 - `AnydataValidationOptions` matching order is: rule > schema-node registration > default context
+- calling `validate()` on the enclosing document recursively validates the parsed `anydata` payload
+- JSON `anydata` content must be an object
+- JSON strings, numbers, booleans, null, and arrays produce `BAD_ELEMENT`; an empty object is accepted
 
 ## Complete Minimal Runnable Example
 
@@ -211,5 +213,3 @@ module payload-anydata {
   }
 }
 ```
-
-

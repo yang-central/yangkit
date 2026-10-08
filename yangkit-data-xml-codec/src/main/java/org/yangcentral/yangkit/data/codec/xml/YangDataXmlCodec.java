@@ -172,4 +172,3 @@ public abstract class YangDataXmlCodec<S extends SchemaNode, D extends YangData<
     }
 
 }
-

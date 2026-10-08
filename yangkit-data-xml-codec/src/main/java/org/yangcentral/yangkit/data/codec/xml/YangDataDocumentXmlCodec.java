@@ -43,6 +43,13 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
     }
 
     protected ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, Element element){
+        return buildChildrenData(yangDataContainer, element, anydataValidationContextResolver);
+    }
+
+    protected ValidatorResult buildChildrenData(
+            YangDataContainer yangDataContainer,
+            Element element,
+            AnydataValidationContextResolver resolver) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         SchemaNodeContainer schemaNodeContainer= null;
         if(yangDataContainer instanceof YangDataDocument){
@@ -68,17 +75,16 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
             }
 
             YangDataXmlCodec xmlCodec = YangDataXmlCodec.getInstance(sonSchemaNode,
-                    anydataValidationContextResolver, child.getUniquePath());
+                    resolver, child.getUniquePath());
             if (xmlCodec != null) {
                 YangData<?> childData = xmlCodec.deserialize(child, validatorResultBuilder);
                 if (childData != null) {
                     try {
                         yangDataContainer.addDataChild(childData);
-
                         YangData<?> addedChild = yangDataContainer.getDataChild(childData.getIdentifier());
                         if (addedChild instanceof YangDataContainer) {
                             validatorResultBuilder.merge(
-                                    buildChildrenData((YangDataContainer) addedChild, child));
+                                    buildChildrenData((YangDataContainer) addedChild, child, resolver));
                         }
                     } catch (YangDataException e) {
                         ValidatorRecordBuilder<String, Element> recordBuilder =
@@ -94,7 +100,7 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
         }
         return validatorResultBuilder.build();
     }
-    
+
     @Override
     public YangDataDocument deserialize(Element root, ValidatorResultBuilder validatorResultBuilder) {
         return deserialize(root, validatorResultBuilder, (AnydataValidationContextResolver) null);

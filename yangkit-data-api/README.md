@@ -145,8 +145,31 @@ module payload-anydata {
 
 ### Expected Behavior Without a Matching Context
 
-If no matching payload schema context is found for an `anydata` node, the codecs still create the `anydata` node itself.
-The payload document may deserialize with zero recognized data children when the outer schema cannot describe the embedded payload.
+By default, if no payload schema matches, codecs parse non-empty `anydata` with the enclosing document schema
+context, preserving the previous behavior. Nodes unknown to that schema cannot be interpreted and are not preserved
+as opaque content. To require an explicit match, use `new AnydataValidationOptions().requirePayloadSchema(true)`.
+In strict mode, a missing match creates the outer `anydata` node without a payload value and records an
+`operation-failed` error; re-serializing that node does not recover the original payload. A configured payload
+schema always takes precedence over the enclosing document schema.
+
+After successful schema-aware deserialization, validating the enclosing document also validates the nested payload
+document. Standard Yangkit validation records for `mandatory`, `must`, cardinality, type, and `leafref`
+constraints are returned with paths rooted beneath the enclosing `anydata` node.
+Validation of `unique` constraints on payload lists without schema paths requires a separate fix.
+
+Opaque libyang-style preservation and `anyxml` validation are not provided by this API.
+
+### Anydata Content Shapes
+
+| Format | Accepted empty/structured form | Rejected primitive forms |
+|---|---|---|
+| JSON | object, including `{}` | string, number, boolean, `null`, array |
+| XML | child elements or an empty element | non-whitespace text-only content |
+| CBOR | map, including an empty map | text string, integer/number, boolean, null, array |
+| Protocol Buffers | wrapper `value` containing a JSON object or an empty string | wrapper `value` containing JSON string, number, boolean, null, or array |
+
+Primitive `anydata` values produce `ErrorTag.BAD_ELEMENT` records. RFC 7951 section 5.5 encodes JSON `anydata`
+like a container (a name/object pair); this is a behavior change from accepting primitive input in earlier versions.
 
 ## Related Codec Modules
 
