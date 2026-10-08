@@ -38,8 +38,7 @@ public final class AnydataValidationSupport {
         if (context != null && context.getSchemaContext() != null) {
             return context.getSchemaContext();
         }
-        if (!(resolver instanceof AnydataValidationOptions)
-                || !((AnydataValidationOptions) resolver).isRequirePayloadSchema()) {
+        if (resolver == null || !resolver.isRequirePayloadSchema()) {
             return documentSchemaContext;
         }
 

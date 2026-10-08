@@ -20,6 +20,7 @@ public class AnydataValidationOptions implements AnydataValidationContextResolve
       return this;
    }
 
+   @Override
    public boolean isRequirePayloadSchema() {
       return requirePayloadSchema;
    }

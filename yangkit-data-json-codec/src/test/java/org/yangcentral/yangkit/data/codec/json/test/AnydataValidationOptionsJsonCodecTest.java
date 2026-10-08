@@ -9,7 +9,10 @@ import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContext;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationRequest;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
@@ -107,6 +110,27 @@ public class AnydataValidationOptionsJsonCodecTest {
         YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext)
                 .deserialize(buildDocumentJson(), validator,
                         new AnydataValidationOptions().requirePayloadSchema(true));
+
+        assertNull(extractAnydata(document).getValue());
+        assertEquals(ErrorTag.OPERATION_FAILED, validator.build().getRecords().get(0).getErrorTag());
+    }
+
+    @Test
+    public void deserializeWithCustomStrictResolverReportsMissingPayloadSchema() throws Exception {
+        AnydataValidationContextResolver resolver = new AnydataValidationContextResolver() {
+            @Override
+            public AnydataValidationContext resolve(AnydataValidationRequest request) {
+                return null;
+            }
+
+            @Override
+            public boolean isRequirePayloadSchema() {
+                return true;
+            }
+        };
+        ValidatorResultBuilder validator = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext)
+                .deserialize(buildDocumentJson(), validator, resolver);
 
         assertNull(extractAnydata(document).getValue());
         assertEquals(ErrorTag.OPERATION_FAILED, validator.build().getRecords().get(0).getErrorTag());

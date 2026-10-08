@@ -84,6 +84,7 @@ public class AnyDataDataImpl extends YangDataImpl<Anydata> implements AnyDataDat
         YangDataContainer parent = getContext().getParent();
         if (parent instanceof YangData) {
             YangData<?> parentData = (YangData<?>) parent;
+            // A root parent has no enclosing path to prepend.
             if (parentData.getContext().getParent() != null) {
                 addSteps(anydataPath, parentData.getPath());
             }
