@@ -6,9 +6,13 @@ import org.dom4j.Element;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.QName;
+import org.yangcentral.yangkit.common.api.exception.ErrorMessage;
+import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.exception.YangDataException;
 import org.yangcentral.yangkit.data.api.model.LeafData;
+import org.yangcentral.yangkit.data.api.model.ListData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
@@ -21,6 +25,8 @@ import org.yangcentral.yangkit.parser.YangYinParser;
 
 import java.net.URI;
 import java.net.URL;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -104,6 +110,88 @@ public class XmlCodecBasicTest {
 
         YangDataContainer settings = onlyContainerChild(server, "settings", namespace);
         assertEquals("active", onlyLeafValue(settings, "mode", namespace));
+    }
+
+    @Test
+    public void testParsedListKeysAreTheSameChildrenAsIdentifierKeys() throws Exception {
+        URL yangUrl = getClass().getClassLoader().getResource("yang/test-basic.yang");
+        assertNotNull(yangUrl);
+        YangSchemaContext schemaContext = YangYinParser.parse(yangUrl.getFile());
+        assertTrue(schemaContext.validate().isOk());
+        String namespace = "urn:test:basic";
+        Document xml = DocumentHelper.parseText(
+                "<data><config xmlns=\"" + namespace + "\">"
+                        + "<server><id>one</id><description>first</description></server>"
+                        + "<server><id>two</id><description>second</description></server>"
+                        + "</config></data>");
+        ValidatorResultBuilder builder = new ValidatorResultBuilder();
+        YangDataDocument document = new YangDataDocumentXmlCodec(schemaContext).deserialize(xml, builder);
+
+        assertTrue(builder.build().isOk());
+        java.util.List<YangData<?>> servers = onlyContainerChild(document, "config", namespace)
+                .getDataChildren("server", namespace);
+        assertEquals(2, servers.size());
+        for (int i = 0; i < servers.size(); i++) {
+            ListData server = (ListData) servers.get(i);
+            assertEquals(1, server.getKeys().size());
+            LeafData key = server.getKeys().get(0);
+            assertSame(key, server.getDataChild(key.getIdentifier()));
+            assertEquals(1, server.getDataChildren("id", namespace).size());
+            assertEquals(i == 0 ? "one" : "two", key.getStringValue());
+            assertEquals(i == 0 ? "first" : "second",
+                    onlyLeafValue(server, "description", namespace));
+        }
+    }
+
+    @Test
+    public void testFailedListKeyInsertionRecordsValidationAndContinues() throws Exception {
+        URL yangUrl = getClass().getClassLoader().getResource("yang/test-basic.yang");
+        assertNotNull(yangUrl);
+        YangSchemaContext schemaContext = YangYinParser.parse(yangUrl.getFile());
+        assertTrue(schemaContext.validate().isOk());
+        String namespace = "urn:test:basic";
+        Element serverXml = DocumentHelper.parseText(
+                "<server xmlns=\"" + namespace + "\"><id>one</id>"
+                        + "<description>first</description></server>").getRootElement();
+        org.yangcentral.yangkit.model.api.stmt.Module module = schemaContext.getModules().stream()
+                .filter(m -> "test-basic".equals(m.getArgStr())).findFirst().orElseThrow(AssertionError::new);
+        org.yangcentral.yangkit.model.api.stmt.SchemaNode configSchema = module.getTreeNodeChild(
+                new QName(namespace, "config"));
+        org.yangcentral.yangkit.model.api.stmt.SchemaNode serverSchema =
+                ((org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer) configSchema)
+                        .getTreeNodeChild(new QName(namespace, "server"));
+        ListData realList = (ListData) org.yangcentral.yangkit.data.codec.xml.YangDataXmlCodec
+                .getInstance(serverSchema).deserialize(serverXml, new ValidatorResultBuilder());
+        assertNotNull(realList);
+        ListData rejectingList = (ListData) Proxy.newProxyInstance(ListData.class.getClassLoader(),
+                new Class<?>[]{ListData.class}, (proxy, method, args) -> {
+                    if ("addDataChild".equals(method.getName())
+                            && args != null && args[0] instanceof LeafData
+                            && "id".equals(((LeafData) args[0]).getQName().getLocalName())) {
+                        throw new YangDataException(ErrorTag.BAD_ELEMENT, null,
+                                new ErrorMessage("cannot add list key"));
+                    }
+                    try {
+                        return method.invoke(realList, args);
+                    } catch (InvocationTargetException e) {
+                        throw e.getCause();
+                    }
+                });
+        class ExposedDocumentCodec extends YangDataDocumentXmlCodec {
+            ExposedDocumentCodec() {
+                super(schemaContext);
+            }
+            ValidatorResult buildForList(ListData list, Element element) {
+                return buildChildrenData(list, element);
+            }
+        }
+        ValidatorResult result = new ExposedDocumentCodec().buildForList(rejectingList, serverXml);
+        assertFalse(result.isOk());
+        assertEquals(1, result.getRecords().size());
+        assertEquals(ErrorTag.BAD_ELEMENT, result.getRecords().get(0).getErrorTag());
+        assertEquals(serverXml.elements().get(0).getUniquePath(), result.getRecords().get(0).getErrorPath());
+        assertEquals("cannot add list key", result.getRecords().get(0).getErrorMsg().getMessage());
+        assertEquals("first", onlyLeafValue(realList, "description", namespace));
     }
 
     private static YangDataContainer onlyContainerChild(

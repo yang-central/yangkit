@@ -7,12 +7,15 @@ import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.codec.YangDataDocumentCodec;
 import org.yangcentral.yangkit.data.api.exception.YangDataException;
+import org.yangcentral.yangkit.data.api.model.LeafData;
+import org.yangcentral.yangkit.data.api.model.ListData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.impl.model.YangDataDocumentImpl;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.utils.xml.Converter;
@@ -74,6 +77,10 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
                 continue; // Skip non-config data
             }
 
+            if (addExistingListKey(yangDataContainer, sonSchemaNode, child, validatorResultBuilder)) {
+                continue;
+            }
+
             YangDataXmlCodec xmlCodec = YangDataXmlCodec.getInstance(sonSchemaNode,
                     resolver, child.getUniquePath());
             if (xmlCodec != null) {
@@ -87,18 +94,45 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
                                     buildChildrenData((YangDataContainer) addedChild, child, resolver));
                         }
                     } catch (YangDataException e) {
-                        ValidatorRecordBuilder<String, Element> recordBuilder =
-                                new ValidatorRecordBuilder<>();
-                        recordBuilder.setErrorTag(e.getErrorTag());
-                        recordBuilder.setErrorPath(child.getUniquePath());
-                        recordBuilder.setBadElement(child);
-                        recordBuilder.setErrorMessage(e.getErrorMsg());
-                        validatorResultBuilder.addRecord(recordBuilder.build());
+                        recordAddChildFailure(e, child, validatorResultBuilder);
                     }
                 }
             }
         }
         return validatorResultBuilder.build();
+    }
+
+    private boolean addExistingListKey(YangDataContainer parent, SchemaNode schemaNode,
+                                       Element child, ValidatorResultBuilder validatorResultBuilder) {
+        if (!(parent instanceof ListData) || !(schemaNode instanceof Leaf)
+                || !((Leaf) schemaNode).isKey()) {
+            return false;
+        }
+        ListData listData = (ListData) parent;
+        for (LeafData key : listData.getKeys()) {
+            if (!key.getQName().equals(schemaNode.getIdentifier())) {
+                continue;
+            }
+            if (listData.getDataChild(key.getIdentifier()) == null) {
+                try {
+                    listData.addDataChild(key);
+                } catch (YangDataException e) {
+                    recordAddChildFailure(e, child, validatorResultBuilder);
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void recordAddChildFailure(YangDataException exception, Element child,
+                                       ValidatorResultBuilder validatorResultBuilder) {
+        ValidatorRecordBuilder<String, Element> recordBuilder = new ValidatorRecordBuilder<>();
+        recordBuilder.setErrorTag(exception.getErrorTag());
+        recordBuilder.setErrorPath(child.getUniquePath());
+        recordBuilder.setBadElement(child);
+        recordBuilder.setErrorMessage(exception.getErrorMsg());
+        validatorResultBuilder.addRecord(recordBuilder.build());
     }
 
     @Override
