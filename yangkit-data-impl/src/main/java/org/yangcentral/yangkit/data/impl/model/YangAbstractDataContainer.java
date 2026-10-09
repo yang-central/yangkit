@@ -431,11 +431,29 @@ public class YangAbstractDataContainer implements YangDataContainer {
         return dataChild;
     }
 
-    private boolean matchUnique(Unique unique,List<YangData<?>> uniqueData,ListData listData){
+    private boolean matchUnique(Unique unique,List<YangData<?>> uniqueData,ListData listData,
+                                ValidatorResultBuilder validatorResultBuilder){
         List<YangData<?>> matchedUniqueData = new ArrayList<>();
+        List<SchemaPath.Descendant> descendants = new ArrayList<>();
         for(Leaf leaf:unique.getUniqueNodes()){
-            List<QName> steps = listData.getSchemaNode().getSchemaPath().getRelativeSchemaPath(leaf.getSchemaPath());
-            SchemaPath.Descendant descendant = new DescendantSchemaPath(steps,listData.getSchemaNode());
+            SchemaPath.Absolute listSchemaPath = listData.getSchemaNode().getSchemaPath();
+            List<QName> steps = listSchemaPath == null ? null
+                    : listSchemaPath.getRelativeSchemaPath(leaf.getSchemaPath());
+            if (steps == null || steps.isEmpty()) {
+                ValidatorRecordBuilder<AbsolutePath, YangData<?>> recordBuilder = new ValidatorRecordBuilder<>();
+                recordBuilder.setErrorTag(ErrorTag.OPERATION_FAILED);
+                recordBuilder.setErrorPath(listData.getPath());
+                recordBuilder.setBadElement(listData);
+                recordBuilder.setErrorMessage(new ErrorMessage("Cannot resolve unique constraint '"
+                        + unique.getArgStr() + "' leaf " + leaf.getIdentifier().getQualifiedName()
+                        + " beneath list " + listData.getSchemaNode().getIdentifier().getQualifiedName()
+                        + ": missing schema path or invalid ancestry."));
+                validatorResultBuilder.addRecord(recordBuilder.build());
+                return false;
+            }
+            descendants.add(new DescendantSchemaPath(steps,listData.getSchemaNode()));
+        }
+        for (SchemaPath.Descendant descendant : descendants) {
             List<YangData<?>> matched = YangDataUtil.search(listData,descendant);
             if(matched.isEmpty()){
                 return false;
@@ -467,7 +485,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
             YangData<?> previous = null;
             for( YangData<?> dataItem:matchedData){
                 if(dataItem instanceof ListData){
-                    if(matchUnique(unique,uniqueData, (ListData) dataItem)){
+                    if(matchUnique(unique,uniqueData, (ListData) dataItem, validatorResultBuilder)){
                         matchCount++;
                     }
                     if(matchCount == 1){
