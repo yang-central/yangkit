@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yang-library xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-library">
+  <content-id>test-revision-mismatch</content-id>
+  <module-set>
+    <name>default</name>
+    <module>
+      <name>test-rev</name>
+      <revision>2023-01-01</revision>
+      <namespace>urn:test:rev</namespace>
+    </module>
+  </module-set>
+</yang-library>

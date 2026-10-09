@@ -42,43 +42,30 @@ public class IdentityImpl extends YangStatementImpl implements Identity {
    }
 
    public boolean isDerived(Identity other) {
-      if (this.bases.size() == 0) {
-         return false;
-      } else {
-         Iterator<Base> baseIterator = this.bases.iterator();
-
-         Base base;
-         do {
-            if (!baseIterator.hasNext()) {
-               return false;
-            }
-
-            base = baseIterator.next();
-         } while(!base.getIdentity().isDerivedOrSelf(other));
-
-         return true;
+      for (Base base : this.bases) {
+         if (base.getIdentity() == null) {
+            continue; // unresolved base — skip
+         }
+         if (base.getIdentity().isDerivedOrSelf(other)) {
+            return true;
+         }
       }
+      return false;
    }
 
    public boolean isDerivedOrSelf(Identity other) {
       if (this.equals(other)) {
          return true;
-      } else if (this.bases.size() == 0) {
-         return false;
-      } else {
-         Iterator<Base> baseIterator = this.bases.iterator();
-
-         Base base;
-         do {
-            if (!baseIterator.hasNext()) {
-               return false;
-            }
-
-            base = baseIterator.next();
-         } while(!base.getIdentity().isDerivedOrSelf(other));
-
-         return true;
       }
+      for (Base base : this.bases) {
+         if (base.getIdentity() == null) {
+            continue; // unresolved base — skip
+         }
+         if (base.getIdentity().isDerivedOrSelf(other)) {
+            return true;
+         }
+      }
+      return false;
    }
 
    public List<IfFeature> getIfFeatures() {

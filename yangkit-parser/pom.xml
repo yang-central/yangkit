@@ -69,6 +69,11 @@
             <artifactId>gson</artifactId>
             <version>${com.google.code.gson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${org.slf4j.slf4j-api.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

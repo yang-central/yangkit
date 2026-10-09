@@ -30,7 +30,7 @@ public class BaseImpl extends YangStatementImpl implements Base {
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
-         case GRAMMAR:
+         case GRAMMAR: {
             FName fName = new FName(this.getArgStr());
             Import im = this.getContext().getCurModule().getImportByPrefix(fName.getPrefix());
             if (im != null) {
@@ -38,19 +38,36 @@ public class BaseImpl extends YangStatementImpl implements Base {
                   im.addReference(this);
                }
             }
+            // Attempt early resolution; may be null if imported module not yet processed
+            try {
+               Module module = ModelUtil.findModuleByPrefix(this.getContext(), fName.getPrefix());
+               this.identity = module.getIdentity(fName.getLocalName());
+            } catch (ModelException e) {
+               // Ignore at GRAMMAR phase — will be retried at SCHEMA_BUILD
+            }
+            break;
+         }
+         case SCHEMA_BUILD: {
+            if (this.identity != null) {
+               break; // Already resolved in GRAMMAR phase
+            }
+            FName fName = new FName(this.getArgStr());
             try {
                Module module = ModelUtil.findModuleByPrefix(this.getContext(), fName.getPrefix());
                this.identity = module.getIdentity(fName.getLocalName());
                if (this.identity == null) {
-                   validatorResultBuilder.addRecord(ModelUtil.reportError(this,
-                          ErrorCode.UNRECOGNIZED_IDENTITY.toString(new String[]{"name=" + fName.getLocalName()})));
+                  validatorResultBuilder.addRecord(ModelUtil.reportError(this,
+                         ErrorCode.UNRECOGNIZED_IDENTITY.toString(new String[]{"name=" + fName.getLocalName()})));
                }
             } catch (ModelException e) {
-               validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getDescription()));
+               validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(), e.getDescription()));
             }
+            break;
+         }
          default:
-            return validatorResultBuilder.build();
+            break;
       }
+      return validatorResultBuilder.build();
    }
 
    @Override

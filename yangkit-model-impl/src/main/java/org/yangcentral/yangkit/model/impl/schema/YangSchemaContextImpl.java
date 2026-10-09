@@ -1,5 +1,7 @@
 package org.yangcentral.yangkit.model.impl.schema;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.base.YangElement;
@@ -22,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangSchemaContextImpl implements YangSchemaContext {
+   private static final Logger logger = LoggerFactory.getLogger(YangSchemaContextImpl.class);
    private List<Module> modules = new ArrayList<>();
    private List<Module> importOnlyModules = new ArrayList<>();
    private Map<String, List<Module>> moduleMap = new ConcurrentHashMap<>();
@@ -288,7 +291,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       try {
          module.clear();
       } catch (RuntimeException e){
-         System.out.println("clear module:"+ module.getArgStr() + " failed. detail:"+e.getMessage());
+         logger.warn("clear module:{} failed. detail:{}", module.getArgStr(), e.getMessage());
       }
 
 
@@ -330,6 +333,40 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          }
          ValidatorResult result = module.build();
          validatorResultBuilder.merge(result);
+      }
+      // Second-pass global augment resolution: handles cross-module augments that failed
+      // due to sequential per-module build ordering — the augmenting module's SCHEMA_EXPAND
+      // ran before the target module's SCHEMA_BUILD added its notifications/containers to
+      // the schema context. After all modules have built, retry those unresolved augments.
+      List<Augment> secondPassResolved = new ArrayList<>();
+      for(Module module:modules){
+         for(Augment augment : module.getAugments()){
+            if(augment.getTarget() != null){
+               continue; // already resolved in the first pass
+            }
+            SchemaPath targetPath = augment.getTargetPath();
+            if(targetPath == null){
+               continue; // schema path itself failed to parse; cannot retry
+            }
+            SchemaNode target = targetPath.getSchemaNode(this);
+            if(target == null || !(target instanceof Augmentable)){
+               continue;
+            }
+            augment.setTarget(target);
+            SchemaNodeContainer targetContainer = (SchemaNodeContainer) target;
+            targetContainer.addSchemaNodeChild(augment);
+            secondPassResolved.add(augment);
+         }
+      }
+      // The first-pass build already merged MISSING_TARGET errors for the augments resolved
+      // above; drop those now-stale records so the final result reflects the resolved state.
+      if(!secondPassResolved.isEmpty() && validatorResultBuilder.getRecords() != null){
+         validatorResultBuilder.getRecords().removeIf(record ->
+                 secondPassResolved.contains(record.getBadElement())
+                 && record.getErrorTag() == org.yangcentral.yangkit.common.api.exception.ErrorTag.BAD_ELEMENT
+                 && record.getErrorMsg() != null
+                 && record.getErrorMsg().getMessage()
+                     .equals(org.yangcentral.yangkit.base.ErrorCode.MISSING_TARGET.getFieldName()));
       }
       //validate
       for(Module module:modules){
