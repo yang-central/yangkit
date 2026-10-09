@@ -301,6 +301,7 @@ public class NotificationImpl extends EntityImpl implements Notification {
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
+      validatorResultBuilder.merge(schemaNodeSupport.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
             for (DataDefinition dataDefinition : this.getDataDefChildren()) {
@@ -369,4 +370,3 @@ public class NotificationImpl extends EntityImpl implements Notification {
     @Override
     public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
-

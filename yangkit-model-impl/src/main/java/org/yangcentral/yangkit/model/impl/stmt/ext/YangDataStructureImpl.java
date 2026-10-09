@@ -26,7 +26,7 @@ public class YangDataStructureImpl extends EntityImpl implements YangStructure {
 
     public static void register(){
         YangUnknownParserPolicy unknownParserPolicy = new YangUnknownParserPolicy(YANG_KEYWORD, YangDataStructureImpl.class,
-                Arrays.asList(BuildPhase.GRAMMAR,BuildPhase.SCHEMA_BUILD));
+                Arrays.asList(BuildPhase.GRAMMAR,BuildPhase.SCHEMA_BUILD,BuildPhase.SCHEMA_TREE));
         YangStatementDef yangStatementDef = new YangStatementDef(YANG_KEYWORD,"name",true);
         yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.MUST.getQName(),new Cardinality()));
         yangStatementDef.addSubStatementInfo(new YangSubStatementInfo(YangBuiltinKeyword.STATUS.getQName(),new Cardinality(0,1)));
@@ -314,6 +314,7 @@ public class YangDataStructureImpl extends EntityImpl implements YangStructure {
     protected ValidatorResult buildSelf(BuildPhase phase) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         validatorResultBuilder.merge(super.buildSelf(phase));
+        validatorResultBuilder.merge(schemaNodeSupport.buildSelf(phase));
         switch (phase) {
             case SCHEMA_BUILD:
 
@@ -381,4 +382,3 @@ public class YangDataStructureImpl extends EntityImpl implements YangStructure {
     @Override
     public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
-

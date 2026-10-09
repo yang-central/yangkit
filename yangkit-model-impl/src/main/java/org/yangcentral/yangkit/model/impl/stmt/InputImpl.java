@@ -277,6 +277,7 @@ public class InputImpl extends EntityImpl implements Input {
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
+      validatorResultBuilder.merge(schemaNodeSupport.buildSelf(phase));
       switch (phase) {
          case SCHEMA_BUILD:
 
@@ -345,4 +346,3 @@ public class InputImpl extends EntityImpl implements Input {
     @Override
     public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
-
