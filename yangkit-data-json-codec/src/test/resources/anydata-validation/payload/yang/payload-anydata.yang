@@ -12,6 +12,7 @@ module payload-anydata {
 
     list item {
       key "id";
+      unique "details/name";
       min-elements 1;
       max-elements 2;
 
@@ -22,6 +23,11 @@ module payload-anydata {
       leaf name {
         type string;
         mandatory true;
+      }
+      container details {
+        leaf name {
+          type string;
+        }
       }
     }
 
@@ -35,18 +41,5 @@ module payload-anydata {
       }
     }
 
-    list item {
-      key "id";
-      unique "details/name";
-
-      leaf id {
-        type string;
-      }
-      container details {
-        leaf name {
-          type string;
-        }
-      }
-    }
   }
 }

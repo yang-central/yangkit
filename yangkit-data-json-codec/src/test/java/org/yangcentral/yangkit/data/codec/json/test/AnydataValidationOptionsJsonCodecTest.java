@@ -289,9 +289,9 @@ public class AnydataValidationOptionsJsonCodecTest {
     public void ordinaryListUniqueValidationUsesBuiltSchemaPaths() throws Exception {
         ValidatorResultBuilder parseResult = new ValidatorResultBuilder();
         YangDataDocument document = new YangDataDocumentJsonCodec(payloadSchemaContext).deserialize(
-                new ObjectMapper().readTree("{\"payload-anydata:payload-root\":{\"item\":["
-                        + "{\"id\":\"one\",\"details\":{\"name\":\"shared\"}},"
-                        + "{\"id\":\"two\",\"details\":{\"name\":\"shared\"}}]}}"), parseResult);
+                new ObjectMapper().readTree("{\"payload-anydata:payload-root\":{\"value\":\"abc\",\"item\":["
+                        + "{\"id\":\"one\",\"name\":\"first\",\"details\":{\"name\":\"shared\"}},"
+                        + "{\"id\":\"two\",\"name\":\"second\",\"details\":{\"name\":\"shared\"}}]}}"), parseResult);
         assertTrue(parseResult.build().isOk());
         ValidatorResult result = document.validate();
         assertFalse(result.isOk());
@@ -303,8 +303,8 @@ public class AnydataValidationOptionsJsonCodecTest {
     public void omittedUniqueLeafDoesNotCountAsDuplicate() throws Exception {
         ValidatorResultBuilder parseResult = new ValidatorResultBuilder();
         YangDataDocument document = new YangDataDocumentJsonCodec(payloadSchemaContext).deserialize(
-                new ObjectMapper().readTree("{\"payload-anydata:payload-root\":{\"item\":["
-                        + "{\"id\":\"one\"},{\"id\":\"two\"}]}}"), parseResult);
+                new ObjectMapper().readTree("{\"payload-anydata:payload-root\":{\"value\":\"abc\",\"item\":["
+                        + "{\"id\":\"one\",\"name\":\"first\"},{\"id\":\"two\",\"name\":\"second\"}]}}"), parseResult);
         assertTrue(parseResult.build().isOk());
         assertTrue(document.validate().isOk());
     }
@@ -411,9 +411,9 @@ public class AnydataValidationOptionsJsonCodecTest {
 
     private ValidatorResult validatePayloadWithItemNames(String firstName, String secondName) throws Exception {
         String json = "{\"outer-anydata:anydata-wrapper\":{\"payload-holder\":{"
-                + "\"payload-anydata:payload-root\":{\"item\":["
-                + "{\"id\":\"one\",\"details\":{\"name\":\"" + firstName + "\"}},"
-                + "{\"id\":\"two\",\"details\":{\"name\":\"" + secondName + "\"}}]}}}}";
+                + "\"payload-anydata:payload-root\":{\"value\":\"abc\",\"item\":["
+                + "{\"id\":\"one\",\"name\":\"first\",\"details\":{\"name\":\"" + firstName + "\"}},"
+                + "{\"id\":\"two\",\"name\":\"second\",\"details\":{\"name\":\"" + secondName + "\"}}]}}}}";
         ValidatorResultBuilder parseResult = new ValidatorResultBuilder();
         YangDataDocument document = new YangDataDocumentJsonCodec(outerSchemaContext).deserialize(
                 new ObjectMapper().readTree(json), parseResult,
