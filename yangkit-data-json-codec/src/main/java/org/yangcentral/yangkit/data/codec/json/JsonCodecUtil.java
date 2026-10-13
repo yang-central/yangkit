@@ -557,9 +557,7 @@ public class JsonCodecUtil {
             }
             recordBuilder.setBadElement(tempJsonNode);
             recordBuilder.setErrorMessage(record.getErrorMsg());
-            // Preserve the severity (and app tag) recorded by the codec — e.g. a
-            // missing list key downgraded to a WARNING in lenient mode must not be
-            // silently promoted back to an ERROR when the record is re-wrapped.
+            // Preserve the severity and app tag recorded by the codec.
             recordBuilder.setSeverity(record.getSeverity());
             recordBuilder.setErrorAppTag(record.getErrorAppTag());
             validatorResultBuilderWithErrorPath.addRecord(recordBuilder.build());

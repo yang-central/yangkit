@@ -21,9 +21,12 @@ import java.util.Optional;
  * @since 7/8/2022
  */
 public interface YangSchemaContext extends SchemaNodeContainer {
-   LenientValidationOptions getValidationOptions();
+   default LenientValidationOptions getValidationOptions() {
+      return LenientValidationOptions.STRICT;
+   }
 
-   void setValidationOptions(LenientValidationOptions validationOptions);
+   default void setValidationOptions(LenientValidationOptions validationOptions) {
+   }
 
    List<Module> getModules();
 

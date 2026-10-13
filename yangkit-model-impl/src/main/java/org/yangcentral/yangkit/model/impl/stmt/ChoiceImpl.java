@@ -317,7 +317,7 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
                   break label44;
                }
 
-               Case c = iterator.next();
+                      Case c = iterator.next();
                       if (c.evaluateFeatures()
                          || getContext().getSchemaContext().getValidationOptions().isEnabled()) {
                   this.addSchemaNodeChild(c);
