@@ -32,6 +32,9 @@ public class ListDataJsonCodec extends YangDataJsonCodec<YangList, ListData> {
         for (Leaf key : keys) {
             JsonNode keyElement = element.get(key.getArgStr());
             if (keyElement == null) {
+                // A missing list key is always an error: the entry cannot be keyed and is
+                // dropped, so downgrading it to a warning would silently lose data while
+                // the parse looks successful. This holds even in lenient mode.
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.MISSING_ELEMENT);
                 recordBuilder.setErrorPath(element.toString());

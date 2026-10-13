@@ -2,6 +2,8 @@ package org.yangcentral.yangkit.data.impl.model;
 
 import com.google.common.collect.Lists;
 import org.jaxen.JaxenException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.exception.ErrorAppTag;
@@ -25,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangAbstractDataContainer implements YangDataContainer {
+    private static final Logger logger = LoggerFactory.getLogger(YangAbstractDataContainer.class);
     private YangDataContainer self;
     private SchemaNodeContainer schemaNodeContainer;
     private Map<DataIdentifier,YangData<?>> children = new ConcurrentHashMap<>();
@@ -534,7 +537,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
                     self.removeChild(dummyNode.getIdentifier());
                 } catch (YangDataException | JaxenException e) {
                     self.removeChild(dummyNode.getIdentifier());
-                    e.printStackTrace();
+                    logger.warn("Failed to check when condition for mandatory node {}: {}", schemaNode.getIdentifier().getQualifiedName(), e.getMessage());
                 }
             }
             else {
@@ -592,7 +595,11 @@ public class YangAbstractDataContainer implements YangDataContainer {
         }
         for(YangData<?> child:self.getChildren()){
             SchemaNode schemaNode = child.getSchemaNode();
-            if(!matchRecord.containsKey(schemaNode.getIdentifier()) || !schemaNode.isActive()){
+            // Strict by default: unknown schema nodes and inactive nodes (if-feature disabled or
+            // deviated not-supported) are errors. In lenient mode (partial YANG Library schemas)
+            // inactive nodes are accepted as-is; constraint checks are still skipped for them.
+            if(!matchRecord.containsKey(schemaNode.getIdentifier())
+                    || (!schemaNode.isActive() && !getValidationOptions().isEnabled())){
                 //inactive or unknown schema node, report error
                 ValidatorRecordBuilder<AbsolutePath,YangData<?>> validatorRecordBuilder =
                         new ValidatorRecordBuilder<>();
@@ -602,6 +609,10 @@ public class YangAbstractDataContainer implements YangDataContainer {
                 validatorRecordBuilder.setErrorMessage(new ErrorMessage("unknown schema node:"
                         + schemaNode.getArgStr()));
                 validatorResultBuilder.addRecord(validatorRecordBuilder.build());
+                continue;
+            }
+            if(!schemaNode.isActive()){
+                // inactive node accepted (lenient mode) — skip constraint validation below
                 continue;
             }
             List<YangData<?>> matchedData = matchRecord.get(schemaNode.getIdentifier());
@@ -624,6 +635,14 @@ public class YangAbstractDataContainer implements YangDataContainer {
             validatorResultBuilder.merge(child.validate());
         }
         return validatorResultBuilder.build();
+    }
+
+    private org.yangcentral.yangkit.model.api.LenientValidationOptions getValidationOptions() {
+        if (self instanceof YangDataDocument) {
+            return ((YangDataDocument) self).getSchemaContext().getValidationOptions();
+        }
+        YangData data = (YangData) self;
+        return data.getSchemaNode().getContext().getSchemaContext().getValidationOptions();
     }
 
     @Override
