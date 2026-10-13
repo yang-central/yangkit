@@ -30,7 +30,7 @@ public class BaseImpl extends YangStatementImpl implements Base {
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
       switch (phase) {
-         case GRAMMAR:
+         case GRAMMAR: {
             FName fName = new FName(this.getArgStr());
             Import im = this.getContext().getCurModule().getImportByPrefix(fName.getPrefix());
             if (im != null) {
@@ -41,6 +41,19 @@ public class BaseImpl extends YangStatementImpl implements Base {
             try {
                Module module = ModelUtil.findModuleByPrefix(this.getContext(), fName.getPrefix());
                this.identity = module.getIdentity(fName.getLocalName());
+            } catch (ModelException e) {
+               break;
+            }
+            break;
+         }
+         case SCHEMA_BUILD: {
+            if (this.identity != null) {
+               break;
+            }
+            FName fName = new FName(this.getArgStr());
+            try {
+               Module module = ModelUtil.findModuleByPrefix(this.getContext(), fName.getPrefix());
+               this.identity = module.getIdentity(fName.getLocalName());
                if (this.identity == null) {
                    validatorResultBuilder.addRecord(ModelUtil.reportError(this,
                           ErrorCode.UNRECOGNIZED_IDENTITY.toString(new String[]{"name=" + fName.getLocalName()})));
@@ -48,9 +61,12 @@ public class BaseImpl extends YangStatementImpl implements Base {
             } catch (ModelException e) {
                validatorResultBuilder.addRecord(ModelUtil.reportError(e.getElement(),e.getDescription()));
             }
+            break;
+         }
          default:
             return validatorResultBuilder.build();
       }
+      return validatorResultBuilder.build();
    }
 
    @Override
