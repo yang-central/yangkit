@@ -318,12 +318,12 @@ public class ChoiceImpl extends SchemaDataNodeImpl implements Choice {
                }
 
                Case c = iterator.next();
-               // Always add all cases to the schema tree regardless of if-feature evaluation.
-               // if-feature gates are checked via isActive() at parse/validation time, not here.
-               // Skipping inactive cases here would make their children invisible to getTreeNodeChild().
-               this.addSchemaNodeChild(c);
-               if (c.isShortCase()) {
-                  validatorResultBuilder.merge(c.build(phase));
+                      if (c.evaluateFeatures()
+                         || getContext().getSchemaContext().getValidationOptions().isEnabled()) {
+                  this.addSchemaNodeChild(c);
+                  if (c.isShortCase()) {
+                     validatorResultBuilder.merge(c.build(phase));
+                  }
                }
             }
          case SCHEMA_TREE:

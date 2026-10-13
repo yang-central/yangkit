@@ -19,7 +19,6 @@ import org.yangcentral.yangkit.data.impl.builder.YangDataBuilder;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
 import org.yangcentral.yangkit.model.impl.schema.DescendantSchemaPath;
@@ -600,7 +599,7 @@ public class YangAbstractDataContainer implements YangDataContainer {
             // deviated not-supported) are errors. In lenient mode (partial YANG Library schemas)
             // inactive nodes are accepted as-is; constraint checks are still skipped for them.
             if(!matchRecord.containsKey(schemaNode.getIdentifier())
-                    || (!schemaNode.isActive() && !LenientValidationOptions.isEnabled())){
+                    || (!schemaNode.isActive() && !getValidationOptions().isEnabled())){
                 //inactive or unknown schema node, report error
                 ValidatorRecordBuilder<AbsolutePath,YangData<?>> validatorRecordBuilder =
                         new ValidatorRecordBuilder<>();
@@ -636,6 +635,14 @@ public class YangAbstractDataContainer implements YangDataContainer {
             validatorResultBuilder.merge(child.validate());
         }
         return validatorResultBuilder.build();
+    }
+
+    private org.yangcentral.yangkit.model.api.LenientValidationOptions getValidationOptions() {
+        if (self instanceof YangDataDocument) {
+            return ((YangDataDocument) self).getSchemaContext().getValidationOptions();
+        }
+        YangData data = (YangData) self;
+        return data.getSchemaNode().getContext().getSchemaContext().getValidationOptions();
     }
 
     @Override

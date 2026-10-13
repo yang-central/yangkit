@@ -10,6 +10,7 @@ import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.XPathStep;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
@@ -30,12 +31,25 @@ public class YangSchemaContextImpl implements YangSchemaContext {
    private Map<String, List<Module>> moduleMap = new ConcurrentHashMap<>();
    private Map<String, List<YangElement>> parseResult = new ConcurrentHashMap<>();
    private YangSchema schema;
+   private LenientValidationOptions validationOptions = LenientValidationOptions.STRICT;
 
    private ValidatorResult validatorResult;
    private SchemaNodeContainerImpl schemaNodeContainer;
 
    public List<Module> getModules() {
       return this.modules;
+   }
+
+   @Override
+   public LenientValidationOptions getValidationOptions() {
+      return validationOptions;
+   }
+
+   @Override
+   public void setValidationOptions(LenientValidationOptions validationOptions) {
+      this.validationOptions = validationOptions == null
+              ? LenientValidationOptions.STRICT
+              : validationOptions;
    }
 
    public List<Module> getImportOnlyModules() {
@@ -333,40 +347,6 @@ public class YangSchemaContextImpl implements YangSchemaContext {
          }
          ValidatorResult result = module.build();
          validatorResultBuilder.merge(result);
-      }
-      // Second-pass global augment resolution: handles cross-module augments that failed
-      // due to sequential per-module build ordering — the augmenting module's SCHEMA_EXPAND
-      // ran before the target module's SCHEMA_BUILD added its notifications/containers to
-      // the schema context. After all modules have built, retry those unresolved augments.
-      List<Augment> secondPassResolved = new ArrayList<>();
-      for(Module module:modules){
-         for(Augment augment : module.getAugments()){
-            if(augment.getTarget() != null){
-               continue; // already resolved in the first pass
-            }
-            SchemaPath targetPath = augment.getTargetPath();
-            if(targetPath == null){
-               continue; // schema path itself failed to parse; cannot retry
-            }
-            SchemaNode target = targetPath.getSchemaNode(this);
-            if(target == null || !(target instanceof Augmentable)){
-               continue;
-            }
-            augment.setTarget(target);
-            SchemaNodeContainer targetContainer = (SchemaNodeContainer) target;
-            targetContainer.addSchemaNodeChild(augment);
-            secondPassResolved.add(augment);
-         }
-      }
-      // The first-pass build already merged MISSING_TARGET errors for the augments resolved
-      // above; drop those now-stale records so the final result reflects the resolved state.
-      if(!secondPassResolved.isEmpty() && validatorResultBuilder.getRecords() != null){
-         validatorResultBuilder.getRecords().removeIf(record ->
-                 secondPassResolved.contains(record.getBadElement())
-                 && record.getErrorTag() == org.yangcentral.yangkit.common.api.exception.ErrorTag.BAD_ELEMENT
-                 && record.getErrorMsg() != null
-                 && record.getErrorMsg().getMessage()
-                     .equals(org.yangcentral.yangkit.base.ErrorCode.MISSING_TARGET.getFieldName()));
       }
       //validate
       for(Module module:modules){

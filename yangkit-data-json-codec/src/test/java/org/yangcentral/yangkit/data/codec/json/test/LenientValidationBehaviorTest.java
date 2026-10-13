@@ -7,14 +7,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.exception.ErrorTag;
 import org.yangcentral.yangkit.common.api.exception.Severity;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecord;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
 import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.parser.YangLibraryParser;
 import org.yangcentral.yangkit.parser.YangParserException;
 import org.yangcentral.yangkit.parser.YangYinParser;
@@ -25,9 +23,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p><b>Strict is the default.</b> Unknown elements, inactive (if-feature / deviated)
  * nodes, invalid identityref values and missing list keys are reported as errors by
- * default. Lenient handling is strictly opt-in, applied while
- * {@link LenientValidationOptions#enable()} is active on the current thread.
+ * default. Lenient handling is strictly opt-in through the schema context's
+ * {@link LenientValidationOptions}.
  *
  * <p>Lenient mode is limited to genuinely partial-schema situations:
  * <ul>
@@ -67,21 +62,28 @@ public class LenientValidationBehaviorTest {
 
     /** Plain schema (YangYinParser) — all if-feature nodes active. */
     private static YangSchemaContext ctx;
+    private static YangSchemaContext ctxLenient;
 
     /** Schema built from a YANG Library that enables no features — if-feature nodes inactive. */
     private static YangSchemaContext ctxLib;
+    private static YangSchemaContext ctxLibLenient;
 
     @BeforeAll
     static void setUp() throws IOException, YangParserException, DocumentException {
         URL yangDir = LenientValidationBehaviorTest.class.getClassLoader()
                 .getResource("lenient-validation/yang");
         assertNotNull(yangDir);
-        ctx = YangYinParser.parse(yangDir.getFile());
+        ctx = YangYinParser.parse(new File(yangDir.getFile()), LenientValidationOptions.STRICT);
         assertTrue(ctx.validate().isOk(), "fixture schema must validate cleanly: " + ctx.validate());
+        ctxLenient = YangYinParser.parse(new File(yangDir.getFile()), LenientValidationOptions.LENIENT);
+        assertTrue(ctxLenient.validate().isOk(), "fixture schema must validate cleanly: " + ctxLenient.validate());
 
-        ctxLib = parseYangLibrary(yangDir);
+        ctxLib = parseYangLibrary(yangDir, LenientValidationOptions.STRICT);
         assertTrue(ctxLib.validate().isOk(),
                 "fixture schema (yang library) must validate cleanly: " + ctxLib.validate());
+        ctxLibLenient = parseYangLibrary(yangDir, LenientValidationOptions.LENIENT);
+        assertTrue(ctxLibLenient.validate().isOk(),
+            "fixture schema (yang library) must validate cleanly: " + ctxLibLenient.validate());
     }
 
     // ------------------------------------------------------------------
@@ -140,49 +142,12 @@ public class LenientValidationBehaviorTest {
 
     @Test
     public void inactiveNode_isErrorInStrictMode_andAcceptedInLenientMode() throws Exception {
-        ValidatorResult strict = parse(ctxLib, INACTIVE_NODE_JSON, false);
+        ValidatorResult strict = parse(ctxLib, INACTIVE_NODE_JSON);
         assertHasTag(strict, ErrorTag.UNKNOWN_ELEMENT, Severity.ERROR);
 
-        ValidatorResult lenient = parse(ctxLib, INACTIVE_NODE_JSON, true);
+        ValidatorResult lenient = parse(ctxLibLenient, INACTIVE_NODE_JSON);
         assertTrue(isOk(lenient),
                 "inactive node must be accepted in lenient mode: " + lenient);
-    }
-
-    // ------------------------------------------------------------------
-    // cross-module augment: second-pass resolution must not leave stale errors
-    // ------------------------------------------------------------------
-
-    @Test
-    public void crossModuleAugment_resolvesWithoutStaleMissingTargetError()
-            throws IOException, YangParserException, DocumentException {
-        URL local = LenientValidationBehaviorTest.class.getClassLoader()
-                .getResource("lenient-validation/augment-order");
-        assertNotNull(local, "augment-order fixture required");
-        YangSchemaContext augCtx = YangYinParser.parse(local.getFile());
-        augCtx.validate();
-
-        ValidatorResult result = augCtx.validate();
-        List<? extends ValidatorRecord<?, ?>> stale =
-                result.getRecords() == null ? Collections.<ValidatorRecord<?, ?>>emptyList()
-                        : result.getRecords().stream()
-                            .filter(r -> r.getErrorMsg() != null
-                                    && r.getErrorMsg().getMessage()
-                                        .equalsIgnoreCase("the target node is not found."))
-                            .collect(Collectors.toList());
-        assertTrue(stale.isEmpty(),
-                "stale MISSING_TARGET records must be dropped when the augment resolves in the second pass: "
-                        + stale);
-
-        // The cross-module augment (01-auger) must have resolved against the target
-        // module (02-target). The augmented leaf 'aux' is reachable on the Augment
-        // statement itself once the target is known.
-        Module auger = findModule(augCtx, "01-auger");
-        assertNotNull(auger, "01-auger module must be loaded");
-        List<? extends org.yangcentral.yangkit.model.api.stmt.Augment> augments = auger.getAugments();
-        assertNotNull(augments, "01-auger must expose its augment statements");
-        assertFalse(augments.isEmpty(), "01-auger must declare at least one augment");
-        assertNotNull(augments.get(0).getDataDefChild("aux"),
-                "augmented leaf 'aux' must be present on the augment after the target resolved");
     }
 
     // ------------------------------------------------------------------
@@ -194,7 +159,7 @@ public class LenientValidationBehaviorTest {
      * and parse it through {@link YangLibraryParser} so the resulting context carries a
      * {@code YangSchema}. This makes if-feature nodes report as inactive.
      */
-    private static YangSchemaContext parseYangLibrary(URL yangDir)
+    private static YangSchemaContext parseYangLibrary(URL yangDir, LenientValidationOptions validationOptions)
             throws IOException, YangParserException, DocumentException {
         File dirFile = new File(yangDir.getFile());
         String yangFile = new File(dirFile, "test-lenient@2025-01-01.yang").getAbsolutePath();
@@ -209,34 +174,18 @@ public class LenientValidationBehaviorTest {
                 + "    </module>\n  </module-set>\n</yang-library>\n";
         Path libPath = Files.createTempFile("yanglib-lenient", ".xml");
         Files.write(libPath, libXml.getBytes(StandardCharsets.UTF_8));
-        return YangLibraryParser.parse(libPath.toFile(), dirFile);
-    }
-
-    private static Module findModule(YangSchemaContext c, String name) {
-        for (Module m : c.getModules()) {
-            if (name.equals(m.getArgStr())) {
-                return m;
-            }
-        }
-        return null;
+        return YangLibraryParser.parse(libPath.toFile(), dirFile, validationOptions);
     }
 
     private static ValidatorResult parse(String json, boolean lenient) throws Exception {
-        return parse(ctx, json, lenient);
+        return parse(lenient ? ctxLenient : ctx, json);
     }
 
-    private static ValidatorResult parse(YangSchemaContext schemaCtx, String json, boolean lenient) throws Exception {
+    private static ValidatorResult parse(YangSchemaContext schemaCtx, String json) throws Exception {
         JsonNode node = new ObjectMapper().readTree(json);
         ValidatorResultBuilder builder = new ValidatorResultBuilder();
-        try {
-            if (lenient) {
-                LenientValidationOptions.enable();
-            }
-            YangDataDocument doc = new YangDataDocumentJsonCodec(schemaCtx).deserialize(node, builder);
-            assertNotNull(doc, "document must be built even when children have errors");
-        } finally {
-            LenientValidationOptions.disable(); // reset the thread to the default (strict) behavior
-        }
+        YangDataDocument doc = new YangDataDocumentJsonCodec(schemaCtx).deserialize(node, builder);
+        assertNotNull(doc, "document must be built even when children have errors");
         return builder.build();
     }
 

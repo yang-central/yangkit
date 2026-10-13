@@ -64,9 +64,15 @@ public class YangLibraryParser {
      */
     public static YangSchemaContext parse(File xmlFile, File yangSearchPath)
             throws DocumentException, IOException, YangParserException {
+        return parse(xmlFile, yangSearchPath, LenientValidationOptions.STRICT);
+    }
+
+    public static YangSchemaContext parse(
+            File xmlFile, File yangSearchPath, LenientValidationOptions validationOptions)
+            throws DocumentException, IOException, YangParserException {
         SAXReader reader = SAXReader.createDefault();
         Document doc = reader.read(xmlFile);
-        return parseRoot(doc.getRootElement(), yangSearchPath);
+        return parseRoot(doc.getRootElement(), yangSearchPath, validationOptions);
     }
 
     /**
@@ -79,9 +85,15 @@ public class YangLibraryParser {
      */
     public static YangSchemaContext parse(InputStream xmlStream, File yangSearchPath)
             throws DocumentException, IOException, YangParserException {
+        return parse(xmlStream, yangSearchPath, LenientValidationOptions.STRICT);
+    }
+
+    public static YangSchemaContext parse(
+            InputStream xmlStream, File yangSearchPath, LenientValidationOptions validationOptions)
+            throws DocumentException, IOException, YangParserException {
         SAXReader reader = SAXReader.createDefault();
         Document doc = reader.read(xmlStream);
-        return parseRoot(doc.getRootElement(), yangSearchPath);
+        return parseRoot(doc.getRootElement(), yangSearchPath, validationOptions);
     }
 
     /**
@@ -94,15 +106,23 @@ public class YangLibraryParser {
      */
     public static YangSchemaContext parse(String xmlFilePath, String yangSearchPath)
             throws DocumentException, IOException, YangParserException {
+        return parse(xmlFilePath, yangSearchPath, LenientValidationOptions.STRICT);
+    }
+
+    public static YangSchemaContext parse(
+            String xmlFilePath, String yangSearchPath, LenientValidationOptions validationOptions)
+            throws DocumentException, IOException, YangParserException {
         return parse(new File(xmlFilePath),
-                yangSearchPath != null ? new File(yangSearchPath) : null);
+                yangSearchPath != null ? new File(yangSearchPath) : null,
+                validationOptions);
     }
 
     // -------------------------------------------------------------------------
     // Core implementation
     // -------------------------------------------------------------------------
 
-    private static YangSchemaContext parseRoot(Element root, File yangSearchPath)
+    private static YangSchemaContext parseRoot(
+            Element root, File yangSearchPath, LenientValidationOptions validationOptions)
             throws IOException, YangParserException, DocumentException {
 
         List<ParsedModuleSet> moduleSets = parseModuleSets(root);
@@ -111,33 +131,19 @@ public class YangLibraryParser {
         YangSchemaContext context =
                 YangStatementRegister.getInstance().getSchemeContextInstance();
 
-        // A YANG Library describes a device's active schema subset (features, deviations,
-        // possibly a partial module set). Load the modules with lenient behavior so genuinely
-        // missing dependencies degrade to warnings instead of hard errors. The caller keeps
-        // strict defaults by enabling/disabling LenientValidationOptions around its own
-        // parse/validate calls.
-        boolean lenientWasEnabled = LenientValidationOptions.isEnabled();
-        LenientValidationOptions.enable();
-        try {
-            // 1. Load import-only modules first so they are available as dependencies
-            //    when the main modules are parsed and their imports are resolved.
-            for (ParsedModuleSet ms : moduleSets) {
-                for (ParsedModule m : ms.importOnlyModules) {
-                    loadModule(m, true, yangSearchPath, context);
-                }
+        context.setValidationOptions(validationOptions);
+        // 1. Load import-only modules first so they are available as dependencies
+        //    when the main modules are parsed and their imports are resolved.
+        for (ParsedModuleSet ms : moduleSets) {
+            for (ParsedModule m : ms.importOnlyModules) {
+                loadModule(m, true, yangSearchPath, context);
             }
+        }
 
-            // 2. Load main (non-import-only) modules.
-            for (ParsedModuleSet ms : moduleSets) {
-                for (ParsedModule m : ms.modules) {
-                    loadModule(m, false, yangSearchPath, context);
-                }
-            }
-        } finally {
-            if (lenientWasEnabled) {
-                LenientValidationOptions.enable();
-            } else {
-                LenientValidationOptions.disable();
+        // 2. Load main (non-import-only) modules.
+        for (ParsedModuleSet ms : moduleSets) {
+            for (ParsedModule m : ms.modules) {
+                loadModule(m, false, yangSearchPath, context);
             }
         }
 

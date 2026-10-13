@@ -3,7 +3,6 @@ package org.yangcentral.yangkit.model.impl.codec;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.codec.IdentityRefStringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
@@ -40,7 +39,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             SubModule sb = (SubModule)curModule;
             mainModuleList = sb.getBelongsto().getMainModules();
             if (mainModuleList.size() == 0) {
-               if (LenientValidationOptions.isEnabled()) {
+               if (isLenient()) {
                   LOGGER.warn("[IdentityRef] SubModule has no main modules: " + input);
                   return buildFallbackQName(prefix, fName.getLocalName());
                }
@@ -58,7 +57,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             ModuleId moduleId = (ModuleId)moduleIdOp.get();
             Optional<Module> moduleOp = this.getSchemaNode().getContext().getSchemaContext().getModule(moduleId);
             if (!moduleOp.isPresent()) {
-                if (LenientValidationOptions.isEnabled()) {
+                if (isLenient()) {
                    LOGGER.warn("[IdentityRef] Module not present in schema context for prefix: " + fName.getPrefix() + ": " + input);
                    return buildFallbackQName(prefix, fName.getLocalName());
                 }
@@ -82,7 +81,7 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
             }
 
             if (namespace == null) {
-                if (LenientValidationOptions.isEnabled()) {
+                if (isLenient()) {
                    LOGGER.warn("[IdentityRef] No module found for prefix: " + prefix + ": " + input);
                    return buildFallbackQName(prefix, fName.getLocalName());
                 }
@@ -115,5 +114,9 @@ public class IdentityRefStringValueCodecImpl extends ComplexStringValueCodecImpl
       } catch (Exception e) {
          return new QName((URI) null, prefix != null ? prefix : "", localName);
       }
+   }
+
+   private boolean isLenient() {
+      return getSchemaNode().getContext().getSchemaContext().getValidationOptions().isEnabled();
    }
 }

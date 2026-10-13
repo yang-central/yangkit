@@ -15,6 +15,7 @@
 package org.yangcentral.yangkit.examples;
 
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.parser.YangYinParser;
 
@@ -64,7 +65,8 @@ public class App5YangLibrary {
         // Approach 1: File overload
         // ------------------------------------------------------------------
         System.out.println("=== Approach 1: parseFromYangLibrary(File, File) ===");
-        YangSchemaContext ctx1 = YangYinParser.parseFromYangLibrary(xmlFile, modulesDir);
+        YangSchemaContext ctx1 = YangYinParser.parseFromYangLibrary(
+            xmlFile, modulesDir, LenientValidationOptions.LENIENT);
         printContextSummary(ctx1);
 
         // ------------------------------------------------------------------
@@ -72,7 +74,8 @@ public class App5YangLibrary {
         // ------------------------------------------------------------------
         System.out.println("\n=== Approach 2: parseFromYangLibrary(InputStream, File) ===");
         try (InputStream xmlStream = new FileInputStream(xmlFile)) {
-            YangSchemaContext ctx2 = YangYinParser.parseFromYangLibrary(xmlStream, modulesDir);
+                YangSchemaContext ctx2 = YangYinParser.parseFromYangLibrary(
+                    xmlStream, modulesDir, LenientValidationOptions.LENIENT);
             printContextSummary(ctx2);
         }
 
@@ -82,7 +85,8 @@ public class App5YangLibrary {
         System.out.println("\n=== Approach 3: parseFromYangLibrary(String, String) ===");
         YangSchemaContext ctx3 = YangYinParser.parseFromYangLibrary(
                 xmlFile.getAbsolutePath(),
-                modulesDir.getAbsolutePath());
+            modulesDir.getAbsolutePath(),
+            LenientValidationOptions.LENIENT);
         printContextSummary(ctx3);
     }
 

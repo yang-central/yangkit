@@ -21,7 +21,6 @@ import org.yangcentral.yangkit.data.api.operation.YangDataOperator;
 import org.yangcentral.yangkit.data.impl.operation.YangDataOperatorImpl;
 import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.stmt.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.ext.YangStructure;
@@ -601,7 +600,7 @@ public class JsonCodecUtil {
             // errors. In lenient mode inactive elements are accepted as-is (partial device
             // data), unknown elements still error.
             boolean sonInactive = sonSchemaNode != null && !sonSchemaNode.isActive();
-            if (sonSchemaNode == null || (sonInactive && !LenientValidationOptions.isEnabled())) {
+            if (sonSchemaNode == null || (sonInactive && !getValidationOptions(yangDataContainer).isEnabled())) {
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
                 recordBuilder.setErrorPath(extraValidationData.getJsonPath(child));
@@ -634,6 +633,15 @@ public class JsonCodecUtil {
             }
         }
         return validatorResultBuilder.build();
+    }
+
+    private static org.yangcentral.yangkit.model.api.LenientValidationOptions getValidationOptions(
+            YangDataContainer yangDataContainer) {
+        if (yangDataContainer instanceof YangDataDocument) {
+            return ((YangDataDocument) yangDataContainer).getSchemaContext().getValidationOptions();
+        }
+        YangData<?> data = (YangData<?>) yangDataContainer;
+        return data.getSchemaNode().getContext().getSchemaContext().getValidationOptions();
     }
 
 

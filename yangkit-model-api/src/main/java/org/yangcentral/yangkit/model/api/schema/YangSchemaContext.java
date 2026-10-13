@@ -3,6 +3,7 @@ package org.yangcentral.yangkit.model.api.schema;
 import org.yangcentral.yangkit.base.YangElement;
 import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
@@ -20,6 +21,10 @@ import java.util.Optional;
  * @since 7/8/2022
  */
 public interface YangSchemaContext extends SchemaNodeContainer {
+   LenientValidationOptions getValidationOptions();
+
+   void setValidationOptions(LenientValidationOptions validationOptions);
+
    List<Module> getModules();
 
    List<Module> getImportOnlyModules();

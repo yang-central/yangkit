@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.common.api.FName;
 import org.yangcentral.yangkit.common.api.QName;
-import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.codec.IdentityRefStringValueCodec;
 import org.yangcentral.yangkit.model.api.codec.YangCodecException;
 import org.yangcentral.yangkit.model.api.restriction.Restriction;
@@ -35,7 +34,7 @@ public class IdentityRefJsonCodec extends ComplexStringValueCodecImpl<QName> imp
         Optional<Module> moduleOptional = getSchemaNode().getContext().getSchemaContext()
                 .getLatestModule(moduleName);
         if(!moduleOptional.isPresent()) {
-            if (LenientValidationOptions.isEnabled()) {
+            if (getSchemaNode().getContext().getSchemaContext().getValidationOptions().isEnabled()) {
                 LOGGER.warn("[IdentityRefJson] Module not present in schema context: " + moduleName + " (input=" + input + ")");
                 return new QName((URI) null, moduleName, localName);
             }
