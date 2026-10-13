@@ -73,7 +73,7 @@ public abstract class YangStructureMessageJsonCodec<T extends YangStructureMessa
             if(qName == null) {
                 continue;
             }
-            SchemaNode dataNode = structure.getTreeNodeChild(qName);
+            SchemaNode dataNode = structure.getSchemaNodeChild(qName);
             if(dataNode == null) {
                 continue;
             }
