@@ -2,6 +2,7 @@ package org.yangcentral.yangkit.data.codec.json.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.dom4j.DocumentException;
 import org.junit.jupiter.api.Test;
 import org.yangcentral.yangkit.common.api.exception.Severity;
@@ -64,6 +65,35 @@ public class JsonCodecNotificationsTest {
     assertTrue(serialized.contains("ietf-notification:notification"));
     assertTrue(serialized.contains("eventTime"));
     assertTrue(serialized.contains("ietf-yang-push:push-change-update"));
+  }
+
+  @Test
+  public void invalid_structure_leaf_reportsOneError() throws DocumentException, IOException, YangParserException {
+    YangSchemaContext schemaContext = loadNotificationSchemaContext();
+    ObjectNode jsonElement = (ObjectNode) loadJson("notification/pushupdate/json/valid_pu_notification.json");
+    ((ObjectNode) jsonElement.get("ietf-notification:notification")).put("eventTime", "not-a-date");
+
+    ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+    NotificationMessageJsonCodec codec = new NotificationMessageJsonCodec(schemaContext);
+    codec.deserialize(jsonElement, validatorResultBuilder);
+
+    List<? extends ValidatorRecord<?, ?>> errors = getErrors(validatorResultBuilder.build());
+    assertEquals(1, errors.size(), "Invalid structure leaf should be parsed once: " + errors);
+  }
+
+  @Test
+  public void unknown_structure_member_reportsOneError() throws DocumentException, IOException, YangParserException {
+    YangSchemaContext schemaContext = loadNotificationSchemaContext();
+    ObjectNode jsonElement = (ObjectNode) loadJson("notification/pushupdate/json/valid_pu_notification.json");
+    ((ObjectNode) jsonElement.get("ietf-notification:notification")).put("unexpected-member", "value");
+
+    ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
+    NotificationMessageJsonCodec codec = new NotificationMessageJsonCodec(schemaContext);
+    codec.deserialize(jsonElement, validatorResultBuilder);
+
+    List<? extends ValidatorRecord<?, ?>> errors = getErrors(validatorResultBuilder.build());
+    assertEquals(1, errors.size(), "Unknown structure member should be reported once: " + errors);
+    assertEquals("unrecognized field:unexpected-member", errors.get(0).getErrorMsg().getMessage());
   }
 
   @Test
