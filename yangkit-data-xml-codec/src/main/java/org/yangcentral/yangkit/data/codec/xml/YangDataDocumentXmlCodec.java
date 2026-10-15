@@ -2,22 +2,15 @@ package org.yangcentral.yangkit.data.codec.xml;
 
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
-import org.yangcentral.yangkit.common.api.validate.ValidatorRecordBuilder;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationContextResolver;
 import org.yangcentral.yangkit.data.api.codec.AnydataValidationOptions;
 import org.yangcentral.yangkit.data.api.codec.YangDataDocumentCodec;
-import org.yangcentral.yangkit.data.api.exception.YangDataException;
-import org.yangcentral.yangkit.data.api.model.LeafData;
-import org.yangcentral.yangkit.data.api.model.ListData;
 import org.yangcentral.yangkit.data.api.model.YangData;
 import org.yangcentral.yangkit.data.api.model.YangDataContainer;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.impl.model.YangDataDocumentImpl;
-import org.yangcentral.yangkit.data.impl.util.YangDataUtil;
 import org.yangcentral.yangkit.model.api.schema.YangSchemaContext;
-import org.yangcentral.yangkit.model.api.stmt.Leaf;
 import org.yangcentral.yangkit.model.api.stmt.SchemaNode;
-import org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer;
 import org.yangcentral.yangkit.utils.xml.Converter;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -46,95 +39,10 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
     }
 
     protected ValidatorResult buildChildrenData(YangDataContainer yangDataContainer, Element element){
-        return buildChildrenData(yangDataContainer, element, anydataValidationContextResolver);
+        return YangDataXmlCodec.buildChildrenData(
+                yangDataContainer, element, onlyConfig, anydataValidationContextResolver);
     }
-
-    protected ValidatorResult buildChildrenData(
-            YangDataContainer yangDataContainer,
-            Element element,
-            AnydataValidationContextResolver resolver) {
-        ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
-        SchemaNodeContainer schemaNodeContainer= null;
-        if(yangDataContainer instanceof YangDataDocument){
-            schemaNodeContainer = YangDataUtil.getSchemaNodeContainerForDocument((YangDataDocument) yangDataContainer);
-        }else {
-            YangData<?> yangData = (YangData<?>) yangDataContainer;
-            schemaNodeContainer = (SchemaNodeContainer) yangData.getSchemaNode();
-        }
-        List<Element> children = element.elements();
-        for (Element child : children) {
-            SchemaNode sonSchemaNode = schemaNodeContainer.getTreeNodeChild(
-                    new org.yangcentral.yangkit.common.api.QName(child.getNamespaceURI(),
-                            child.getNamespacePrefix(),child.getQName().getName()));
-
-            if (sonSchemaNode == null) {
-                // Check if this is an augmented node or unknown element
-                continue;
-            }
-            
-            // Filter non-config data if onlyConfig is true
-            if (onlyConfig && !isConfigTrue(sonSchemaNode)) {
-                continue; // Skip non-config data
-            }
-
-            if (addExistingListKey(yangDataContainer, sonSchemaNode, child, validatorResultBuilder)) {
-                continue;
-            }
-
-            YangDataXmlCodec xmlCodec = YangDataXmlCodec.getInstance(sonSchemaNode,
-                    resolver, child.getUniquePath());
-            if (xmlCodec != null) {
-                YangData<?> childData = xmlCodec.deserialize(child, validatorResultBuilder);
-                if (childData != null) {
-                    try {
-                        yangDataContainer.addDataChild(childData);
-                        YangData<?> addedChild = yangDataContainer.getDataChild(childData.getIdentifier());
-                        if (addedChild instanceof YangDataContainer) {
-                            validatorResultBuilder.merge(
-                                    buildChildrenData((YangDataContainer) addedChild, child, resolver));
-                        }
-                    } catch (YangDataException e) {
-                        recordAddChildFailure(e, child, validatorResultBuilder);
-                    }
-                }
-            }
-        }
-        return validatorResultBuilder.build();
-    }
-
-    private boolean addExistingListKey(YangDataContainer parent, SchemaNode schemaNode,
-                                       Element child, ValidatorResultBuilder validatorResultBuilder) {
-        if (!(parent instanceof ListData) || !(schemaNode instanceof Leaf)
-                || !((Leaf) schemaNode).isKey()) {
-            return false;
-        }
-        ListData listData = (ListData) parent;
-        for (LeafData key : listData.getKeys()) {
-            if (!key.getQName().equals(schemaNode.getIdentifier())) {
-                continue;
-            }
-            if (listData.getDataChild(key.getIdentifier()) == null) {
-                try {
-                    listData.addDataChild(key);
-                } catch (YangDataException e) {
-                    recordAddChildFailure(e, child, validatorResultBuilder);
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private void recordAddChildFailure(YangDataException exception, Element child,
-                                       ValidatorResultBuilder validatorResultBuilder) {
-        ValidatorRecordBuilder<String, Element> recordBuilder = new ValidatorRecordBuilder<>();
-        recordBuilder.setErrorTag(exception.getErrorTag());
-        recordBuilder.setErrorPath(child.getUniquePath());
-        recordBuilder.setBadElement(child);
-        recordBuilder.setErrorMessage(exception.getErrorMsg());
-        validatorResultBuilder.addRecord(recordBuilder.build());
-    }
-
+    
     @Override
     public YangDataDocument deserialize(Element root, ValidatorResultBuilder validatorResultBuilder) {
         return deserialize(root, validatorResultBuilder, (AnydataValidationContextResolver) null);
@@ -228,7 +136,7 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
             }
             
             // Filter non-config data during serialization if onlyConfig is true
-            if (onlyConfig && !isConfigTrue((org.yangcentral.yangkit.model.api.stmt.SchemaNode) child.getSchemaNode())) {
+            if (onlyConfig && !YangDataXmlCodec.isConfigTrue(child.getSchemaNode())) {
                 continue; // Skip non-config data
             }
             
@@ -240,23 +148,4 @@ public class YangDataDocumentXmlCodec implements YangDataDocumentCodec<Element> 
         return root;
     }
     
-    /**
-     * Check if a schema node has config=true.
-     * 
-     * @param schemaNode the schema node to check
-     * @return true if config=true or not specified (default is true), false otherwise
-     */
-    private boolean isConfigTrue(org.yangcentral.yangkit.model.api.stmt.SchemaNode schemaNode) {
-        if (schemaNode == null) {
-            return true; // Default to config
-        }
-        
-        // Inherit from parent
-        org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer parentContainer = schemaNode.getParentSchemaNode();
-        if (parentContainer instanceof org.yangcentral.yangkit.model.api.stmt.SchemaNode) {
-            return isConfigTrue((org.yangcentral.yangkit.model.api.stmt.SchemaNode) parentContainer);
-        }
-        return true; // Root defaults to config=true
-    }
-
 }
