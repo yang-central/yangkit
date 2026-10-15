@@ -112,17 +112,19 @@ AnydataValidationOptions options = new AnydataValidationOptions()
 
 ### Behavior when no context matches
 
-If no matching payload schema context is found:
-
-- the `anydata` node itself is still created
-- the payload document is still created
-- payload children that are not described by the outer schema may remain unrecognized
+If no payload schema matches, the enclosing document schema is used by default. Nodes unknown to that schema
+cannot be preserved as opaque content. Use `new AnydataValidationOptions().requirePayloadSchema(true)` to
+require an explicit match: in that mode the `anydata` node has no payload and an `operation-failed` record is
+added to the parse result.
 
 ## Notes
 
 - `YangDataDocumentXmlCodec.deserialize(Document, ..., options)` is the most convenient entry for whole-document parsing
 - `YangDataDocumentXmlCodec.deserialize(Element, ..., options)` is useful when the XML root element has already been extracted
 - `AnydataValidationOptions` matching order is: rule > schema-node registration > default context
+- calling `validate()` on the enclosing document recursively validates the parsed `anydata` payload
+- XML `anydata` content must contain structured child elements
+- non-whitespace text-only content produces `BAD_ELEMENT`; an empty element is accepted
 
 ## Complete Minimal Runnable Example
 
@@ -203,5 +205,3 @@ module payload-anydata {
   }
 }
 ```
-
-

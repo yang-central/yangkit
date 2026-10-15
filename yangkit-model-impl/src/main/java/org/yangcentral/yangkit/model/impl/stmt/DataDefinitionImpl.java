@@ -1,5 +1,6 @@
 package org.yangcentral.yangkit.model.impl.stmt;
 
+import org.yangcentral.yangkit.base.BuildPhase;
 import org.yangcentral.yangkit.base.ErrorCode;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
@@ -28,6 +29,13 @@ public abstract class DataDefinitionImpl extends EntityImpl implements DataDefin
 
    public DataDefinitionImpl(String argStr) {
       super(argStr);
+   }
+
+   @Override
+   protected ValidatorResult buildSelf(BuildPhase phase) {
+      ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
+      validatorResultBuilder.merge(schemaNodeSupport.buildSelf(phase));
+      return validatorResultBuilder.build();
    }
 
    public void setContext(YangContext context) {
@@ -189,4 +197,3 @@ public abstract class DataDefinitionImpl extends EntityImpl implements DataDefin
     @Override
     public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
-

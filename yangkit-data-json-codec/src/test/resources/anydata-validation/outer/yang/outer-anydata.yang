@@ -5,6 +5,13 @@ module outer-anydata {
 
   container anydata-wrapper {
     anydata payload-holder;
+
+    list entry {
+      key "name";
+      leaf name {
+        type string;
+      }
+      anydata payload-holder;
+    }
   }
 }
-

@@ -1,5 +1,7 @@
 package org.yangcentral.yangkit.model.impl.schema;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangContext;
 import org.yangcentral.yangkit.base.YangElement;
@@ -8,6 +10,7 @@ import org.yangcentral.yangkit.common.api.AbsolutePath;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.XPathStep;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResult;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.validate.ValidatorResultBuilder;
 import org.yangcentral.yangkit.model.api.schema.ModuleId;
 import org.yangcentral.yangkit.model.api.schema.SchemaPath;
@@ -22,17 +25,31 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class YangSchemaContextImpl implements YangSchemaContext {
+   private static final Logger logger = LoggerFactory.getLogger(YangSchemaContextImpl.class);
    private List<Module> modules = new ArrayList<>();
    private List<Module> importOnlyModules = new ArrayList<>();
    private Map<String, List<Module>> moduleMap = new ConcurrentHashMap<>();
    private Map<String, List<YangElement>> parseResult = new ConcurrentHashMap<>();
    private YangSchema schema;
+   private LenientValidationOptions validationOptions = LenientValidationOptions.STRICT;
 
    private ValidatorResult validatorResult;
    private SchemaNodeContainerImpl schemaNodeContainer;
 
    public List<Module> getModules() {
       return this.modules;
+   }
+
+   @Override
+   public LenientValidationOptions getValidationOptions() {
+      return validationOptions;
+   }
+
+   @Override
+   public void setValidationOptions(LenientValidationOptions validationOptions) {
+      this.validationOptions = validationOptions == null
+              ? LenientValidationOptions.STRICT
+              : validationOptions;
    }
 
    public List<Module> getImportOnlyModules() {
@@ -288,7 +305,7 @@ public class YangSchemaContextImpl implements YangSchemaContext {
       try {
          module.clear();
       } catch (RuntimeException e){
-         System.out.println("clear module:"+ module.getArgStr() + " failed. detail:"+e.getMessage());
+         logger.warn("clear module:{} failed. detail:{}", module.getArgStr(), e.getMessage());
       }
 
 

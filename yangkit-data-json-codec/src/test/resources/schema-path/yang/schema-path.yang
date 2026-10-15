@@ -1,0 +1,33 @@
+module schema-path {
+  yang-version 1.1;
+  namespace "urn:test:schema-path";
+  prefix sp;
+
+  container root {
+    list item {
+      key "id";
+      leaf id { type string; }
+      choice selection {
+        case named {
+          leaf name { type string; }
+        }
+      }
+    }
+    action inspect {
+      input { leaf request { type string; } }
+      output { leaf response { type string; } }
+    }
+    action reset;
+    notification changed {
+      leaf value { type string; }
+    }
+  }
+  rpc run {
+    input { leaf request { type string; } }
+    output { leaf response { type string; } }
+  }
+  rpc empty;
+  notification event {
+    leaf value { type string; }
+  }
+}

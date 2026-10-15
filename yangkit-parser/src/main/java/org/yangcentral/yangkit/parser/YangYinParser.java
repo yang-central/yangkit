@@ -6,6 +6,7 @@ import org.dom4j.io.SAXReader;
 import org.yangcentral.yangkit.base.Yang;
 import org.yangcentral.yangkit.base.YangBuiltinKeyword;
 import org.yangcentral.yangkit.base.YangElement;
+import org.yangcentral.yangkit.model.api.LenientValidationOptions;
 import org.yangcentral.yangkit.model.api.schema.*;
 import org.yangcentral.yangkit.model.api.stmt.Module;
 import org.yangcentral.yangkit.model.api.stmt.SubModule;
@@ -23,6 +24,76 @@ public class YangYinParser {
    static {
       YangStatementImplRegister.registerImpl();
    }
+
+   // -------------------------------------------------------------------------
+   // YANG Library (RFC 8525) entry-points
+   // -------------------------------------------------------------------------
+
+   /**
+    * Load a {@link YangSchemaContext} from a YANG Library XML file (RFC 8525)
+    * and a directory of YANG/YIN module files.
+    *
+    * <p>Module files are resolved first from {@code <location>} entries in the
+    * yang-library XML (only {@code file://} URIs are supported), and then by
+    * searching {@code yangSearchPath} for files named
+    * {@code module-name@revision.yang} or {@code module-name.yang}.
+    *
+    * @param xmlFile        RFC 8525 yang-library XML file
+    * @param yangSearchPath directory containing the .yang/.yin module files
+    * @return populated, unvalidated {@link YangSchemaContext}
+    * @throws DocumentException   if the XML cannot be parsed
+    * @throws IOException         if a module file cannot be read
+    * @throws YangParserException if a YANG module is syntactically invalid
+    */
+   public static YangSchemaContext parseFromYangLibrary(File xmlFile, File yangSearchPath)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlFile, yangSearchPath);
+   }
+
+   public static YangSchemaContext parseFromYangLibrary(
+           File xmlFile, File yangSearchPath, LenientValidationOptions validationOptions)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlFile, yangSearchPath, validationOptions);
+   }
+
+   /**
+    * Load a {@link YangSchemaContext} from a YANG Library XML stream (RFC 8525)
+    * and a directory of YANG/YIN module files.
+    *
+    * @param xmlStream      RFC 8525 yang-library XML as a stream
+    * @param yangSearchPath directory containing the .yang/.yin module files
+    * @return populated, unvalidated {@link YangSchemaContext}
+    */
+   public static YangSchemaContext parseFromYangLibrary(InputStream xmlStream, File yangSearchPath)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlStream, yangSearchPath);
+   }
+
+   public static YangSchemaContext parseFromYangLibrary(
+           InputStream xmlStream, File yangSearchPath, LenientValidationOptions validationOptions)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlStream, yangSearchPath, validationOptions);
+   }
+
+   /**
+    * Convenience overload accepting path strings.
+    *
+    * @param xmlFilePath    path to the RFC 8525 yang-library XML file
+    * @param yangSearchPath path to the directory containing .yang/.yin files
+    * @return populated, unvalidated {@link YangSchemaContext}
+    */
+   public static YangSchemaContext parseFromYangLibrary(String xmlFilePath, String yangSearchPath)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlFilePath, yangSearchPath);
+   }
+
+   public static YangSchemaContext parseFromYangLibrary(
+           String xmlFilePath, String yangSearchPath, LenientValidationOptions validationOptions)
+           throws DocumentException, IOException, YangParserException {
+      return YangLibraryParser.parse(xmlFilePath, yangSearchPath, validationOptions);
+   }
+
+   // -------------------------------------------------------------------------
 
    /**
     * parse yang modules from a list of yang file
@@ -82,8 +153,15 @@ public class YangYinParser {
     */
 
    public static YangSchemaContext parse(File yangDir) throws IOException, YangParserException, DocumentException {
+      return parse(yangDir, LenientValidationOptions.STRICT);
+   }
+
+   public static YangSchemaContext parse(File yangDir, LenientValidationOptions validationOptions)
+           throws IOException, YangParserException, DocumentException {
       List<File> files = getYangFiles(yangDir);
-      return parse(files);
+      YangSchemaContext context = YangStatementRegister.getInstance().getSchemeContextInstance();
+      context.setValidationOptions(validationOptions);
+      return parse(files, context);
    }
 
    /**

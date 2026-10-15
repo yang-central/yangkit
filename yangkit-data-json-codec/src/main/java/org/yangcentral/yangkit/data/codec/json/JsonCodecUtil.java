@@ -552,11 +552,14 @@ public class JsonCodecUtil {
             recordBuilder.setErrorTag(record.getErrorTag());
             if(record.getErrorPath() != null && !record.getErrorPath().toString().isEmpty()) {
                 recordBuilder.setErrorPath(record.getErrorPath().toString());
-            }else {
+            }else{
                 recordBuilder.setErrorPath(extraValidationData.getJsonPath(tempJsonNode));
             }
             recordBuilder.setBadElement(tempJsonNode);
             recordBuilder.setErrorMessage(record.getErrorMsg());
+            // Preserve the severity and app tag recorded by the codec.
+            recordBuilder.setSeverity(record.getSeverity());
+            recordBuilder.setErrorAppTag(record.getErrorAppTag());
             validatorResultBuilderWithErrorPath.addRecord(recordBuilder.build());
         }
         return validatorResultBuilderWithErrorPath.build();
@@ -591,7 +594,11 @@ public class JsonCodecUtil {
             }
             QName qName = JsonCodecUtil.getQNameFromJsonField(fieldName,yangDataContainer);
             SchemaNode sonSchemaNode = schemaNodeContainer.getTreeNodeChild(qName);
-            if (sonSchemaNode == null || !sonSchemaNode.isActive()) {
+            // Strict by default: unknown and inactive (if-feature / deviation) elements are
+            // errors. In lenient mode inactive elements are accepted as-is (partial device
+            // data), unknown elements still error.
+            boolean sonInactive = sonSchemaNode != null && !sonSchemaNode.isActive();
+            if (sonSchemaNode == null || (sonInactive && !getValidationOptions(yangDataContainer).isEnabled())) {
                 ValidatorRecordBuilder<String, JsonNode> recordBuilder = new ValidatorRecordBuilder<>();
                 recordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
                 recordBuilder.setErrorPath(extraValidationData.getJsonPath(child));
@@ -599,6 +606,9 @@ public class JsonCodecUtil {
                 recordBuilder.setErrorMessage(new ErrorMessage(
                         "unrecognized element:" + fieldName));
                 validatorResultBuilder.addRecord(recordBuilder.build());
+                continue;
+            }
+            if (sonInactive) {
                 continue;
             }
 
@@ -621,6 +631,15 @@ public class JsonCodecUtil {
             }
         }
         return validatorResultBuilder.build();
+    }
+
+    private static org.yangcentral.yangkit.model.api.LenientValidationOptions getValidationOptions(
+            YangDataContainer yangDataContainer) {
+        if (yangDataContainer instanceof YangDataDocument) {
+            return ((YangDataDocument) yangDataContainer).getSchemaContext().getValidationOptions();
+        }
+        YangData<?> data = (YangData<?>) yangDataContainer;
+        return data.getSchemaNode().getContext().getSchemaContext().getValidationOptions();
     }
 
 

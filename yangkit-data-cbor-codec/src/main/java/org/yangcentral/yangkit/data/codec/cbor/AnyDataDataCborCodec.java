@@ -17,10 +17,9 @@
 package org.yangcentral.yangkit.data.codec.cbor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationContext;
-import org.yangcentral.yangkit.data.api.codec.AnydataValidationRequest;
 import org.yangcentral.yangkit.common.api.QName;
 import org.yangcentral.yangkit.common.api.validate.ValidatorResultBuilder;
+import org.yangcentral.yangkit.data.api.codec.AnydataValidationSupport;
 import org.yangcentral.yangkit.data.api.model.AnyDataData;
 import org.yangcentral.yangkit.data.api.model.YangDataDocument;
 import org.yangcentral.yangkit.data.codec.json.YangDataDocumentJsonCodec;
@@ -57,27 +56,34 @@ public class AnyDataDataCborCodec extends YangDataCborCodec<Anydata, AnyDataData
         if (document == null) {
             return JSON_MAPPER.createObjectNode();
         }
-        YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(getSchemaContext());
+        YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(document.getSchemaContext());
         return documentJsonCodec.serialize(document);
     }
 
     @Override
     protected AnyDataData buildData(JsonNode jsonNode, ValidatorResultBuilder validatorResultBuilder)
             throws YangDataCborCodecException {
-        YangSchemaContext payloadSchemaContext = getSchemaContext();
-        if (getAnydataValidationContextResolver() != null) {
-            AnydataValidationContext context = getAnydataValidationContextResolver().resolve(
-                    new AnydataValidationRequest(getSchemaNode(), getSourcePath(), getSchemaContext()));
-            if (context != null && context.getSchemaContext() != null) {
-                payloadSchemaContext = context.getSchemaContext();
-            }
+        AnyDataDataImpl anyDataData = new AnyDataDataImpl(getSchemaNode());
+        QName qName = getSchemaNode().getIdentifier();
+        anyDataData.setQName(qName);
+        if (!jsonNode.isObject()) {
+            AnydataValidationSupport.recordInvalidContent(
+                    getSchemaNode(), getSourcePath(), jsonNode,
+                    "CBOR content must decode to a map.", validatorResultBuilder);
+            return anyDataData;
+        }
+        if (jsonNode.isEmpty()) {
+            return anyDataData;
+        }
+        YangSchemaContext payloadSchemaContext = AnydataValidationSupport.resolveSchemaContext(
+                getSchemaNode(), getSourcePath(), getSchemaContext(),
+                getAnydataValidationContextResolver(), jsonNode, validatorResultBuilder);
+        if (payloadSchemaContext == null) {
+            return anyDataData;
         }
         YangDataDocumentJsonCodec documentJsonCodec = new YangDataDocumentJsonCodec(payloadSchemaContext);
         YangDataDocument dataDocument = documentJsonCodec.deserialize(jsonNode, validatorResultBuilder,
                 getAnydataValidationContextResolver());
-        AnyDataDataImpl anyDataData = new AnyDataDataImpl(getSchemaNode());
-        QName qName = getSchemaNode().getIdentifier();
-        anyDataData.setQName(qName);
         anyDataData.setValue(dataDocument);
         return anyDataData;
     }

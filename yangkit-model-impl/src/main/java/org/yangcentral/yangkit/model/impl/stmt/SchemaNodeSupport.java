@@ -27,6 +27,8 @@ import org.yangcentral.yangkit.model.impl.schema.AbsoluteSchemaPath;
  * SchemaNode (a role/contract) no longer sits in the ontology inheritance
  * chain.  Classes that implement SchemaNode compose this class instead of
  * extending SchemaNodeImpl.
+ * Owners must delegate buildSelf as well as SchemaNode methods so that
+ * SCHEMA_TREE assigns their absolute paths.
  */
 public class SchemaNodeSupport {
    private final SchemaNode owner;
@@ -192,14 +194,14 @@ public class SchemaNodeSupport {
       SchemaNodeContainer schemaNodeParent = schemaNode.getParentSchemaNode();
       if (!(schemaNodeParent instanceof SchemaNode)) {
          SchemaPath.Absolute path = new AbsoluteSchemaPath();
-         path.addStep(owner.getIdentifier());
+         path.addStep(schemaNode.getIdentifier());
          return path;
       }
 
       SchemaNode parentSchemaNode = getRealSchemaNode((SchemaNode) schemaNodeParent);
       if (null == parentSchemaNode) {
          SchemaPath.Absolute path = new AbsoluteSchemaPath();
-         path.addStep(owner.getIdentifier());
+         path.addStep(schemaNode.getIdentifier());
          return path;
       }
       SchemaPath parentSchemaPath = parentSchemaNode.getSchemaPath();
@@ -207,7 +209,7 @@ public class SchemaNodeSupport {
          parentSchemaPath = getSchemaPath(parentSchemaNode);
       }
       SchemaPath.Absolute path = new AbsoluteSchemaPath(parentSchemaPath.getPath());
-      path.addStep(owner.getIdentifier());
+      path.addStep(schemaNode.getIdentifier());
       return path;
    }
 

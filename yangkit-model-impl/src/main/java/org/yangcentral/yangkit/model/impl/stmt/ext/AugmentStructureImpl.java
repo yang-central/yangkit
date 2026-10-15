@@ -239,6 +239,7 @@ public class AugmentStructureImpl extends EntityImpl implements AugmentStructure
 
     protected ValidatorResult buildSelf(BuildPhase phase) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
+        validatorResultBuilder.merge(schemaNodeSupport.buildSelf(phase));
         Iterator<SchemaNode> iterator;
         SchemaNode child;
         switch (phase) {
@@ -421,4 +422,3 @@ public class AugmentStructureImpl extends EntityImpl implements AugmentStructure
     @Override
     public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
-

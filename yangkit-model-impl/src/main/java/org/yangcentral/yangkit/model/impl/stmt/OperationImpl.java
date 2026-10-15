@@ -244,6 +244,7 @@ public abstract class OperationImpl extends EntityImpl implements Operation {
 
     protected ValidatorResult buildSelf(BuildPhase phase) {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
+        validatorResultBuilder.merge(schemaNodeSupport.buildSelf(phase));
         switch (phase) {
             case SCHEMA_BUILD:
                 //this.setSchemaTreeType(SchemaTreeType.RPCTREE);
@@ -255,8 +256,8 @@ public abstract class OperationImpl extends EntityImpl implements Operation {
                     input.setElementPosition(this.getElementPosition());
                     input.setParentStatement(this);
                     input.init();
-                    input.build();
-                    this.schemaNodeContainer.addSchemaNodeChild(input);
+                    validatorResultBuilder.merge(this.schemaNodeContainer.addSchemaNodeChild(input));
+                    validatorResultBuilder.merge(input.build());
                 }
 
                 if (this.output != null) {
@@ -267,8 +268,8 @@ public abstract class OperationImpl extends EntityImpl implements Operation {
                     output.setElementPosition(this.getElementPosition());
                     output.setParentStatement(this);
                     output.init();
-                    output.build();
-                    this.schemaNodeContainer.addSchemaNodeChild(output);
+                    validatorResultBuilder.merge(this.schemaNodeContainer.addSchemaNodeChild(output));
+                    validatorResultBuilder.merge(output.build());
                 }
             default:
                 return validatorResultBuilder.build();
@@ -335,4 +336,3 @@ public abstract class OperationImpl extends EntityImpl implements Operation {
     @Override
     public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
-

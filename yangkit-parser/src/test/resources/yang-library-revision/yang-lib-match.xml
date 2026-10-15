@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yang-library xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-library">
+  <content-id>test-revision-match</content-id>
+  <module-set>
+    <name>default</name>
+    <module>
+      <name>test-rev</name>
+      <revision>2024-01-01</revision>
+      <namespace>urn:test:rev</namespace>
+      <location>file://REPLACE_WITH_MODULES_DIR/test-rev@2024-01-01.yang</location>
+    </module>
+  </module-set>
+</yang-library>

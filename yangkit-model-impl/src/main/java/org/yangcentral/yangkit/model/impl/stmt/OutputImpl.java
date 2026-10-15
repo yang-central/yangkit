@@ -251,6 +251,7 @@ public class OutputImpl extends EntityImpl implements Output {
 
    protected ValidatorResult buildSelf(BuildPhase phase) {
       ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder(super.buildSelf(phase));
+      validatorResultBuilder.merge(schemaNodeSupport.buildSelf(phase));
       if (Objects.requireNonNull(phase) == BuildPhase.SCHEMA_BUILD) {
          for (DataDefinition dataDefinition : this.getDataDefChildren()) {
             validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
@@ -336,4 +337,3 @@ public class OutputImpl extends EntityImpl implements Output {
     @Override
     public org.yangcentral.yangkit.model.api.stmt.SchemaNodeContainer getSchemaTreeRoot() { return schemaNodeSupport.getSchemaTreeRoot(); }
 }
-

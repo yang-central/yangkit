@@ -6,7 +6,40 @@ module payload-anydata {
   container payload-root {
     leaf value {
       type string;
+      mandatory true;
+      must ". = 'abc'";
     }
+
+    list item {
+      key "id";
+      unique "details/name";
+      min-elements 1;
+      max-elements 2;
+
+      leaf id {
+        type string;
+      }
+
+      leaf name {
+        type string;
+        mandatory true;
+      }
+      container details {
+        leaf name {
+          type string;
+        }
+      }
+    }
+
+    leaf target {
+      type string;
+    }
+
+    leaf selected-target {
+      type leafref {
+        path "../target";
+      }
+    }
+
   }
 }
-

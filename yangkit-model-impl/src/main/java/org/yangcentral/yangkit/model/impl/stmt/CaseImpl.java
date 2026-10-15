@@ -193,7 +193,8 @@ public class CaseImpl extends DataDefinitionImpl implements Case {
       switch (phase) {
          case SCHEMA_BUILD:
             for (DataDefinition dataDefinition : this.getDataDefChildren()) {
-               if (dataDefinition.evaluateFeatures()) {
+               if (dataDefinition.evaluateFeatures()
+                       || getContext().getSchemaContext().getValidationOptions().isEnabled()) {
                   validatorResultBuilder.merge(this.addSchemaNodeChild(dataDefinition));
                }
             }

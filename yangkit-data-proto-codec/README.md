@@ -159,7 +159,12 @@ Typical behavior:
 - outer protobuf message identifies the `anydata` schema node
 - embedded JSON payload is read from the generated wrapper message
 - payload schema is resolved by rule, schema-node registration, or default context
-- if no context matches, the `anydata` node still exists but its payload may have zero recognized children
+- if no context matches, parsing falls back to the enclosing document schema (unknown nodes are not preserved);
+  `new AnydataValidationOptions().requirePayloadSchema(true)` instead leaves the payload unset and records
+  `operation-failed`
+- validating the enclosing data tree recursively validates the parsed payload document
+- JSON string, number, boolean, null, and array text in the wrapper `value` produces `BAD_ELEMENT`
+- an empty wrapper value or JSON empty object represents empty `anydata`
 
 ### Naming Conventions
 
