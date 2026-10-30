@@ -35,7 +35,7 @@ YangKit is a YANG modeling language toolkit with implemented and tested support 
 
 ### Version Information
 
-- **Current Version**: 1.6.0
+- **Current Version**: 1.7.0
 - **Java Version**: Java 8+
 - **Build Tool**: Maven 3.6+
 - **License**: Apache License 2.0
@@ -63,44 +63,44 @@ Add the following dependencies to your `pom.xml`:
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-parser</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-model-api</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-model-impl</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 
 <!-- Data codecs (choose as needed) -->
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-json-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-xml-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-proto-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-cbor-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -979,6 +979,16 @@ Closes #123
 
 ### C. Version History
 
+#### v1.7.0 (2026)
+- ✨ YANG Library integration for loading and matching modules by revision
+- ✨ Explicit `LenientValidationOptions` API with strict validation as the default
+- ✨ Strict anydata validation with a shared validation context across codecs
+- 🔧 XML codec list-key reuse and recursive child deserialization cleanup
+- 🐛 Fixed unique-constraint validation when schema paths are null
+- 🔧 Deferred identity `base` resolution during schema build
+- ✨ YANG structure JSON message parsing
+- 📝 Expanded tests and CI coverage
+
 #### v1.6.0 (2024)
 - 🔧 Fixed XML codec type validation issues
 - 📝 Improved test coverage for all codecs
@@ -1001,5 +1011,5 @@ Closes #123
 
 ---
 
-*Last updated: March 28, 2024*
+*Last updated: October 30, 2026*
 

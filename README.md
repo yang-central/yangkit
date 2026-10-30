@@ -35,7 +35,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-parser</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -44,7 +44,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-model-api</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -53,7 +53,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-model-impl</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -62,7 +62,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-xpath-api</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -71,7 +71,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-xpath-impl</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -80,7 +80,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-api</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -89,7 +89,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-impl</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -98,7 +98,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-json-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -107,7 +107,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-xml-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -116,7 +116,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-proto-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -125,7 +125,7 @@ mvn clean install
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-cbor-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -140,6 +140,19 @@ mvn clean install
   - XML encoding/decoding with tested RFC 7950 Section 8 scenarios
   - Protocol Buffers encoding/decoding
   - CBOR encoding/decoding with tested RFC 9254 coverage for core scenarios - NEW in 1.5.0
+
+### 🆕 New in Version 1.7.0
+Version 1.7.0 includes new features, fixes, and improvements:
+
+- ✨ YANG Library integration for loading and matching modules by revision
+- ✨ Explicit `LenientValidationOptions` API with strict validation as the default
+- ✨ Strict anydata validation with a shared validation context across XML, JSON, Protocol Buffers, and CBOR codecs
+- 🔧 XML codec: reuse parsed list keys during child traversal and centralize recursive child deserialization
+- 🐛 Fixed unique-constraint validation when schema paths are null
+- 🔧 Deferred identity `base` resolution during schema build (null-safe derived checks)
+- ✨ YANG structure JSON message parsing (single-decode, unknown-member errors)
+- 📝 Expanded tests and CI coverage for the above
+
 
 ### 🆕 New in Version 1.6.0
 Version 1.6.0 includes bug fixes and improvements:

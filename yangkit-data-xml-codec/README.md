@@ -21,7 +21,7 @@ It is suitable for RFC 7950-style YANG instance documents and is also the curren
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-xml-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
