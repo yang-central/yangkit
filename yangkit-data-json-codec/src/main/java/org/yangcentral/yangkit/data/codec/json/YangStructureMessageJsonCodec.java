@@ -69,26 +69,20 @@ public abstract class YangStructureMessageJsonCodec<T extends YangStructureMessa
         while (fields.hasNext()){
             String field = fields.next();
             JsonNode fieldNode = structureNode.get(field);
-            //check the field name according to structure
             QName qName = JsonCodecUtil.getQNameFromJsonField(field,yangStructureData);
             if(qName == null) {
-                ValidatorRecordBuilder<String,JsonNode> validatorRecordBuilder = new ValidatorRecordBuilder<>();
-                validatorRecordBuilder.setBadElement(fieldNode);
-                validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
-                validatorRecordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(fieldNode));
-                validatorRecordBuilder.setErrorMessage(new ErrorMessage("unrecognized field:"+ field));
-                builder.addRecord(validatorRecordBuilder.build());
                 continue;
             }
-            SchemaNode dataNode = structure.getTreeNodeChild(qName);
-            if(dataNode != null) {
-                builder.merge(JsonCodecUtil.buildChildData(
-                        yangStructureData,
-                        fieldNode,
-                        dataNode,
-                        new ExtraValidationDataJsonCodec(),
-                        getAnydataValidationContextResolver()));
+            SchemaNode dataNode = structure.getSchemaNodeChild(qName);
+            if(dataNode == null) {
+                continue;
             }
+            builder.merge(JsonCodecUtil.buildChildData(
+                    yangStructureData,
+                    fieldNode,
+                    dataNode,
+                    new ExtraValidationDataJsonCodec(),
+                    getAnydataValidationContextResolver()));
         }
         return instance;
     }

@@ -44,6 +44,12 @@ public class NotificationMessageJsonCodec extends YangStructureMessageJsonCodec<
             QName qName = JsonCodecUtil.getQNameFromJsonField(field,
                     (YangDataContainer) m.getStructureData().getDataChildren().get(0));
             if(qName == null) {
+                ValidatorRecordBuilder<String,JsonNode> validatorRecordBuilder = new ValidatorRecordBuilder<>();
+                validatorRecordBuilder.setBadElement(fieldNode);
+                validatorRecordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
+                validatorRecordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(fieldNode));
+                validatorRecordBuilder.setErrorMessage(new ErrorMessage("unrecognized field:"+ field));
+                builder.addRecord(validatorRecordBuilder.build());
                 continue;
             }
             SchemaNode schemaNode = getStructure().getTreeNodeChild(qName);
@@ -54,9 +60,9 @@ public class NotificationMessageJsonCodec extends YangStructureMessageJsonCodec<
             if(!(contentSchemaNode instanceof Notification)) {
                 ValidatorRecordBuilder<String,JsonNode> validatorRecordBuilder = new ValidatorRecordBuilder<>();
                 validatorRecordBuilder.setBadElement(fieldNode);
-                validatorRecordBuilder.setErrorTag(ErrorTag.BAD_ELEMENT);
+                validatorRecordBuilder.setErrorTag(ErrorTag.UNKNOWN_ELEMENT);
                 validatorRecordBuilder.setErrorPath(JsonCodecUtil.getJsonPath(fieldNode));
-                validatorRecordBuilder.setErrorMessage(new ErrorMessage("wrong data, it should be notification data"));
+                validatorRecordBuilder.setErrorMessage(new ErrorMessage("unrecognized field:"+ field));
                 builder.addRecord(validatorRecordBuilder.build());
                 continue;
             }
@@ -68,7 +74,6 @@ public class NotificationMessageJsonCodec extends YangStructureMessageJsonCodec<
                     new ExtraValidationDataJsonCodec(),
                     getAnydataValidationContextResolver()));
             m.setBody(body);
-            return;
         }
 
     }
