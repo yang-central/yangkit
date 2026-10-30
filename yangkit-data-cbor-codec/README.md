@@ -51,7 +51,7 @@ Add this dependency to your Maven project:
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-cbor-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 

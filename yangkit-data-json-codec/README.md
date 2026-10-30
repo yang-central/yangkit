@@ -20,7 +20,7 @@ It is typically used together with `yangkit-data-api`, `yangkit-data-impl`, and 
 <dependency>
     <groupId>io.github.yang-central.yangkit</groupId>
     <artifactId>yangkit-data-json-codec</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
