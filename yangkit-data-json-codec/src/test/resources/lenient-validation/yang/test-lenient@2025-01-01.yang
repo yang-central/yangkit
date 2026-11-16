@@ -26,6 +26,12 @@ module test-lenient {
     base mode-base;
   }
 
+  identity alternate-mode-base;
+
+  identity transceiver-mode {
+    base mode-base;
+  }
+
   container root {
     description "root";
 
@@ -36,6 +42,20 @@ module test-lenient {
     leaf mode {
       type identityref {
         base mode-base;
+      }
+    }
+
+    leaf sub-class {
+      type identityref {
+        base mode-base;
+        base alternate-mode-base;
+      }
+    }
+
+    leaf alarm-state {
+      type bits {
+        bit unknown;
+        bit critical;
       }
     }
 

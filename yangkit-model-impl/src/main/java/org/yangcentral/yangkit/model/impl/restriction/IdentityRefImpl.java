@@ -57,18 +57,12 @@ public class IdentityRefImpl extends RestrictionImpl<QName> implements IdentityR
          } else if (this.bases.size() == 0) {
             return this.getDerived().getType().getRestriction().evaluate(value);
          } else {
-            Iterator baseIterator = this.bases.iterator();
-
-            Identity baseIdentity;
-            do {
-               if (!baseIterator.hasNext()) {
+            for (Base base : this.bases) {
+               Identity baseIdentity = base.getIdentity();
+               if (baseIdentity != null && identity.isDerivedOrSelf(baseIdentity)) {
                   return true;
                }
-
-               Base base = (Base)baseIterator.next();
-               baseIdentity = base.getIdentity();
-            } while(null == baseIdentity || identity.isDerivedOrSelf(baseIdentity));
-
+            }
             return false;
          }
       }

@@ -26,6 +26,48 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class YangLibraryRevisionMatchTest {
 
+    @Test
+    public void advertisedSubmodulesAreLoadedAndInheritEnabledFeatures() throws Exception {
+    Path tmp = Files.createTempDirectory("yanglib-submodule");
+    try {
+        Files.write(tmp.resolve("parent@2024-01-01.yang"),
+            ("module parent { yang-version 1.1; namespace urn:parent; prefix p; "
+                + "include child { revision-date 2024-01-01; } "
+                + "revision 2024-01-01; feature enabled; }")
+                .getBytes(StandardCharsets.UTF_8));
+        Files.write(tmp.resolve("child@2024-01-01.yang"),
+            ("submodule child { yang-version 1.1; belongs-to parent { prefix p; } "
+                + "revision 2024-01-01; leaf sample { if-feature enabled; type string; } }")
+                .getBytes(StandardCharsets.UTF_8));
+        String xml = "<yang-library xmlns=\"urn:ietf:params:xml:ns:yang:ietf-yang-library\">"
+            + "<module-set><name>test</name><module><name>parent</name>"
+            + "<revision>2024-01-01</revision><namespace>urn:parent</namespace>"
+            + "<feature>enabled</feature><submodule><name>child</name>"
+            + "<revision>2024-01-01</revision></submodule></module>"
+            + "</module-set><content-id>test</content-id></yang-library>";
+        Path library = tmp.resolve("yang-lib.xml");
+        Files.write(library, xml.getBytes(StandardCharsets.UTF_8));
+        YangSchemaContext context = YangLibraryParser.parse(library.toFile(), tmp.toFile());
+        assertTrue(context.getModule("child", "2024-01-01").isPresent());
+        assertTrue(context.validate().isOk());
+        assertTrue(context.getLatestModule("parent").get().getSchemaNodeChildren().stream()
+            .filter(node -> "sample".equals(node.getArgStr()))
+            .anyMatch(node -> node.isActive()));
+        assertTrue(context.getYangSchema().getModuleSets().get(0).getModules().get(0)
+            .getSubModules().contains(new org.yangcentral.yangkit.model.api.schema.ModuleId(
+                "child", "2024-01-01")));
+        Files.write(library, xml.replace("<feature>enabled</feature>", "")
+            .getBytes(StandardCharsets.UTF_8));
+        YangSchemaContext disabled = YangLibraryParser.parse(library.toFile(), tmp.toFile());
+        assertTrue(disabled.validate().isOk());
+        assertTrue(disabled.getLatestModule("parent").get().getSchemaNodeChildren().stream()
+            .filter(node -> "sample".equals(node.getArgStr()))
+            .noneMatch(node -> node.isActive()));
+    } finally {
+        deleteRecursively(tmp);
+    }
+    }
+
     private File fixtureDir() {
         URL dir = YangLibraryRevisionMatchTest.class.getClassLoader()
                 .getResource("yang-library-revision");

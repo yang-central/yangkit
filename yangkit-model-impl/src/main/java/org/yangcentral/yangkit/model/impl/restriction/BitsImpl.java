@@ -131,29 +131,29 @@ public class BitsImpl extends RestrictionImpl<List<String>> implements Bits {
    }
 
    public boolean evaluate(List<String> value) {
-      if (null != value && value.size() != 0) {
-         if (this.bits.size() > 0) {
-            Iterator iterator = value.iterator();
-
-            Bit bit;
-            do {
-               if (!iterator.hasNext()) {
-                  return true;
-               }
-
-               String str = (String)iterator.next();
-               bit = this.getBit(str);
-            } while(bit != null);
-
-            return false;
-         } else {
-            return this.getDerived() != null ? this.getDerived().getType().getRestriction().evaluate(value) : false;
-         }
+      if (value == null) {
+         return false;
       }
-      if(getDerived() != null) {
-         return getDerived().getType().getRestriction().evaluate(value);
+      if (value.isEmpty()) {
+         return true;
       }
-      return false;
+      if (this.bits.size() > 0) {
+         Iterator iterator = value.iterator();
+
+         Bit bit;
+         do {
+            if (!iterator.hasNext()) {
+               return true;
+            }
+
+            String str = (String)iterator.next();
+            bit = this.getBit(str);
+         } while(bit != null);
+
+         return false;
+      } else {
+         return this.getDerived() != null && this.getDerived().getType().getRestriction().evaluate(value);
+      }
    }
 
    public List<Bit> getEffectiveBits() {

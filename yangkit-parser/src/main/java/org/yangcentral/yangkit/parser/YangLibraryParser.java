@@ -197,6 +197,7 @@ public class YangLibraryParser {
         List<String> features   = new ArrayList<>();
         List<String> deviations = new ArrayList<>();
         List<String> locations  = new ArrayList<>();
+        List<ParsedModule> submodules = new ArrayList<>();
 
         for (Object obj : elem.elements()) {
             Element child = (Element) obj;
@@ -210,11 +211,14 @@ public class YangLibraryParser {
                 case "location":
                     locations.add(child.getTextTrim());
                     break;
+                case "submodule":
+                    submodules.add(parseModuleEntry(child));
+                    break;
                 default:
                     break;
             }
         }
-        return new ParsedModule(name, revision, features, deviations, locations);
+        return new ParsedModule(name, revision, features, deviations, locations, submodules);
     }
 
     /** Returns trimmed text of the first matching child element, or {@code null}. */
@@ -247,11 +251,17 @@ public class YangLibraryParser {
                 for (String deviation : m.deviations) {
                     desc.addDeviation(deviation);
                 }
+                for (ParsedModule submodule : m.submodules) {
+                    desc.addSubModule(new ModuleId(submodule.name, submodule.revision));
+                }
                 moduleSet.addModule(desc);
             }
             for (ParsedModule m : ms.importOnlyModules) {
                 YangModuleDescription desc =
                         new YangModuleDescription(new ModuleId(m.name, m.revision));
+                for (ParsedModule submodule : m.submodules) {
+                    desc.addSubModule(new ModuleId(submodule.name, submodule.revision));
+                }
                 moduleSet.addImportOnlyModule(desc);
             }
             yangSchema.addModuleSet(moduleSet);
@@ -266,6 +276,10 @@ public class YangLibraryParser {
     private static void loadModule(ParsedModule m, boolean importOnly,
                                    File searchPath, YangSchemaContext context)
             throws IOException, YangParserException, DocumentException {
+
+        for (ParsedModule submodule : m.submodules) {
+            loadModule(submodule, importOnly, searchPath, context);
+        }
 
         // Try explicit file:// locations listed in the yang-library XML first.
         for (String location : m.locations) {
@@ -379,15 +393,17 @@ public class YangLibraryParser {
         final List<String> features;
         final List<String> deviations;
         final List<String> locations;
+        final List<ParsedModule> submodules;
 
         ParsedModule(String name, String revision,
                      List<String> features, List<String> deviations,
-                     List<String> locations) {
+                     List<String> locations, List<ParsedModule> submodules) {
             this.name = name;
             this.revision = revision;
             this.features = features;
             this.deviations = deviations;
             this.locations = locations;
+            this.submodules = submodules;
         }
     }
 }

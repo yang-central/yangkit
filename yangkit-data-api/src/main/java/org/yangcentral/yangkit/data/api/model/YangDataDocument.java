@@ -9,6 +9,16 @@ public interface YangDataDocument extends YangDataContainer,YangDataEntity<YangD
 
    boolean onlyConfig();
 
+   default String getPartialDataFilter() {
+      return null;
+   }
+
+   default void setPartialDataFilter(String filter) {
+      if (filter != null) {
+         throw new UnsupportedOperationException("Filtered partial-data validation is not supported");
+      }
+   }
+
    String getDocString();
 
    String[] getModulesStrings();
