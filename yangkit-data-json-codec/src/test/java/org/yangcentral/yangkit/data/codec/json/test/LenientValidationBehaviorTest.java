@@ -130,6 +130,23 @@ public class LenientValidationBehaviorTest {
                 "invalid identityref must still be reported in lenient mode: " + lenient);
     }
 
+    @Test
+    public void emptyBitsValue_isValid() throws Exception {
+        ValidatorResult result = parse("{\"test-lenient:root\":{\"alarm-state\":\"\"}}", false);
+
+        assertTrue(isOk(result), "an empty bits value means no bits are set: " + result);
+    }
+
+    @Test
+    public void identityrefValueMayDeriveFromAnyDeclaredBase() throws Exception {
+        ValidatorResult result =
+                parse("{\"test-lenient:root\":{\"sub-class\":\"test-lenient:transceiver-mode\"}}", false);
+
+        assertTrue(
+                isOk(result),
+                "an identityref value need only derive from one of its declared bases: " + result);
+    }
+
     // ------------------------------------------------------------------
     // inactive node (if-feature disabled via YANG Library)
     // ------------------------------------------------------------------

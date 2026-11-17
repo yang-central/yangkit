@@ -23,6 +23,7 @@ public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument
     private String[] modulesString;
 
     private boolean onlyConfig;
+    private String partialDataFilter;
 
     public YangDataDocumentImpl(QName qName,YangSchemaContext yangDataContainer) {
         super(qName);
@@ -50,6 +51,16 @@ public class YangDataDocumentImpl extends YangAbstractDataEntry<YangDataDocument
     @Override
     public boolean onlyConfig() {
         return onlyConfig;
+    }
+
+    @Override
+    public String getPartialDataFilter() {
+        return partialDataFilter;
+    }
+
+    @Override
+    public void setPartialDataFilter(String filter) {
+        partialDataFilter = filter;
     }
 
 

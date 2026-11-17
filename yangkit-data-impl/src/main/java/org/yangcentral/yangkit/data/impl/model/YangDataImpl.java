@@ -160,6 +160,11 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
         Object contextNode = YangDataUtil.getXpathContextData(this);
         try {
             YangXPath yangXPath = when.getXPathExpression();
+            if (getPartialDataFilter() != null
+                    && hasMissingDependencies(yangXPath.getRootExpr(), yangXPath, contextNode)) {
+                validatingWhen = false;
+                return true;
+            }
             Object result = yangXPath.evaluate(contextNode, YangContextSupport.EvaluateType.NEST);
             Boolean bool = YangDataUtil.getXPathBooleanValue(result);
             validatingWhen = false;
@@ -198,7 +203,13 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
 
             YangXPath yangDataXPath = mustDefinition.getXPathExpression();
             try {
-                Object result = yangDataXPath.evaluate(YangDataUtil.getXpathContextData(this));
+                Object contextNode = YangDataUtil.getXpathContextData(this);
+                if (getPartialDataFilter() != null
+                        && hasMissingDependencies(
+                                yangDataXPath.getRootExpr(), yangDataXPath, contextNode)) {
+                    continue;
+                }
+                Object result = yangDataXPath.evaluate(contextNode);
                 Boolean bool = YangDataUtil.getXPathBooleanValue(result);
                 if (!bool) {
                     yangDataXPath.evaluate(YangDataUtil.getXpathContextData(this));
@@ -244,9 +255,18 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
 
             YangXPath yangDataXPath = leafRef.getEffectivePath()
                     .getXPathExpression();
-            Object result = yangDataXPath.evaluate(YangDataUtil.getXpathContextData(this));
+                Object contextNode = YangDataUtil.getXpathContextData(this);
+                Object result = yangDataXPath.evaluate(contextNode);
             List<YangData<?>> nodeSet = (List<YangData<?>>) result;
+                if (nodeSet.isEmpty()
+                    && getPartialDataFilter() != null
+                    && hasMissingDependencies(yangDataXPath.getRootExpr(), yangDataXPath, contextNode)) {
+                return validatorResultBuilder.build();
+            }
             boolean findMatched = findValueMatched(nodeSet, (TypedData<?,?>) this);
+            if (!findMatched && refersOutsideNotification(leafRef)) {
+                return validatorResultBuilder.build();
+            }
             if (!findMatched) {
                 ValidatorRecordBuilder<AbsolutePath, YangData<?>> validatorRecordBuilder =
                         new ValidatorRecordBuilder<>();
@@ -271,6 +291,92 @@ public abstract class YangDataImpl<S extends SchemaNode> extends YangAbstractDat
             validatorResultBuilder.addRecord(record);
         }
         return validatorResultBuilder.build();
+    }
+
+    // RFC 7950 6.4.1: notification leafrefs may target the server datastore, which is not in the message
+    private boolean refersOutsideNotification(LeafRef leafRef) {
+        SchemaNode notification = findEnclosingNotification(getSchemaNode());
+        if (notification == null) {
+            return false;
+        }
+        SchemaNode target = leafRef.getReferencedNode();
+        if (target == null) {
+            return true;
+        }
+        return notification != target && findEnclosingNotification(target) != notification;
+    }
+
+    private static SchemaNode findEnclosingNotification(SchemaNode node) {
+        SchemaNode current = node;
+        while (current != null) {
+            if (current instanceof Notification) {
+                return current;
+            }
+            SchemaNodeContainer parent = current.getParentSchemaNode();
+            current = parent instanceof SchemaNode ? (SchemaNode) parent : null;
+        }
+        return null;
+    }
+
+    private String getPartialDataFilter() {
+        YangDataDocument document = getContext().getDocument();
+        return document == null ? null : document.getPartialDataFilter();
+    }
+
+    private boolean hasMissingDependencies(
+            org.jaxen.expr.Expr expression, YangXPath source, Object contextNode)
+            throws JaxenException {
+        DependencyStatus status = getDependencyStatus(expression, source, contextNode);
+        return status.locationPathCount > 0
+                && status.missingLocationPathCount == status.locationPathCount;
+    }
+
+    private DependencyStatus getDependencyStatus(
+            org.jaxen.expr.Expr expression, YangXPath source, Object contextNode)
+            throws JaxenException {
+        if (expression instanceof org.jaxen.expr.LocationPath) {
+            YangXPath dependency =
+                    new org.yangcentral.yangkit.xpath.impl.YangXPathImpl(expression.getText());
+            dependency.setXPathContext(source.getXPathContext());
+            Object value = dependency.evaluate(contextNode, YangContextSupport.EvaluateType.NEST);
+            int missing = value instanceof List && ((List<?>) value).isEmpty() ? 1 : 0;
+            return new DependencyStatus(1, missing);
+        }
+        if (expression instanceof org.jaxen.expr.BinaryExpr) {
+            org.jaxen.expr.BinaryExpr binary = (org.jaxen.expr.BinaryExpr) expression;
+            return getDependencyStatus(binary.getLHS(), source, contextNode)
+                    .merge(getDependencyStatus(binary.getRHS(), source, contextNode));
+        }
+        if (expression instanceof org.jaxen.expr.FunctionCallExpr) {
+            DependencyStatus status = new DependencyStatus(0, 0);
+            for (Object parameter :
+                    ((org.jaxen.expr.FunctionCallExpr) expression).getParameters()) {
+                status = status.merge(
+                        getDependencyStatus((org.jaxen.expr.Expr) parameter, source, contextNode));
+            }
+            return status;
+        }
+        if (expression instanceof org.jaxen.expr.UnaryExpr) {
+            return getDependencyStatus(
+                    ((org.jaxen.expr.UnaryExpr) expression).getExpr(), source, contextNode);
+        }
+        return new DependencyStatus(0, 0);
+    }
+
+    private static final class DependencyStatus {
+        private final int locationPathCount;
+        private final int missingLocationPathCount;
+
+        private DependencyStatus(int locationPathCount, int missingLocationPathCount) {
+            this.locationPathCount = locationPathCount;
+            this.missingLocationPathCount = missingLocationPathCount;
+        }
+
+        private DependencyStatus merge(DependencyStatus other) {
+            return new DependencyStatus(
+                    locationPathCount + other.locationPathCount,
+                    missingLocationPathCount + other.missingLocationPathCount);
+        }
     }
 
     @Override

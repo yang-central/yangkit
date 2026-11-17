@@ -2,6 +2,9 @@ package org.yangcentral.yangkit.data.impl.model;
 
 import com.google.common.collect.Lists;
 import org.jaxen.JaxenException;
+import org.jaxen.expr.LocationPath;
+import org.jaxen.expr.NameStep;
+import org.yangcentral.yangkit.xpath.impl.YangXPathImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yangcentral.yangkit.common.api.AbsolutePath;
@@ -33,6 +36,17 @@ public class YangAbstractDataContainer implements YangDataContainer {
     private Map<DataIdentifier,YangData<?>> children = new ConcurrentHashMap<>();
 
     private List<YangData<?>> childrenList = new ArrayList<>();
+    private static final Map<String, List<FilterPathStep>> FILTER_PATH_CACHE = new ConcurrentHashMap<>();
+
+    private static final class FilterPathStep {
+        private final String prefix;
+        private final String localName;
+
+        private FilterPathStep(String prefix, String localName) {
+            this.prefix = prefix;
+            this.localName = localName;
+        }
+    }
 
 
     public YangAbstractDataContainer(YangDataContainer yangDataContainer) {
@@ -518,6 +532,11 @@ public class YangAbstractDataContainer implements YangDataContainer {
         ValidatorResultBuilder validatorResultBuilder = new ValidatorResultBuilder();
         if(schemaNode.isMandatory()){
             if(matchedData.isEmpty()){
+                String partialDataFilter = getPartialDataFilter();
+                if (partialDataFilter != null
+                        && !isWithinPartialSelection(schemaNode, partialDataFilter)) {
+                    return validatorResultBuilder.build();
+                }
                 //if have when condition, valuate this when condition,if true, report error
                 YangData<?> dummyNode = new YangDataBuilder().getYangData(schemaNode,null);
                 dummyNode.setDummyNode(true);
@@ -556,7 +575,11 @@ public class YangAbstractDataContainer implements YangDataContainer {
                     }
 
                     int size = matchedData.size();
-                    if(size < minElements || size > maxElements){
+                        String partialDataFilter = getPartialDataFilter();
+                        boolean minimumApplies =
+                            partialDataFilter == null
+                                || isWithinPartialSelection(schemaNode, partialDataFilter);
+                        if((minimumApplies && size < minElements) || size > maxElements){
                         ValidatorRecordBuilder<AbsolutePath,YangData<?>> validatorRecordBuilder =
                                 new ValidatorRecordBuilder<>();
                         validatorRecordBuilder.setErrorTag(ErrorTag.OPERATION_FAILED);
@@ -578,6 +601,135 @@ public class YangAbstractDataContainer implements YangDataContainer {
             }
         }
         return validatorResultBuilder.build();
+    }
+
+    private String getPartialDataFilter() {
+        YangDataDocument document =
+                self instanceof YangDataDocument
+                        ? (YangDataDocument) self
+                        : self instanceof YangData
+                                ? ((YangData<?>) self).getContext().getDocument()
+                                : null;
+        return document == null ? null : document.getPartialDataFilter();
+    }
+
+    private boolean isWithinPartialSelection(SchemaNode schemaNode, String filter) {
+        List<FilterPathStep> filterSteps =
+                FILTER_PATH_CACHE.computeIfAbsent(filter, YangAbstractDataContainer::parseFilterPath);
+        if (filterSteps.isEmpty()) {
+            return false;
+        }
+        List<QName> schemaPath = getEffectiveSchemaPath(schemaNode);
+        if (schemaPath.isEmpty()) {
+            return false;
+        }
+        org.yangcentral.yangkit.model.api.schema.YangSchemaContext schemaContext =
+                schemaNode.getContext().getSchemaContext();
+        List<String> namespaces = new ArrayList<>();
+        String currentNamespace = null;
+        for (FilterPathStep step : filterSteps) {
+            if (step.prefix != null && !step.prefix.isEmpty()) {
+                currentNamespace = resolvePrefixNamespace(step.prefix, schemaContext);
+            }
+            if (currentNamespace == null) {
+                return false;
+            }
+            namespaces.add(currentNamespace);
+        }
+        for (int offset = 0; offset + filterSteps.size() <= schemaPath.size(); offset++) {
+            boolean matches = true;
+            for (int index = 0; index < filterSteps.size(); index++) {
+                QName qName = schemaPath.get(offset + index);
+                if (!filterSteps.get(index).localName.equals(qName.getLocalName())
+                        || !namespaces.get(index).equals(qName.getNamespace().toString())) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<QName> getEffectiveSchemaPath(SchemaNode schemaNode) {
+        if (schemaNode instanceof Augment) {
+            SchemaPath targetPath = ((Augment) schemaNode).getTargetPath();
+            return targetPath != null && targetPath.isAbsolute()
+                    ? targetPath.getPath()
+                    : Collections.emptyList();
+        }
+        try {
+            SchemaPath.Absolute schemaPath = schemaNode.getSchemaPath();
+            if (schemaPath != null) {
+                return schemaPath.getPath();
+            }
+        } catch (IllegalArgumentException e) {
+            if (!"un-support".equals(e.getMessage())) {
+                throw e;
+            }
+        }
+
+        SchemaNodeContainer parent = schemaNode.getParentSchemaNode();
+        List<QName> parentPath;
+        if (parent instanceof Augment) {
+            SchemaPath targetPath = ((Augment) parent).getTargetPath();
+            if (targetPath == null || !targetPath.isAbsolute()) {
+                return Collections.emptyList();
+            }
+            parentPath = targetPath.getPath();
+        } else if (parent instanceof SchemaNode) {
+            parentPath = getEffectiveSchemaPath((SchemaNode) parent);
+        } else {
+            return Collections.emptyList();
+        }
+        if (parentPath.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<QName> effectivePath = new ArrayList<>(parentPath);
+        effectivePath.add(schemaNode.getIdentifier());
+        return effectivePath;
+    }
+
+    private static List<FilterPathStep> parseFilterPath(String filter) {
+        try {
+            Object expression = new YangXPathImpl(filter).getRootExpr();
+            if (!(expression instanceof LocationPath)
+                    || !((LocationPath) expression).isAbsolute()) {
+                return Collections.emptyList();
+            }
+            List<FilterPathStep> steps = new ArrayList<>();
+            for (Object step : ((LocationPath) expression).getSteps()) {
+                if (!(step instanceof NameStep)
+                        || ((NameStep) step).getAxis() != org.jaxen.saxpath.Axis.CHILD) {
+                    return Collections.emptyList();
+                }
+                NameStep nameStep = (NameStep) step;
+                steps.add(new FilterPathStep(nameStep.getPrefix(), nameStep.getLocalName()));
+            }
+            return steps;
+        } catch (JaxenException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private static String resolvePrefixNamespace(
+            String prefix, org.yangcentral.yangkit.model.api.schema.YangSchemaContext schemaContext) {
+        for (org.yangcentral.yangkit.model.api.stmt.Module module : schemaContext.getModules()) {
+            if (prefix.equals(module.getModuleId().getModuleName())) {
+                return module.getMainModule().getNamespace().getUri().toString();
+            }
+            org.yangcentral.yangkit.model.api.schema.ModuleId imported = module.getPrefixes().get(prefix);
+            if (imported != null) {
+                org.yangcentral.yangkit.model.api.stmt.Module importedModule =
+                    schemaContext.getModule(imported).orElse(null);
+                if (importedModule != null && importedModule.getMainModule() != null) {
+                    return importedModule.getMainModule().getNamespace().getUri().toString();
+                }
+            }
+        }
+        return null;
     }
 
     @Override
